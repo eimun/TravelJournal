@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "TravelJournal",
+    "slug": "TravelJournal",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "traveljournal",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f5ead8",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f5ead8"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.eimun.traveljournal"
+    },
+    "android": {
+      "package": "com.eimun.traveljournal",
+      "versionCode": 1,
+      "minSdkVersion": 30,
+      "adaptiveIcon": {
+        "backgroundColor": "#f5ead8",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-font", "expo-splash-screen"]
+  }
+}
