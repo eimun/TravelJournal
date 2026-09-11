@@ -31,6 +31,7 @@ export default function CompassMascot({ kind = 'rain', animate = true }) {
   // tj-bob 3.4s and tj-needle 2.6s, both ease-in-out.
   const bob = useSwing(1700, animate);
   const needle = useSwing(1300, animate);
+  const gear = gearFor(kind);
 
   const translateY = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
   const rotate = bob.interpolate({ inputRange: [0, 1], outputRange: ['-3deg', '3deg'] });
@@ -60,10 +61,7 @@ export default function CompassMascot({ kind = 'rain', animate = true }) {
 
       <View style={[styles.blush, styles.blushLeft]} />
       <View style={[styles.blush, styles.blushRight]} />
-
-      {/* The scarf's knotted tail hangs behind the band, so it reads as a scarf. */}
-      {kind === 'mist' ? <View style={styles.scarfTail} /> : null}
-      <View style={[styles.gear, gearFor(kind)]} />
+      {gear ? <View style={[styles.gear, gear]} /> : null}
     </Animated.View>
   );
 }
@@ -72,7 +70,7 @@ const styles = StyleSheet.create({
   wrap: {
     width: SIZE,
     height: SIZE,
-    // Hoods and the scarf overhang the head.
+    // Hoods overhang the head.
     overflow: 'visible',
   },
   shade: {
@@ -158,18 +156,6 @@ const styles = StyleSheet.create({
   },
   blushLeft: { left: 14 },
   blushRight: { right: 14 },
-  scarfTail: {
-    position: 'absolute',
-    left: 40,
-    bottom: -17,
-    width: 11,
-    height: 17,
-    borderRadius: 5,
-    backgroundColor: colors.accentRamp[500],
-    borderBottomWidth: 3,
-    borderBottomColor: colors.accentRamp[700],
-    transform: [{ rotate: '14deg' }],
-  },
   gear: {
     position: 'absolute',
   },

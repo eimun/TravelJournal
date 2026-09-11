@@ -46,7 +46,7 @@ export function paletteFor(kind) {
 /**
  * What the mascot wears, exactly as the canvas draws it: a band across the brow
  * in the sun (it reads as sunglasses), a hood in the rain, a heavier dark hood
- * in a storm, a scarf in the cold. Each `inset 0 -Npx 0` shadow on the canvas is
+ * in a storm, and nothing in the cold. Each `inset 0 -Npx 0` shadow on the canvas is
  * a bottom border here.
  */
 export const MASCOT_GEAR = {
@@ -80,19 +80,11 @@ export const MASCOT_GEAR = {
     borderBottomWidth: 5,
     borderBottomColor: colors.neutral[900],
   },
-  mist: {
-    left: 8,
-    bottom: -6,
-    width: 50,
-    height: 16,
-    borderRadius: 999,
-    backgroundColor: colors.accentRamp[500],
-    borderBottomWidth: 4,
-    borderBottomColor: colors.accentRamp[700],
-  },
 };
 
+/** Cool weather wears nothing: the mist and the card already say it. */
 export function gearFor(kind) {
+  if (kind === 'mist') return null;
   return MASCOT_GEAR[kind] ?? MASCOT_GEAR.rain;
 }
 
