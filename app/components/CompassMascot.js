@@ -7,18 +7,21 @@ import { useSwing } from './motion';
 const SIZE = 66;
 /** The canvas's `box-shadow: inset 0 -6px 0` — the darker crescent under the head. */
 const SHADE = 6;
+/** The compass needle: a slim diamond on the forehead, pivoting about its middle. */
+const NEEDLE = { w: 10, half: 11, top: 5 };
 
 /**
- * The compass mascot, drawn element-for-element from the design canvas.
+ * The compass mascot, drawn from the design canvas.
  *
  * Head: a round blob whose bottom 6 px is a darker sage crescent that follows the
- * curve. That crescent is an inset shadow on the canvas; here it is the face
- * circle sitting 6 px up inside a darker circle that clips it. (A bottom border
- * on an asymmetric radius — the earlier approach — draws a lopsided flat wedge
- * and makes the head look square.)
+ * curve — the face circle sitting 6 px up inside a darker circle that clips it.
  *
- * Needle: `polygon(50% 0, 100% 100%, 0 100%)` — apex up, pivoting about its base.
- * A `borderBottomWidth` triangle already points up, so it is never rotated 180°.
+ * Needle: a real compass needle — orange north half, cream south half, a pivot
+ * dot — on the forehead, above the eyes, swinging about its centre. The canvas
+ * draws a single triangle whose base sits between the eyes; with no hood on
+ * (cool and clear weather) that reads as a nose, not a needle. On the forehead
+ * it stays a needle, and under the rain and storm hoods it is fully covered
+ * instead of poking out below the brim.
  *
  * Blush: true ellipses (a circle squashed vertically), not rounded bars.
  *
@@ -46,16 +49,20 @@ export default function CompassMascot({ kind = 'rain', animate = true }) {
         <View style={styles.face} />
       </View>
 
+      <Animated.View style={[styles.needleWrap, { transform: [{ rotate: needleRotate }] }]}>
+        <View style={styles.needleNorth} />
+        <View style={styles.needleSouth} />
+        <View style={styles.pivot} />
+      </Animated.View>
+
       <View style={[styles.eye, styles.eyeLeft]} />
       <View style={[styles.eye, styles.eyeRight]} />
-
-      <Animated.View style={[styles.needleWrap, { transform: [{ rotate: needleRotate }] }]}>
-        <View style={styles.needle} />
-      </Animated.View>
 
       <View style={[styles.blush, styles.blushLeft]} />
       <View style={[styles.blush, styles.blushRight]} />
 
+      {/* The scarf's knotted tail hangs behind the band, so it reads as a scarf. */}
+      {kind === 'mist' ? <View style={styles.scarfTail} /> : null}
       <View style={[styles.gear, gearFor(kind)]} />
     </Animated.View>
   );
@@ -65,7 +72,7 @@ const styles = StyleSheet.create({
   wrap: {
     width: SIZE,
     height: SIZE,
-    // Hoods overhang the head on every side.
+    // Hoods and the scarf overhang the head.
     overflow: 'visible',
   },
   shade: {
@@ -87,6 +94,46 @@ const styles = StyleSheet.create({
     borderRadius: SIZE / 2,
     backgroundColor: colors.accent2Ramp[400],
   },
+  needleWrap: {
+    position: 'absolute',
+    left: SIZE / 2 - NEEDLE.w / 2,
+    top: NEEDLE.top,
+    width: NEEDLE.w,
+    height: NEEDLE.half * 2,
+    alignItems: 'center',
+    // A compass needle turns about its middle.
+    transformOrigin: '50% 50%',
+  },
+  // Both halves are border triangles: bottom border points up, top border down.
+  needleNorth: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: NEEDLE.w / 2,
+    borderRightWidth: NEEDLE.w / 2,
+    borderBottomWidth: NEEDLE.half,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: colors.accentRamp[500],
+  },
+  needleSouth: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: NEEDLE.w / 2,
+    borderRightWidth: NEEDLE.w / 2,
+    borderTopWidth: NEEDLE.half,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: colors.neutral[100],
+  },
+  pivot: {
+    position: 'absolute',
+    top: NEEDLE.half - 2,
+    left: NEEDLE.w / 2 - 2,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.accentRamp[800],
+  },
   eye: {
     position: 'absolute',
     top: 26,
@@ -97,26 +144,6 @@ const styles = StyleSheet.create({
   },
   eyeLeft: { left: 16 },
   eyeRight: { right: 16 },
-  needleWrap: {
-    position: 'absolute',
-    left: SIZE / 2 - 7,
-    top: 8,
-    width: 14,
-    height: 22,
-    alignItems: 'center',
-    // Pivot about the base, the way a compass needle turns.
-    transformOrigin: '50% 100%',
-  },
-  needle: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 7,
-    borderRightWidth: 7,
-    borderBottomWidth: 22,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: colors.accentRamp[500],
-  },
   // A 12×12 circle squashed to 12×6, centred where the canvas's 12×6 ellipse
   // sits (bottom: 12).
   blush: {
@@ -131,6 +158,18 @@ const styles = StyleSheet.create({
   },
   blushLeft: { left: 14 },
   blushRight: { right: 14 },
+  scarfTail: {
+    position: 'absolute',
+    left: 40,
+    bottom: -17,
+    width: 11,
+    height: 17,
+    borderRadius: 5,
+    backgroundColor: colors.accentRamp[500],
+    borderBottomWidth: 3,
+    borderBottomColor: colors.accentRamp[700],
+    transform: [{ rotate: '14deg' }],
+  },
   gear: {
     position: 'absolute',
   },
