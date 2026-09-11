@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadow, space, type } from '../theme/tokens';
+import { colors, radius, shadow } from '../theme/tokens';
 import { family } from '../theme/fonts';
+import { useSwing } from './motion';
 
+/** Badge per state, as the canvas styles `row.badge`. The word is the state itself. */
 const BADGE = {
-  done: { label: 'Walked', bg: colors.neutral[200], fg: colors.neutral[700] },
-  next: { label: 'Next', bg: colors.accentRamp[500], fg: colors.white },
-  clash: { label: 'Clash', bg: colors.accentRamp[200], fg: colors.accentRamp[800] },
+  done: { bg: colors.neutral[200], fg: colors.neutral[700] },
+  next: { bg: colors.accentRamp[500], fg: colors.white },
+  clash: { bg: colors.accentRamp[200], fg: colors.accentRamp[800] },
 };
 
-const DOT_TINT = {
+const DOT = {
   done: colors.neutral[400],
   next: colors.accentRamp[500],
   clash: colors.accentRamp[700],
@@ -19,36 +20,14 @@ const DOT_TINT = {
 function Row({ activity, onPress }) {
   const { state } = activity;
   const badge = BADGE[state] ?? BADGE.done;
-  const [swell] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    if (state !== 'next') return undefined;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(swell, {
-          toValue: 1,
-          duration: 800,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(swell, {
-          toValue: 0,
-          duration: 800,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [state, swell]);
-
-  const scale = swell.interpolate({ inputRange: [0, 1], outputRange: [1, 1.3] });
+  // tj-swell 1.6s on the next stop's dot.
+  const swell = useSwing(800, state === 'next');
+  const scale = swell.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] });
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${activity.name}. ${activity.meta}. ${badge.label}.`}
+      accessibilityLabel={`${activity.name}. ${activity.meta}. ${state}.`}
       onPress={() => onPress?.(activity)}
       style={({ pressed }) => [
         styles.row,
@@ -58,11 +37,7 @@ function Row({ activity, onPress }) {
       ]}
     >
       <Animated.View
-        style={[
-          styles.dot,
-          { backgroundColor: DOT_TINT[state] ?? colors.neutral[400] },
-          state === 'next' && { transform: [{ scale }] },
-        ]}
+        style={[styles.dot, { backgroundColor: DOT[state] ?? DOT.done, transform: [{ scale }] }]}
       />
 
       <View style={styles.copy}>
@@ -75,8 +50,8 @@ function Row({ activity, onPress }) {
       </View>
 
       <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-        <Text style={[styles.badgeText, { color: badge.fg, fontFamily: family('bodyExtraBold') }]}>
-          {badge.label}
+        <Text style={[styles.badgeText, { color: badge.fg, fontFamily: family('bodyBold') }]}>
+          {state.toUpperCase()}
         </Text>
       </View>
     </Pressable>
@@ -84,9 +59,9 @@ function Row({ activity, onPress }) {
 }
 
 /**
- * Today's timeline — US-006. Activities that have already passed are dimmed
- * rather than hidden, and the state is carried by the badge text as well as the
- * colour so nothing depends on colour alone (PRD 8.6).
+ * Today's timeline — US-006. Passed stops are dimmed rather than hidden, and the
+ * state is spelled out in the badge as well as tinted, so nothing depends on
+ * colour alone (PRD 8.6).
  */
 export default function TodayList({ activities, onSelect }) {
   return (
@@ -100,12 +75,12 @@ export default function TodayList({ activities, onSelect }) {
 
 const styles = StyleSheet.create({
   list: {
-    gap: space[2],
+    gap: 9,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[3],
+    gap: 12,
     backgroundColor: colors.neutral[100],
     borderRadius: radius.md,
     paddingVertical: 13,
@@ -117,12 +92,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentRamp[100],
     borderWidth: 2,
     borderColor: colors.accentRamp[400],
+    paddingVertical: 11,
+    paddingHorizontal: 12,
   },
   rowDone: {
     opacity: 0.55,
   },
   rowPressed: {
-    backgroundColor: colors.neutral[200],
+    transform: [{ scale: 0.99 }],
   },
   dot: {
     width: 12,
@@ -134,13 +111,14 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
-    ...type.body,
+    fontSize: 14.5,
+    lineHeight: 18,
     color: colors.text,
   },
   meta: {
-    ...type.meta,
+    fontSize: 12,
     color: colors.neutral[600],
-    marginTop: 1,
+    marginTop: 3,
   },
   badge: {
     borderRadius: radius.pill,
@@ -148,8 +126,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
   },
   badgeText: {
-    fontSize: 10,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    fontSize: 10.5,
+    letterSpacing: 0.84,
   },
 });

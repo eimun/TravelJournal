@@ -1,93 +1,73 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 
-import { colors, type } from '../theme/tokens';
+import { colors, radius, shadow } from '../theme/tokens';
 import { family } from '../theme/fonts';
 import { formatInr } from '../../src/domain/format';
-import { Kicker } from './primitives';
 
-const SIZE = 108;
-const DOT = 7;
-const DOT_COUNT = 36;
+const RING = 52;
+const STROKE = 7;
+const R = (RING - STROKE) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * R;
 
 /**
- * Remaining budget as a ring of dots.
+ * The budget card from the canvas: a donut filled to the share still left,
+ * the percentage in its middle, and the amount beside it.
  *
- * The dots are deliberate: the trail's connectors are dotted too, so progress
- * reads the same way everywhere in the app — a number of steps taken, not a bar
- * that filled. Over budget flips the ring to the deep terracotta step rather
- * than blocking anything (PRD 8.4).
+ * The canvas paints the donut with `conic-gradient(accent-500 N%, neutral-300 0)`
+ * behind a 7 px inset — which is exactly a 7 px stroked ring starting at 12
+ * o'clock, so that is how it is drawn here. Over budget empties the ring and
+ * says so, without blocking anything (PRD 8.4).
  */
 export default function BudgetRing({ budget, spent }) {
   const remaining = budget - spent;
-  const ratio = budget > 0 ? remaining / budget : 0;
   const overBudget = remaining < 0;
-  const lit = Math.max(0, Math.min(DOT_COUNT, Math.round(ratio * DOT_COUNT)));
-
-  const [sweep] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    const animation = Animated.timing(sweep, {
-      toValue: 1,
-      duration: 900,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-    animation.start();
-    return () => animation.stop();
-  }, [sweep]);
-
-  const dots = useMemo(() => {
-    const radius = (SIZE - DOT) / 2;
-    return Array.from({ length: DOT_COUNT }, (_, i) => {
-      // Start at 12 o'clock and run clockwise, the way a spend gauge is read.
-      const angle = (i / DOT_COUNT) * Math.PI * 2 - Math.PI / 2;
-      return {
-        key: i,
-        x: SIZE / 2 + radius * Math.cos(angle) - DOT / 2,
-        y: SIZE / 2 + radius * Math.sin(angle) - DOT / 2,
-      };
-    });
-  }, []);
-
-  const litTint = overBudget ? colors.accentRamp[700] : colors.accent2Ramp[500];
+  const pct = budget > 0 ? Math.max(0, Math.round((remaining / budget) * 100)) : 0;
 
   return (
-    <View style={styles.wrap}>
-      <View
-        style={styles.ring}
-        accessible
-        accessibilityRole="progressbar"
-        accessibilityLabel={`Budget left ${formatInr(remaining)} of ${formatInr(budget)}`}
-      >
-        {dots.map((dot, i) => {
-          const isLit = i < lit;
-          const threshold = i / DOT_COUNT;
-          const opacity = isLit
-            ? sweep.interpolate({
-                inputRange: [Math.max(0, threshold - 0.05), Math.min(1, threshold + 0.001)],
-                outputRange: [0.25, 1],
-                extrapolate: 'clamp',
-              })
-            : 1;
+    <View
+      style={styles.card}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={
+        overBudget
+          ? `Over budget by ${formatInr(-remaining)}`
+          : `Budget left ${formatInr(remaining)} of ${formatInr(budget)}, ${pct} percent`
+      }
+    >
+      <Text style={[styles.kicker, { fontFamily: family('bodyBold') }]}>
+        {overBudget ? 'OVER BUDGET' : 'BUDGET LEFT'}
+      </Text>
 
-          return (
-            <Animated.View
-              key={dot.key}
-              style={[
-                styles.dot,
-                {
-                  left: dot.x,
-                  top: dot.y,
-                  backgroundColor: isLit ? litTint : colors.neutral[300],
-                  opacity,
-                },
-              ]}
+      <View style={styles.row}>
+        <View style={styles.ring}>
+          <Svg width={RING} height={RING}>
+            <Circle
+              cx={RING / 2}
+              cy={RING / 2}
+              r={R}
+              stroke={colors.neutral[300]}
+              strokeWidth={STROKE}
+              fill="none"
             />
-          );
-        })}
+            <Circle
+              cx={RING / 2}
+              cy={RING / 2}
+              r={R}
+              stroke={colors.accentRamp[500]}
+              strokeWidth={STROKE}
+              fill="none"
+              strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+              strokeDashoffset={CIRCUMFERENCE * (1 - pct / 100)}
+              transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
+            />
+          </Svg>
+          <View style={styles.ringCenter}>
+            <Text style={[styles.pct, { fontFamily: family('bodyBold') }]}>{`${pct}%`}</Text>
+          </View>
+        </View>
 
-        <View style={styles.center}>
+        <View style={styles.copy}>
           <Text
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -100,53 +80,55 @@ export default function BudgetRing({ budget, spent }) {
           </Text>
         </View>
       </View>
-
-      <Kicker tone={overBudget ? 'accent' : 'accent2'} style={styles.caption}>
-        {overBudget ? 'Over budget' : 'Budget left'}
-      </Kicker>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  card: {
+    flex: 1,
+    borderRadius: radius.md,
+    backgroundColor: colors.neutral[100],
+    padding: 14,
+    ...shadow.sm,
+  },
+  kicker: {
+    fontSize: 11.5,
+    letterSpacing: 1.15,
+    color: colors.neutral[600],
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 11,
   },
   ring: {
-    width: SIZE,
-    height: SIZE,
-    position: 'relative',
+    width: RING,
+    height: RING,
   },
-  dot: {
-    position: 'absolute',
-    width: DOT,
-    height: DOT,
-    borderRadius: DOT / 2,
-  },
-  center: {
-    position: 'absolute',
-    left: DOT + 4,
-    right: DOT + 4,
-    top: 0,
-    bottom: 0,
+  ringCenter: {
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pct: {
+    fontSize: 11.5,
+    color: colors.text,
+  },
+  copy: {
+    flex: 1,
+    minWidth: 0,
+  },
   amount: {
     fontSize: 19,
+    lineHeight: 24,
     color: colors.text,
     includeFontPadding: false,
-    textAlign: 'center',
   },
   of: {
-    ...type.meta,
-    fontSize: 11,
+    fontSize: 11.5,
     color: colors.neutral[600],
     marginTop: 2,
-    textAlign: 'center',
-  },
-  caption: {
-    textAlign: 'center',
   },
 });

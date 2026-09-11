@@ -116,9 +116,11 @@ export const fontFamily = {
 };
 
 export const type = {
-  display: { fontSize: 30, lineHeight: 34 },
-  title: { fontSize: 22, lineHeight: 26 },
-  section: { fontSize: 17, lineHeight: 22 },
+  // Caprasimo is a tall display face — these line heights carry its ascenders and
+  // descenders. Tightening them clips a wrapped second line on Android.
+  display: { fontSize: 30, lineHeight: 40 },
+  title: { fontSize: 22, lineHeight: 30 },
+  section: { fontSize: 17, lineHeight: 23 },
   body: { fontSize: 14, lineHeight: 20 },
   meta: { fontSize: 12.5, lineHeight: 17 },
   /** Uppercase eyebrow labels — always paired with letterSpacing. */

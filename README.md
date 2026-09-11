@@ -39,19 +39,22 @@ TravelJournal keeps the whole trip in one Android app — itinerary, saved place
 
 ## Status
 
-Early build. The app shell and the **Home screen — the first page — are implemented**; the remaining four tabs render an honest empty state naming the branch that will fill them.
+Early build. **All five tabs from the design canvas are implemented** — Home, Trail, Map, Journal and You — driven by one shared trip state and one cached weather reading. They render from a local fixture until the SQLite layer lands.
 
-| Area                                                                                                                      | State     | Lands on                    |
-| ------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------- |
-| App shell, five-tab navigation, Organic theme                                                                             | **Built** | `feat/F-12-app-shell-home`  |
-| Home: greeting, cached weather, next-activity countdown, budget ring, today's timeline, the animated trail, packing quest | **Built** | `feat/F-12-app-shell-home`  |
-| SQLite schema, migrations, repositories                                                                                   | Planned   | `feat/F-08-sqlite`          |
-| Trips: create, edit, archive, delete, day sheets                                                                          | Planned   | `feat/F-02-trip-management` |
-| Map, place search, saved places, day routes                                                                               | Planned   | `feat/F-04-map-places`      |
-| Photo journal and documents store                                                                                         | Planned   | `feat/F-07-photo-journal`   |
-| Login, profile, storage and permissions                                                                                   | Planned   | `feat/F-01-login-profile`   |
+| Area                                                                                                                                    | State                  | Lands on                    |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------- |
+| App shell, five-tab navigation, Organic theme, design icon set                                                                          | **Built**              | `feat/F-12-app-shell-home`  |
+| Home: greeting, compass mascot, next-activity countdown, budget donut, tappable cached weather, today's timeline                         | **Built**              | `feat/F-12-app-shell-home`  |
+| Weather mood: clear / rain / storm / cool re-derive the ground, sky band, ambient layer, mascot gear, advisory, trail flag, packing list | **Built**              | `feat/F-12-app-shell-home`  |
+| Trail: animated day stones, day sheets, packing side quest                                                                              | **Built** (fixture)    | `feat/F-12-app-shell-home`  |
+| Map, Journal and You screens                                                                                                            | **Built** (fixture)    | `feat/F-12-app-shell-home`  |
+| SQLite schema, migrations, repositories                                                                                                 | Planned                | `feat/F-08-sqlite`          |
+| Trips: create, edit, archive, delete                                                                                                    | Planned                | `feat/F-02-trip-management` |
+| Real map (react-native-maps), place search, day routes                                                                                  | Planned                | `feat/F-04-map-places`      |
+| Photo capture and documents store                                                                                                       | Planned                | `feat/F-07-photo-journal`   |
+| Login, PIN, permissions                                                                                                                 | Planned                | `feat/F-01-login-profile`   |
 
-Home currently renders from a fixture in `app/data/sampleTrip.js`. That fixture is shaped **exactly** like the SQLite rows in [Data model](#data-model), so swapping it for the repository layer is a one-line change in the screen rather than a rewrite.
+The screens render from a fixture in `app/data/sampleTrip.js`. That fixture is shaped **exactly** like the SQLite rows in [Data model](#data-model), so swapping it for the repository layer is a one-line change per screen rather than a rewrite. The map is a drawn, cached stand-in until `react-native-maps` arrives.
 
 ---
 
@@ -61,9 +64,9 @@ Gamified-learning apps work because progress is _a place_: one lit node, everyth
 
 Three things follow from that, and they are visible on the first page:
 
-- **The trail draws itself.** On mount, the dotted connectors light up from the first stone onward, so 2-of-8 reads as distance covered, not a bar that filled. Today's stone is larger and hops on a loop; walked days are sage, days ahead are neutral.
-- **Progress is dotted everywhere.** The budget ring is a ring of dots, using the same visual grammar as the trail's connectors, so "how much is left" and "how far have I come" are read the same way.
-- **Offline is a normal state, not an error.** The header carries a sage `Offline · 2h ago` dot rather than a red warning, and cached values are labelled with the time they were fetched.
+- **The trail draws itself.** On mount, the dashed path lights up from the first stone onward, so 2-of-8 reads as distance covered, not a bar that filled. Today's stone is larger, hops, and pulses inside a ring; walked days are sage, days ahead are quiet.
+- **Weather drives the UI.** Tap the cached weather card to cycle clear → rain → storm → cool. The ground tint, the sky band, the ambient layer (sun rays, falling rain, lightning flicker, drifting mist), the mascot's gear, the next-up advisory, the trail's risk flag and the whole packing quest all re-derive from that one cached reading.
+- **Offline is a normal state, not an error.** The header carries a quiet `Offline · 2h ago` chip rather than a red warning, and cached values are labelled as cached.
 
 Every animation respects the OS **reduce-motion** setting and falls back to the finished state.
 

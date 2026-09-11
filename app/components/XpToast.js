@@ -1,52 +1,37 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, Platform, StatusBar, StyleSheet } from 'react-native';
 
-import { colors, radius, space } from '../theme/tokens';
+import { colors } from '../theme/tokens';
 import { family } from '../theme/fonts';
 
+const statusBarInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
 /**
- * A short reward acknowledgement — the payout half of the side quest.
+ * The reward as the canvas shows it (`tj-rise`, 1.1 s): big display-face words
+ * that pop up, rise and fade over the content — no pill, no panel.
  *
- * Returns the toast element plus the `fire` function that shows it, so a screen
- * can reward an action without owning any animation state itself.
+ * Driven by a `{ text, at }` object so the same reward fired twice in a row still
+ * replays: the timestamp changes even when the words do not.
  */
-export function useXpToast() {
-  const [message, setMessage] = useState(null);
-  const [anim] = useState(() => new Animated.Value(0));
-  const timer = useRef(null);
+export default function XpToast({ toast, onDone }) {
+  const [t] = useState(() => new Animated.Value(0));
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    if (!toast) return undefined;
+    t.setValue(0);
+    const animation = Animated.timing(t, {
+      toValue: 1,
+      duration: 1100,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    });
+    animation.start(({ finished }) => {
+      if (finished) onDone?.();
+    });
+    return () => animation.stop();
+  }, [toast, t, onDone]);
 
-  const fire = useCallback(
-    (text) => {
-      setMessage(text);
-      Animated.sequence([
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 180,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.delay(900),
-        Animated.timing(anim, {
-          toValue: 0,
-          duration: 220,
-          easing: Easing.in(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      clearTimeout(timer.current);
-      timer.current = setTimeout(() => setMessage(null), 1400);
-    },
-    [anim],
-  );
-
-  return { message, anim, fire };
-}
-
-export default function XpToast({ message, anim }) {
-  if (!message) return null;
+  if (!toast) return null;
 
   return (
     <Animated.View
@@ -55,14 +40,17 @@ export default function XpToast({ message, anim }) {
       style={[
         styles.wrap,
         {
-          opacity: anim,
+          opacity: t.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0, 1, 0] }),
           transform: [
-            { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },
+            { translateY: t.interpolate({ inputRange: [0, 0.25, 1], outputRange: [6, -10, -46] }) },
+            { scale: t.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.9, 1, 1] }) },
           ],
         },
       ]}
     >
-      <Text style={[styles.text, { fontFamily: family('bodyExtraBold') }]}>{message}</Text>
+      <Animated.Text style={[styles.text, { fontFamily: family('heading') }]}>
+        {toast.text}
+      </Animated.Text>
     </Animated.View>
   );
 }
@@ -72,17 +60,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: space[8],
+    top: statusBarInset + 132,
     alignItems: 'center',
   },
   text: {
-    backgroundColor: colors.neutral[900],
-    color: colors.white,
-    fontSize: 13,
-    letterSpacing: 0.3,
-    borderRadius: radius.pill,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    overflow: 'hidden',
+    fontSize: 26,
+    lineHeight: 34,
+    color: colors.accent2Ramp[700],
+    includeFontPadding: false,
+    textAlign: 'center',
   },
 });

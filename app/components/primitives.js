@@ -13,7 +13,7 @@ export function Card({ style, children, ...rest }) {
 }
 
 /** The uppercase eyebrow that titles almost every block in this design. */
-export function Kicker({ children, tone = 'neutral', style }) {
+export function Kicker({ children, tone = 'neutral', style, ...rest }) {
   const tint =
     tone === 'accent'
       ? colors.accentRamp[700]
@@ -22,7 +22,10 @@ export function Kicker({ children, tone = 'neutral', style }) {
         : colors.neutral[600];
 
   return (
-    <Text style={[styles.kicker, { color: tint, fontFamily: family('bodyExtraBold') }, style]}>
+    <Text
+      style={[styles.kicker, { color: tint, fontFamily: family('bodyExtraBold') }, style]}
+      {...rest}
+    >
       {children}
     </Text>
   );

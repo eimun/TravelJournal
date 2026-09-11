@@ -1,47 +1,46 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, space, type } from '../theme/tokens';
+import { colors, radius } from '../theme/tokens';
 import { family } from '../theme/fonts';
-import { DOT_SIZE, STONE_DEPTH, buildTrailGeometry, nodeDepth, nodeFill } from './trailGeometry';
+import { paletteFor } from '../theme/weatherPalette';
+import {
+  DASH,
+  DOT_SIZE,
+  PITCH,
+  STONE_DEPTH,
+  buildTrailGeometry,
+  nodeDepth,
+  nodeFill,
+} from './trailGeometry';
+import { useLoop, useReduceMotion } from './motion';
+
+const LABEL_GAP = 14;
 
 /**
- * The trail draws itself once on mount: dots light up from the first stone
- * onward, so progress reads as a place you have walked to rather than a bar that
- * filled up. Honours the OS "reduce motion" setting.
+ * The trail — one stone per day sheet, joined by dashed paths, as the canvas
+ * draws it: walked days sage with a tick, today larger and hopping inside a
+ * pulsing ring, days ahead quiet.
+ *
+ * On mount the path draws itself from the first stone onward, so progress reads
+ * as distance covered. Honours the OS reduce-motion setting.
  */
-export default function AnimatedTrail({ days, onSelectDay }) {
+export default function AnimatedTrail({ days, onSelectDay, flaggedIndex, flagText, flagKind }) {
+  const palette = paletteFor(flagKind);
   const { stones, dots, height } = useMemo(() => buildTrailGeometry(days), [days]);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = useReduceMotion();
 
   const [draw] = useState(() => new Animated.Value(0));
-  const [hop] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((on) => {
-      if (alive) setReduceMotion(on);
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => {
-      alive = false;
-      sub?.remove?.();
-    };
-  }, []);
+  // tj-hop 2.4 s and tj-ring 1.9 s from the canvas.
+  const hop = useLoop(2400, { enabled: !reduceMotion });
+  const ring = useLoop(1900, { enabled: !reduceMotion });
 
   useEffect(() => {
     if (reduceMotion) {
       draw.setValue(1);
       return undefined;
     }
+    draw.setValue(0);
     const animation = Animated.timing(draw, {
       toValue: 1,
       duration: 1600,
@@ -52,34 +51,8 @@ export default function AnimatedTrail({ days, onSelectDay }) {
     return () => animation.stop();
   }, [draw, reduceMotion]);
 
-  useEffect(() => {
-    if (reduceMotion) {
-      hop.setValue(0);
-      return undefined;
-    }
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(hop, {
-          toValue: 1,
-          duration: 720,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(hop, {
-          toValue: 0,
-          duration: 900,
-          easing: Easing.bounce,
-          useNativeDriver: true,
-        }),
-        Animated.delay(780),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [hop, reduceMotion]);
-
-  // Each element claims a slice of the 0..1 draw progress based on how far along
-  // the trail it sits, which is what staggers the reveal.
+  const last = Math.max(1, stones.length - 1);
+  // Each element claims a slice of the draw based on how far along it sits.
   const revealAt = (fraction) =>
     draw.interpolate({
       inputRange: [Math.max(0, fraction - 0.12), Math.min(1, fraction + 0.001)],
@@ -87,25 +60,32 @@ export default function AnimatedTrail({ days, onSelectDay }) {
       extrapolate: 'clamp',
     });
 
-  const hopOffset = hop.interpolate({ inputRange: [0, 1], outputRange: [0, -9] });
+  // tj-hop: up 9 at 30 %, down by 55 %, a small 3 px bounce at 70 %.
+  const hopY = hop.interpolate({
+    inputRange: [0, 0.3, 0.55, 0.7, 1],
+    outputRange: [0, -9, 0, -3, 0],
+  });
+  // tj-ring: grows from .85 to 1.5 while fading out, then rests.
+  const ringScale = ring.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.85, 1.5, 1.5] });
+  const ringOpacity = ring.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.65, 0, 0] });
 
   return (
     <View style={[styles.canvas, { height }]}>
       {dots.map((dot) => {
-        const progress = revealAt(dot.segment / Math.max(1, stones.length - 1));
+        const progress = revealAt(dot.segment / last);
         return (
           <Animated.View
             key={dot.key}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
             style={[
-              styles.dot,
+              styles.dash,
               {
-                left: dot.x,
-                top: dot.y,
+                left: dot.x + (DOT_SIZE - DASH.w) / 2,
+                top: dot.y + (DOT_SIZE - DASH.h) / 2,
                 backgroundColor: dot.tint,
                 opacity: progress,
-                transform: [{ scale: progress }],
+                transform: [{ rotate: `${dot.angle}deg` }, { scale: progress }],
               },
             ]}
           />
@@ -113,91 +93,129 @@ export default function AnimatedTrail({ days, onSelectDay }) {
       })}
 
       {stones.map((stone) => {
-        const progress = revealAt(stone.index / Math.max(1, stones.length - 1));
+        const progress = revealAt(stone.index / last);
         const isNow = stone.state === 'now';
+        const todo = stone.state === 'todo';
         const glyph = stone.state === 'done' ? '✓' : String(stone.index + 1);
         const stateWord = stone.state === 'done' ? 'walked' : isNow ? 'today' : 'still ahead';
+        const flagged = stone.index === flaggedIndex && Boolean(flagText);
+        const ringSize = stone.size + 12;
 
         return (
-          <Animated.View
-            key={stone.date}
-            style={[
-              styles.row,
-              {
-                top: stone.top,
-                left: stone.left,
-                opacity: progress,
-                transform: [{ scale: progress }, ...(isNow ? [{ translateY: hopOffset }] : [])],
-              },
-            ]}
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${stone.date}, ${stone.title}, ${stateWord}. ${stone.meta}`}
-              onPress={() => onSelectDay?.(stone)}
-              style={({ pressed }) => [
-                styles.stoneHit,
-                { width: stone.size, height: stone.size + STONE_DEPTH },
-                pressed && styles.stonePressed,
+          <Fragment key={stone.date}>
+            <Animated.View
+              style={[
+                styles.stone,
+                {
+                  left: stone.left,
+                  top: stone.top,
+                  width: stone.size,
+                  height: stone.size + STONE_DEPTH,
+                  opacity: progress,
+                  transform: [{ scale: progress }, ...(isNow ? [{ translateY: hopY }] : [])],
+                },
               ]}
             >
-              {/* The solid fill sitting 6dp lower is what gives the stone its weight. */}
-              <View
-                style={[
-                  styles.stoneDepth,
-                  {
-                    width: stone.size,
-                    height: stone.size,
-                    borderRadius: stone.size / 2,
-                    backgroundColor: nodeDepth(stone.state),
-                  },
-                ]}
-              />
-              <View
-                style={[
-                  styles.stoneFace,
-                  {
-                    width: stone.size,
-                    height: stone.size,
-                    borderRadius: stone.size / 2,
-                    backgroundColor: nodeFill(stone.state),
-                  },
+              {isNow ? (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                    styles.ring,
+                    {
+                      width: ringSize,
+                      height: ringSize,
+                      borderRadius: ringSize / 2,
+                      opacity: ringOpacity,
+                      transform: [{ scale: ringScale }],
+                    },
+                  ]}
+                />
+              ) : null}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${stone.date}, ${stone.title}, ${stateWord}. ${stone.meta}`}
+                onPress={() => onSelectDay?.(stone)}
+                style={({ pressed }) => [
+                  { width: stone.size, height: stone.size + STONE_DEPTH },
+                  pressed && styles.pressed,
                 ]}
               >
-                <Text
+                <View
                   style={[
-                    styles.stoneGlyph,
+                    styles.stoneDepth,
                     {
-                      fontFamily: family('heading'),
-                      fontSize: isNow ? 27 : 21,
-                      color: stone.state === 'todo' ? colors.neutral[600] : colors.white,
+                      width: stone.size,
+                      height: stone.size,
+                      borderRadius: stone.size / 2,
+                      backgroundColor: nodeDepth(stone.state),
+                    },
+                  ]}
+                />
+                <View
+                  style={[
+                    styles.stoneFace,
+                    {
+                      width: stone.size,
+                      height: stone.size,
+                      borderRadius: stone.size / 2,
+                      backgroundColor: nodeFill(stone.state),
                     },
                   ]}
                 >
-                  {glyph}
-                </Text>
-              </View>
-            </Pressable>
+                  <Text
+                    style={[
+                      styles.glyph,
+                      {
+                        fontFamily: family('heading'),
+                        fontSize: isNow ? 27 : 21,
+                        color: todo ? colors.neutral[600] : colors.white,
+                      },
+                    ]}
+                  >
+                    {glyph}
+                  </Text>
+                </View>
+              </Pressable>
+            </Animated.View>
 
-            <View
-              style={[styles.label, { opacity: stone.state === 'todo' ? 0.72 : 1 }]}
+            <Animated.View
+              pointerEvents="none"
               accessibilityElementsHidden
               importantForAccessibility="no-hide-descendants"
+              style={[
+                styles.label,
+                {
+                  left: stone.left + stone.size + LABEL_GAP,
+                  top: stone.cy - PITCH / 2,
+                  height: PITCH,
+                  opacity: todo ? Animated.multiply(progress, 0.72) : progress,
+                },
+              ]}
             >
-              <Text style={[styles.labelDate, { fontFamily: family('bodyBold') }]}>
-                {stone.date}
-              </Text>
-              <Text
-                numberOfLines={1}
-                style={[styles.labelTitle, { fontFamily: family('bodyBold') }]}
-              >
+              <Text style={[styles.date, { fontFamily: family('bodyBold') }]}>{stone.date}</Text>
+              <Text numberOfLines={1} style={[styles.title, { fontFamily: family('bodyBold') }]}>
                 {stone.title}
               </Text>
-              <Text numberOfLines={1} style={[styles.labelMeta, { fontFamily: family('body') }]}>
+              <Text numberOfLines={1} style={[styles.meta, { fontFamily: family('body') }]}>
                 {stone.meta}
               </Text>
-            </View>
-          </Animated.View>
+
+              {/* The one day the current forecast puts at risk; re-derives with the weather. */}
+              {flagged ? (
+                <View style={[styles.flag, { backgroundColor: palette.cardBg }]}>
+                  <Text
+                    style={[
+                      styles.flagText,
+                      { color: palette.cardInk, fontFamily: family('bodyBold') },
+                    ]}
+                  >
+                    {flagText.toUpperCase()}
+                  </Text>
+                </View>
+              ) : null}
+            </Animated.View>
+          </Fragment>
         );
       })}
     </View>
@@ -209,26 +227,24 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
   },
-  dot: {
+  dash: {
     position: 'absolute',
-    width: DOT_SIZE,
-    height: DOT_SIZE,
-    borderRadius: DOT_SIZE / 2,
+    width: DASH.w,
+    height: DASH.h,
+    borderRadius: DASH.w / 2,
   },
-  row: {
+  stone: {
     position: 'absolute',
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
   },
-  stoneHit: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+  ring: {
+    position: 'absolute',
+    left: -6,
+    top: -6,
+    borderWidth: 3,
+    borderColor: colors.accentRamp[500],
   },
-  stonePressed: {
-    transform: [{ translateY: 3 }],
+  pressed: {
+    transform: [{ translateY: 4 }],
   },
   stoneDepth: {
     position: 'absolute',
@@ -239,27 +255,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stoneGlyph: {
+  glyph: {
     includeFontPadding: false,
     textAlign: 'center',
   },
   label: {
-    flexShrink: 1,
-    paddingRight: space[3],
+    position: 'absolute',
+    right: 0,
+    justifyContent: 'center',
+    paddingRight: 8,
   },
-  labelDate: {
-    ...type.kicker,
-    textTransform: 'uppercase',
+  date: {
+    fontSize: 11,
+    letterSpacing: 1.1,
     color: colors.neutral[600],
   },
-  labelTitle: {
-    ...type.section,
+  title: {
+    fontSize: 14.5,
+    lineHeight: 18,
+    marginTop: 2,
     color: colors.text,
-    marginTop: 1,
   },
-  labelMeta: {
-    ...type.meta,
+  meta: {
+    fontSize: 12,
+    marginTop: 2,
     color: colors.neutral[600],
-    marginTop: 1,
+  },
+  flag: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    borderRadius: radius.pill,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+  },
+  flagText: {
+    fontSize: 10.5,
+    letterSpacing: 0.63,
   },
 });

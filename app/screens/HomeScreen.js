@@ -1,180 +1,172 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Platform, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
+import { Animated, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, space, type } from '../theme/tokens';
+import { colors, radius } from '../theme/tokens';
 import { family } from '../theme/fonts';
-import { Card, Kicker, SectionTitle } from '../components/primitives';
-import AnimatedTrail from '../components/AnimatedTrail';
+import { paletteFor } from '../theme/weatherPalette';
 import BudgetRing from '../components/BudgetRing';
-import CachedMapCard from '../components/CachedMapCard';
-import HomeHeader from '../components/HomeHeader';
-import JournalCard from '../components/JournalCard';
+import CompassMascot from '../components/CompassMascot';
+import Icon from '../components/Icon';
 import NextUpCard from '../components/NextUpCard';
-import PackingQuest from '../components/PackingQuest';
 import TodayList from '../components/TodayList';
-import XpToast, { useXpToast } from '../components/XpToast';
-import {
-  nextActivity,
-  packingItems as seedPacking,
-  todayActivities,
-  trailDays,
-  trip,
-  weather,
-} from '../data/sampleTrip';
+import WeatherCard from '../components/WeatherCard';
+import { FadeIn, useSwing } from '../components/motion';
+import { useTrip } from '../../src/context/TripContext';
+import { nextActivity, todayActivities } from '../data/sampleTrip';
 
-/**
- * The clock the fixture runs against — 12:18, which puts the 13:30 stop about an
- * hour out. The real build reads the device clock; this keeps the demo screen
- * showing a live countdown that matches the design.
- */
-const FIXTURE_START_MINUTES = 12 * 60 + 18;
-
-const statusBarInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
-
-/**
- * Home — the first page.
- *
- * Everything here renders from local data with no network call, which is the
- * offline-first rule from PRD 9.7 expressed in the very first screen: nothing on
- * this page can be blocked by connectivity.
- */
-export default function HomeScreen({ onOpenTab }) {
-  const [minutes, setMinutes] = useState(FIXTURE_START_MINUTES);
-  const [packing, setPacking] = useState(seedPacking);
-  const [xp, setXp] = useState(340);
-  const [snoozed, setSnoozed] = useState(false);
-  const { message, anim, fire } = useXpToast();
-
-  useEffect(() => {
-    const tick = setInterval(() => setMinutes((m) => m + 1 / 60), 1000);
-    return () => clearInterval(tick);
-  }, []);
-
-  const togglePacking = useCallback(
-    (target) => {
-      setPacking((current) => {
-        const updated = current.map((item) =>
-          item.id === target.id ? { ...item, done: !item.done } : item,
-        );
-        const nowDone = updated.filter((item) => item.done).length;
-        const wasDone = current.filter((item) => item.done).length;
-
-        if (nowDone > wasDone) {
-          const complete = nowDone === updated.length;
-          setXp((value) => value + (complete ? 40 : 10));
-          fire(complete ? 'Bag packed · +40 XP' : '+10 XP');
-        }
-        return updated;
-      });
-    },
-    [fire],
-  );
-
-  const snooze = useCallback(() => {
-    setSnoozed(true);
-    fire('Snoozed 15 min');
-  }, [fire]);
-
-  const walked = trailDays.filter((day) => day.state === 'done').length;
-
+function Chip({ bg, fg, lead, children }) {
   return (
-    <View style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <HomeHeader trip={trip} weather={weather} walked={walked} />
-
-        <NextUpCard
-          activity={nextActivity}
-          minutesNow={minutes}
-          snoozed={snoozed}
-          onOpenTrail={() => onOpenTab?.('map')}
-          onSnooze={snooze}
-        />
-
-        <View style={styles.split}>
-          <Card style={styles.budgetCard}>
-            <BudgetRing budget={trip.budget} spent={trip.spent} />
-          </Card>
-
-          <CachedMapCard destination={trip.destination} onPress={() => onOpenTab?.('map')} />
-        </View>
-
-        <View style={styles.block}>
-          <SectionTitle>Today</SectionTitle>
-          <TodayList activities={todayActivities} onSelect={() => onOpenTab?.('trips')} />
-        </View>
-
-        <View style={styles.block}>
-          <View style={styles.blockHead}>
-            <View>
-              <Kicker>The trail</Kicker>
-              <SectionTitle>{`${walked} of ${trip.dayCount} walked`}</SectionTitle>
-            </View>
-            <Feather name="chevron-right" size={22} color={colors.neutral[500]} />
-          </View>
-
-          <AnimatedTrail days={trailDays} onSelectDay={() => onOpenTab?.('trips')} />
-        </View>
-
-        <PackingQuest
-          items={packing}
-          xp={xp}
-          questTitle="Pack for the rain"
-          advice={weather.advice}
-          onToggle={togglePacking}
-        />
-
-        <JournalCard entryCount={14} onCapture={() => onOpenTab?.('journal')} />
-
-        <Text style={[styles.footnote, { fontFamily: family('body') }]}>
-          No account · PIN locked · INR home currency
-        </Text>
-      </ScrollView>
-
-      <XpToast message={message} anim={anim} />
+    <View style={[styles.chip, { backgroundColor: bg }]}>
+      {lead}
+      <Text style={[styles.chipText, { color: fg, fontFamily: family('bodyBold') }]}>
+        {children}
+      </Text>
     </View>
   );
 }
 
+/** The offline dot breathes (`tj-swell`, 2 s) — being offline is normal here. */
+function OfflineDot() {
+  const swell = useSwing(1000);
+  const scale = swell.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] });
+  return <Animated.View style={[styles.offlineDot, { transform: [{ scale }] }]} />;
+}
+
+/**
+ * Home — the first page, laid out as the design canvas draws it.
+ *
+ * Everything renders from local state with no network call: the offline-first
+ * rule from PRD 9.7, expressed in the very first screen.
+ */
+export default function HomeScreen({ contentPadding }) {
+  const { trip, reading, cycleWeather, minutes, snoozed, snooze, xp, memories, setTab } = useTrip();
+  const palette = paletteFor(reading.kind);
+
+  return (
+    <FadeIn>
+      <ScrollView
+        contentContainerStyle={[styles.content, contentPadding]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerCopy}>
+            <Text style={[styles.kicker, { fontFamily: family('bodyBold') }]}>
+              {`DAY ${trip.dayIndex} OF ${trip.dayCount} · ${trip.destination.toUpperCase()}`}
+            </Text>
+            <Text numberOfLines={1} style={[styles.greeting, { fontFamily: family('heading') }]}>
+              {`Chào, ${trip.travellerName}`}
+            </Text>
+          </View>
+          <CompassMascot kind={reading.kind} />
+        </View>
+
+        <View style={styles.chips}>
+          <Chip
+            bg={colors.accentRamp[200]}
+            fg={colors.accentRamp[800]}
+            lead={<Icon name="flame" size={14} color={colors.accentRamp[800]} />}
+          >
+            {`${xp} trip XP`}
+          </Chip>
+          <Chip
+            bg={colors.accent2Ramp[200]}
+            fg={colors.accent2Ramp[800]}
+            lead={<Icon name="trophy" size={14} color={colors.accent2Ramp[800]} />}
+          >
+            {`${memories} memories`}
+          </Chip>
+          <Chip bg={colors.neutral[200]} fg={colors.neutral[800]} lead={<OfflineDot />}>
+            {`Offline · ${trip.cachedAgo}`}
+          </Chip>
+        </View>
+
+        <View style={styles.nextUp}>
+          <NextUpCard
+            activity={nextActivity}
+            minutesNow={minutes}
+            snoozed={snoozed}
+            advice={reading.advice}
+            adviceDot={palette.dot}
+            onOpenTrail={() => setTab('trail')}
+            onSnooze={snooze}
+          />
+        </View>
+
+        <View style={styles.grid}>
+          <BudgetRing budget={trip.budget} spent={trip.spent} />
+          <WeatherCard destination={trip.destination} reading={reading} onCycle={cycleWeather} />
+        </View>
+
+        <Text style={[styles.section, { fontFamily: family('heading') }]}>Today</Text>
+        <TodayList activities={todayActivities} onSelect={() => setTab('trail')} />
+      </ScrollView>
+    </FadeIn>
+  );
+}
+
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  scroll: {
-    flex: 1,
-  },
   content: {
-    paddingTop: statusBarInset + space[3],
-    paddingHorizontal: space[4],
-    paddingBottom: space[8],
-    gap: space[4],
+    paddingHorizontal: 20,
   },
-  split: {
+  header: {
     flexDirection: 'row',
-    gap: space[3],
-  },
-  budgetCard: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: space[4],
-  },
-  block: {
-    gap: space[3],
-  },
-  blockHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: 12,
+    paddingTop: 6,
   },
-  footnote: {
-    ...type.meta,
-    color: colors.neutral[600],
-    textAlign: 'center',
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  kicker: {
+    fontSize: 12,
+    letterSpacing: 1.2,
+    color: colors.accentRamp[700],
+  },
+  greeting: {
+    fontSize: 25,
+    lineHeight: 32,
+    marginTop: 4,
+    color: colors.text,
+    includeFontPadding: false,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 14,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 13,
+  },
+  chipText: {
+    fontSize: 12.5,
+  },
+  offlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.neutral[500],
+  },
+  nextUp: {
+    marginTop: 16,
+  },
+  grid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  section: {
+    fontSize: 19,
+    lineHeight: 25,
+    marginTop: 22,
+    marginBottom: 10,
+    color: colors.text,
+    includeFontPadding: false,
   },
 });

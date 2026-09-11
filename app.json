@@ -13,7 +13,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#f5ead8"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.eimun.traveljournal"
@@ -27,12 +29,14 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "edgeToEdgeEnabled": true
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font", "expo-splash-screen"]
+    "plugins": [
+      "expo-font",
+      "expo-splash-screen"
+    ]
   }
 }

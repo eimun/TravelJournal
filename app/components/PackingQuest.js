@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, radius, shadow, space, type } from '../theme/tokens';
+import { colors, radius } from '../theme/tokens';
 import { family } from '../theme/fonts';
+import { Chunky } from './Chunky';
 
+/** One checklist row. Ticking pops the box (`tj-pop`: .4 → 1.18 → 1). */
 function CheckRow({ item, onToggle }) {
   const [pop] = useState(() => new Animated.Value(item.done ? 1 : 0));
 
   useEffect(() => {
-    Animated.spring(pop, {
-      toValue: item.done ? 1 : 0,
-      useNativeDriver: true,
-      friction: 5,
-      tension: 140,
-    }).start();
+    if (!item.done) {
+      pop.setValue(0);
+      return;
+    }
+    pop.setValue(0);
+    Animated.timing(pop, { toValue: 1, duration: 340, useNativeDriver: true }).start();
   }, [item.done, pop]);
 
-  const scale = pop.interpolate({ inputRange: [0, 0.6, 1], outputRange: [1, 1.18, 1] });
+  const scale = pop.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0.4, 1.18, 1] });
 
   return (
     <Pressable
@@ -30,19 +32,20 @@ function CheckRow({ item, onToggle }) {
         pressed && styles.rowPressed,
       ]}
     >
-      <Animated.View
+      <View
         style={[
           styles.box,
-          {
-            backgroundColor: item.done ? colors.accentRamp[300] : 'rgba(255,255,255,0.28)',
-            transform: [{ scale }],
-          },
+          { backgroundColor: item.done ? colors.accentRamp[300] : 'rgba(255,255,255,0.28)' },
         ]}
       >
         {item.done ? (
-          <Text style={[styles.tick, { fontFamily: family('bodyExtraBold') }]}>✓</Text>
+          <Animated.Text
+            style={[styles.tick, { fontFamily: family('bodyBold'), transform: [{ scale }] }]}
+          >
+            ✓
+          </Animated.Text>
         ) : null}
-      </Animated.View>
+      </View>
 
       <Text
         numberOfLines={1}
@@ -55,128 +58,96 @@ function CheckRow({ item, onToggle }) {
 }
 
 /**
- * The packing checklist as a side quest — US-011.
- *
- * Framing it as a quest with visible progress is the whole point of the concept:
- * the list is the same data a plain checklist would hold, but ticking an item
- * pays out and the bag reads as something you finish, not a chore you abandon.
+ * The packing checklist as a side quest — US-011 — as the canvas draws it: a
+ * sage card on a chunky base, the count and the reward in one line, a bar that
+ * springs forward as items are ticked, and the rows.
  */
-export default function PackingQuest({ items, xp, questTitle, advice, onToggle }) {
+export default function PackingQuest({ items, questTitle, onToggle }) {
   const done = items.filter((item) => item.done).length;
-  const complete = done === items.length && items.length > 0;
-  const [fill] = useState(() => new Animated.Value(0));
+  const total = items.length;
+  const [fill] = useState(() => new Animated.Value(total ? done / total : 0));
 
   useEffect(() => {
-    Animated.timing(fill, {
-      toValue: items.length ? done / items.length : 0,
-      duration: 420,
-      easing: Easing.out(Easing.cubic),
+    // cubic-bezier(.34,1.56,.64,1) on the canvas — a spring with a little overshoot.
+    Animated.spring(fill, {
+      toValue: total ? done / total : 0,
       useNativeDriver: false,
+      friction: 6,
+      tension: 90,
     }).start();
-  }, [done, items.length, fill]);
+  }, [done, total, fill]);
 
-  const width = fill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const width = fill.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+    extrapolate: 'clamp',
+  });
 
   return (
-    <View style={styles.card}>
-      <View style={styles.head}>
-        <View style={styles.headCopy}>
-          <Text style={[styles.kicker, { fontFamily: family('bodyExtraBold') }]}>Side quest</Text>
-          <Text style={[styles.title, { fontFamily: family('heading') }]}>{questTitle}</Text>
-          <Text style={[styles.advice, { fontFamily: family('body') }]}>{advice}</Text>
-        </View>
-
-        <View style={styles.xpChip}>
-          <Text style={[styles.xpValue, { fontFamily: family('heading') }]}>{xp}</Text>
-          <Text style={[styles.xpLabel, { fontFamily: family('bodyExtraBold') }]}>XP</Text>
-        </View>
-      </View>
+    <Chunky
+      depth={6}
+      depthColor={colors.accent2Ramp[800]}
+      radius={radius.lg}
+      innerStyle={styles.card}
+    >
+      <Text style={[styles.kicker, { fontFamily: family('bodyBold') }]}>SIDE QUEST</Text>
+      <Text style={[styles.title, { fontFamily: family('heading') }]}>{questTitle}</Text>
+      <Text style={[styles.sub, { fontFamily: family('body') }]}>
+        {`${done} of ${total} packed · +40 XP when it is done`}
+      </Text>
 
       <View style={styles.track}>
         <Animated.View style={[styles.fill, { width }]} />
       </View>
-      <Text style={[styles.progress, { fontFamily: family('bodyBold') }]}>
-        {complete ? 'Bag packed · +40 XP' : `${done} of ${items.length} packed`}
-      </Text>
 
       <View style={styles.rows}>
         {items.map((item) => (
           <CheckRow key={item.id} item={item} onToggle={onToggle} />
         ))}
       </View>
-    </View>
+    </Chunky>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.accent2Ramp[600],
-    borderRadius: radius.lg,
-    padding: space[4],
-    gap: space[2],
-    ...shadow.md,
-  },
-  head: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: space[3],
-  },
-  headCopy: {
-    flex: 1,
-    minWidth: 0,
+    padding: 17,
   },
   kicker: {
-    ...type.kicker,
-    textTransform: 'uppercase',
-    color: colors.accent2Ramp[200],
+    fontSize: 11.5,
+    letterSpacing: 1.38,
+    color: colors.white,
+    opacity: 0.85,
   },
   title: {
-    ...type.title,
+    fontSize: 21,
+    lineHeight: 27,
     color: colors.white,
-    marginTop: 2,
+    marginTop: 7,
+    marginBottom: 3,
     includeFontPadding: false,
   },
-  advice: {
-    ...type.meta,
-    color: colors.accent2Ramp[100],
-    marginTop: 3,
-  },
-  xpChip: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: radius.md,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-  },
-  xpValue: {
-    fontSize: 20,
+  sub: {
+    fontSize: 13,
     color: colors.white,
-    includeFontPadding: false,
-  },
-  xpLabel: {
-    fontSize: 9.5,
-    letterSpacing: 1,
-    color: colors.accent2Ramp[100],
+    opacity: 0.9,
+    marginBottom: 13,
   },
   track: {
-    height: 8,
+    height: 11,
     borderRadius: radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.22)',
     overflow: 'hidden',
-    marginTop: space[1],
   },
   fill: {
     height: '100%',
     borderRadius: radius.pill,
     backgroundColor: colors.accentRamp[300],
   },
-  progress: {
-    ...type.meta,
-    color: colors.accent2Ramp[100],
-  },
   rows: {
-    gap: 7,
-    marginTop: space[1],
+    gap: 8,
+    marginTop: 13,
   },
   row: {
     flexDirection: 'row',
@@ -188,7 +159,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   rowPressed: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    transform: [{ scale: 0.985 }],
   },
   box: {
     width: 24,
@@ -204,7 +175,7 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    ...type.body,
+    fontSize: 14,
     color: colors.white,
   },
   labelDone: {
