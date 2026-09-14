@@ -54,3 +54,6 @@ local.properties
 .idea/
 .vscode/
 *.zip
+.claude/
+CLAUDE.md
+AGENTS.md
