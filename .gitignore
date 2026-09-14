@@ -53,3 +53,4 @@ ios/
 local.properties
 .idea/
 .vscode/
+*.zip
