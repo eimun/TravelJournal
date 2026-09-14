@@ -8,159 +8,424 @@ import {
   useState,
 } from 'react';
 
-import { nextCondition, readingFor, seedChecklist } from '../domain/weather';
-import { trip } from '../../app/data/sampleTrip';
+import { PLACES, EATERIES_DB, RESTAURANTS } from '../../app/data/bengaluruData';
+import { getDistanceBetween } from '../../app/data/transitData';
+import { POPULAR_DESTINATIONS } from '../../app/data/transitData';
+import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
+import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
 
 const TripContext = createContext(null);
 
-/**
- * The clock the fixture runs against — 12:18, which puts the 13:30 stop about an
- * hour out. The real build reads the device clock; this keeps the demo showing a
- * live countdown that matches the design.
- */
-const FIXTURE_START_MINUTES = 12 * 60 + 18;
-
-/**
- * One trip's live state, shared by every tab.
- *
- * This stands in for the Session / ActiveTrip providers in PRD 4.3 until the
- * repository layer lands: screens read from here, never from each other, so
- * cycling the weather on Home re-derives the packing quest on Trail and the
- * flag on the trail stones without any screen knowing about the others.
- */
 export function TripProvider({ children }) {
-  const [tab, setTab] = useState('home');
-  const [condition, setCondition] = useState('rain');
-  const [minutes, setMinutes] = useState(FIXTURE_START_MINUTES);
-  const [packing, setPacking] = useState(() => seedChecklist('rain'));
-  const [xp, setXp] = useState(340);
-  const [memories, setMemories] = useState(14);
-  const [snoozed, setSnoozed] = useState(false);
-  const [openDay, setOpenDay] = useState(null);
-  const [dayFilter, setDayFilter] = useState(3);
-  const [savedPin, setSavedPin] = useState(false);
-  const [settings, setSettings] = useState([true, true, false, true]);
-  const [toast, setToast] = useState(null);
-  const [celebrating, setCelebrating] = useState(false);
-  const celebrateTimer = useRef(null);
+  // Navigation tabs: 'navigate' | 'explore' | 'guide' (with 'eat' & 'offline' aliased to 'guide')
+  const [tab, setTabState] = useState('navigate');
+  const [budget, setBudget] = useState(1200);
+  const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const [addedPlaces, setAddedPlaces] = useState([]);
 
+  // Live Location & Routing state
+  const [userLocation, setUserLocation] = useState(DEFAULT_BENGALURU_LOCATION);
+  const [isLocating, setIsLocating] = useState(true);
+  const [destination, setDestination] = useState(POPULAR_DESTINATIONS[0]); // default to Cubbon Park
+  const [recentSearches, setRecentSearches] = useState([
+    POPULAR_DESTINATIONS[0],
+    POPULAR_DESTINATIONS[1],
+    POPULAR_DESTINATIONS[2],
+  ]);
+
+  // Food / Explore tab state
+  const [cuisineFilter, setCuisineFilter] = useState('all');
+  const [dietFilter, setDietFilter] = useState('all'); // 'all' | 'veg' | 'nonveg' | 'halal' | 'jain'
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
+  const [visitedRestaurants, setVisitedRestaurants] = useState([]);
+
+  // Eat / Guide tab state
+  const [dish, setDish] = useState('benne');
+  const [diets, setDiets] = useState([]);
+
+  // Offline tab state
+  const [packStatus, setPackStatus] = useState('idle');
+  const [packPct, setPackPct] = useState(0);
+
+  // Toast alert state
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
+  const dlInterval = useRef(null);
+
+  // Normalize setTab to support backwards-compatible names
+  const setTab = useCallback((nextTab) => {
+    if (nextTab === 'eat' || nextTab === 'offline') {
+      setTabState('guide');
+    } else {
+      setTabState(nextTab);
+    }
+  }, []);
+
+  // Initialize live GPS location on app start
   useEffect(() => {
-    const tick = setInterval(() => setMinutes((m) => m + 1 / 60), 1000);
+    let mounted = true;
+    async function initLocation() {
+      try {
+        setIsLocating(true);
+        const loc = await getCurrentUserLocation();
+        if (mounted) {
+          setUserLocation(loc);
+          setIsLocating(false);
+        }
+      } catch {
+        if (mounted) setIsLocating(false);
+      }
+    }
+    initLocation();
     return () => {
-      clearInterval(tick);
-      clearTimeout(celebrateTimer.current);
+      mounted = false;
     };
   }, []);
 
-  const reward = useCallback((text, points = 0) => {
-    setToast({ text, at: Date.now() });
-    if (points) setXp((value) => value + points);
+  const [activeStepIndex, setActiveStepIndex] = useState(null);
+  const [enrichedRoute, setEnrichedRoute] = useState(null);
+
+  // Compute baseline transit route whenever userLocation or destination changes
+  const baseRoute = useMemo(() => {
+    if (!userLocation || !destination) return null;
+    return planTransitRoute(userLocation, destination);
+  }, [userLocation, destination]);
+
+  // Asynchronously fetch real street road geometry and update route
+  useEffect(() => {
+    let cancelled = false;
+    if (!baseRoute) {
+      return;
+    }
+
+    enrichRouteWithRealRoads(baseRoute).then((roadRoute) => {
+      if (!cancelled && roadRoute) {
+        setEnrichedRoute(roadRoute);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [baseRoute]);
+
+  const activeRoute = enrichedRoute || baseRoute;
+
+  const refreshUserLocation = useCallback(async () => {
+    setIsLocating(true);
+    const loc = await getCurrentUserLocation();
+    setUserLocation(loc);
+    setIsLocating(false);
   }, []);
 
-  const clearToast = useCallback(() => setToast(null), []);
+  const selectDestination = useCallback((dest) => {
+    setDestination(dest);
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((d) => d.id !== dest.id);
+      return [dest, ...filtered].slice(0, 6);
+    });
+  }, []);
 
-  /** A new forecast is a new quest: the canvas re-seeds the bag at 2 of 5. */
-  const cycleWeather = useCallback(() => {
-    const next = nextCondition(condition);
-    setCondition(next);
-    setPacking(seedChecklist(next));
-  }, [condition]);
+  const changeUserLocation = useCallback((newLoc) => {
+    setUserLocation(newLoc);
+  }, []);
 
-  const togglePacking = useCallback(
-    (target) => {
-      const updated = packing.map((item) =>
-        item.id === target.id ? { ...item, done: !item.done } : item,
-      );
-      setPacking(updated);
+  const swapOriginDestination = useCallback(() => {
+    if (!userLocation || !destination) return;
+    const oldOrigin = { ...userLocation };
+    const oldDest = { ...destination };
+    setUserLocation({
+      latitude: oldDest.latitude,
+      longitude: oldDest.longitude,
+      name: oldDest.name,
+      isDefault: false,
+    });
+    setDestination({
+      id: `dest_${Date.now()}`,
+      name: oldOrigin.name,
+      area: 'Bengaluru',
+      latitude: oldOrigin.latitude,
+      longitude: oldOrigin.longitude,
+    });
+  }, [userLocation, destination]);
 
-      if (!target.done) {
-        reward('+10 XP', 10);
-        if (updated.every((item) => item.done)) {
-          reward('Bag packed · +40 XP', 40);
-          setCelebrating(true);
-          clearTimeout(celebrateTimer.current);
-          celebrateTimer.current = setTimeout(() => setCelebrating(false), 2600);
+  useEffect(() => {
+    return () => {
+      clearTimeout(toastTimer.current);
+      clearInterval(dlInterval.current);
+    };
+  }, []);
+
+  const fireToast = useCallback((text) => {
+    setToast(text);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => {
+      setToast(null);
+    }, 2500);
+  }, []);
+
+  const clearToast = useCallback(() => {
+    setToast(null);
+    clearTimeout(toastTimer.current);
+  }, []);
+
+  const openPlace = useCallback((placeId) => {
+    setSelectedPlaceId(placeId);
+  }, []);
+
+  const closePlace = useCallback(() => {
+    setSelectedPlaceId(null);
+  }, []);
+
+  const openRestaurant = useCallback((restaurantId) => {
+    setSelectedRestaurantId(restaurantId);
+  }, []);
+
+  const closeRestaurant = useCallback(() => {
+    setSelectedRestaurantId(null);
+  }, []);
+
+  const toggleVisitedRestaurant = useCallback((restaurantId) => {
+    setVisitedRestaurants((prev) =>
+      prev.includes(restaurantId)
+        ? prev.filter((id) => id !== restaurantId)
+        : [...prev, restaurantId],
+    );
+  }, []);
+
+  const togglePlaceInDay = useCallback(
+    (placeId) => {
+      const target = PLACES.find((p) => p.id === placeId);
+      if (!target) return;
+
+      setAddedPlaces((prev) => {
+        const exists = prev.includes(placeId);
+        if (exists) {
+          fireToast(`${target.name.split(',')[0]} removed from today`);
+          return prev.filter((id) => id !== placeId);
+        } else {
+          fireToast(`${target.name.split(',')[0]} added · ₹${target.total}`);
+          return [...prev, placeId];
         }
-      }
+      });
+      setSelectedPlaceId(null);
     },
-    [packing, reward],
+    [fireToast],
   );
 
-  /** Snoozing pushes the reminder out; the countdown shows it, no toast needed. */
-  const snooze = useCallback(() => setSnoozed(true), []);
-
-  const savePlace = useCallback(() => {
-    if (savedPin) return;
-    setSavedPin(true);
-    reward('+15 XP', 15);
-  }, [savedPin, reward]);
-
-  const addMemory = useCallback(() => {
-    setMemories((count) => count + 1);
-    reward('Memory kept', 5);
-  }, [reward]);
-
-  const toggleSetting = useCallback((index) => {
-    setSettings((current) => current.map((on, i) => (i === index ? !on : on)));
+  const toggleDiet = useCallback((dietId) => {
+    setDiets((prev) =>
+      prev.includes(dietId) ? prev.filter((d) => d !== dietId) : [...prev, dietId],
+    );
   }, []);
 
-  const reading = readingFor(condition);
-  const packedCount = packing.filter((item) => item.done).length;
+  const startPackDownload = useCallback(() => {
+    if (packStatus === 'done') {
+      fireToast('Pack already on this device');
+      return;
+    }
+    setPackStatus('busy');
+    setPackPct(0);
+    clearInterval(dlInterval.current);
+    dlInterval.current = setInterval(() => {
+      setPackPct((prev) => {
+        const next = prev + 10;
+        if (next >= 100) {
+          clearInterval(dlInterval.current);
+          setPackStatus('done');
+          fireToast('Bengaluru pack downloaded!');
+          return 100;
+        }
+        return next;
+      });
+    }, 180);
+  }, [packStatus, fireToast]);
+
+  // Derived calculations for Explore
+  const byCostPlaces = useMemo(() => {
+    return [...PLACES].sort((a, b) => a.total - b.total);
+  }, []);
+
+  const fitCount = useMemo(() => {
+    return PLACES.filter((p) => p.total <= budget).length;
+  }, [budget]);
+
+  const dayPlan = useMemo(() => {
+    const plan = [];
+    let running = 0;
+    for (const p of byCostPlaces) {
+      if (plan.length < 4 && running + p.total <= budget) {
+        plan.push(p);
+        running += p.total;
+      }
+    }
+    return plan;
+  }, [budget, byCostPlaces]);
+
+  const planTotal = useMemo(() => {
+    return dayPlan.reduce((acc, p) => acc + p.total, 0);
+  }, [dayPlan]);
+
+  const planLeft = useMemo(() => {
+    return Math.max(0, budget - planTotal);
+  }, [budget, planTotal]);
+
+  const selectedPlace = useMemo(() => {
+    return PLACES.find((p) => p.id === selectedPlaceId) || null;
+  }, [selectedPlaceId]);
+
+  const selectedRestaurant = useMemo(() => {
+    return RESTAURANTS.find((r) => r.id === selectedRestaurantId) || null;
+  }, [selectedRestaurantId]);
+
+  // Sorted/filtered restaurant list for Explore tab
+  const filteredRestaurants = useMemo(() => {
+    let list = [...RESTAURANTS];
+
+    // cuisine filter
+    if (cuisineFilter !== 'all') {
+      list = list.filter((r) => r.cuisine === cuisineFilter);
+    }
+
+    // diet filter
+    if (dietFilter === 'veg') {
+      list = list.filter((r) => !r.tags.includes('nonveg'));
+    } else if (dietFilter === 'nonveg') {
+      list = list.filter((r) => r.tags.includes('nonveg'));
+    } else if (dietFilter === 'halal') {
+      list = list.filter((r) => r.tags.includes('halal'));
+    } else if (dietFilter === 'jain') {
+      list = list.filter((r) => r.tags.includes('nog') && !r.tags.includes('nonveg'));
+    }
+
+    // sort by distance if location known
+    if (userLocation) {
+      list.sort((a, b) => {
+        const da = getDistanceBetween(userLocation.latitude, userLocation.longitude, a.latitude, a.longitude);
+        const db = getDistanceBetween(userLocation.latitude, userLocation.longitude, b.latitude, b.longitude);
+        return da - db;
+      });
+    }
+
+    return list;
+  }, [cuisineFilter, dietFilter, userLocation]);
+
+  // Filtered Eateries for Eat / Guide tab
+  const filteredEateries = useMemo(() => {
+    const list = EATERIES_DB[dish] || [];
+    if (diets.length === 0) return list;
+
+    return list.filter((e) =>
+      diets.every((d) => {
+        if (d === 'veg') return !e.tags.includes('nonveg');
+        if (d === 'halal') return e.tags.includes('halal') || !e.tags.includes('nonveg');
+        if (d === 'nog') return e.tags.includes('nog');
+        if (d === 'jain') return e.tags.includes('nog');
+        return true;
+      }),
+    );
+  }, [dish, diets]);
 
   const value = useMemo(
     () => ({
-      trip,
       tab,
       setTab,
-      condition,
-      reading,
-      cycleWeather,
-      minutes,
-      packing,
-      packedCount,
-      togglePacking,
-      xp,
-      memories,
-      addMemory,
-      snoozed,
-      snooze,
-      openDay,
-      setOpenDay,
-      dayFilter,
-      setDayFilter,
-      savedPin,
-      savePlace,
-      settings,
-      toggleSetting,
+      userLocation,
+      isLocating,
+      refreshUserLocation,
+      changeUserLocation,
+      destination,
+      selectDestination,
+      swapOriginDestination,
+      activeRoute,
+      activeStepIndex,
+      setActiveStepIndex,
+      recentSearches,
+      budget,
+      setBudget,
+      places: PLACES,
+      byCostPlaces,
+      fitCount,
+      dayPlan,
+      planTotal,
+      planLeft,
+      selectedPlaceId,
+      selectedPlace,
+      openPlace,
+      closePlace,
+      addedPlaces,
+      togglePlaceInDay,
+      dish,
+      setDish,
+      diets,
+      toggleDiet,
+      filteredEateries,
+      packStatus,
+      packPct,
+      startPackDownload,
       toast,
+      fireToast,
       clearToast,
-      reward,
-      celebrating,
+      // Restaurant / Food tab
+      cuisineFilter,
+      setCuisineFilter,
+      dietFilter,
+      setDietFilter,
+      selectedRestaurantId,
+      selectedRestaurant,
+      openRestaurant,
+      closeRestaurant,
+      visitedRestaurants,
+      toggleVisitedRestaurant,
+      filteredRestaurants,
+      restaurants: RESTAURANTS,
     }),
     [
       tab,
-      condition,
-      reading,
-      cycleWeather,
-      minutes,
-      packing,
-      packedCount,
-      togglePacking,
-      xp,
-      memories,
-      addMemory,
-      snoozed,
-      snooze,
-      openDay,
-      dayFilter,
-      savedPin,
-      savePlace,
-      settings,
-      toggleSetting,
+      setTab,
+      userLocation,
+      isLocating,
+      refreshUserLocation,
+      changeUserLocation,
+      destination,
+      selectDestination,
+      swapOriginDestination,
+      activeRoute,
+      activeStepIndex,
+      recentSearches,
+      budget,
+      byCostPlaces,
+      fitCount,
+      dayPlan,
+      planTotal,
+      planLeft,
+      selectedPlaceId,
+      selectedPlace,
+      openPlace,
+      closePlace,
+      addedPlaces,
+      togglePlaceInDay,
+      dish,
+      diets,
+      toggleDiet,
+      filteredEateries,
+      packStatus,
+      packPct,
+      startPackDownload,
       toast,
+      fireToast,
       clearToast,
-      reward,
-      celebrating,
+      cuisineFilter,
+      setCuisineFilter,
+      dietFilter,
+      setDietFilter,
+      selectedRestaurantId,
+      selectedRestaurant,
+      openRestaurant,
+      closeRestaurant,
+      visitedRestaurants,
+      toggleVisitedRestaurant,
+      filteredRestaurants,
     ],
   );
 

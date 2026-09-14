@@ -1,92 +1,91 @@
-import { useEffect, useState } from 'react';
-import { AccessibilityInfo, Platform, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 import { colors, space } from './app/theme/tokens';
-import { paletteFor } from './app/theme/weatherPalette';
 import { useOrganicFonts } from './app/theme/fonts';
-import AmbientLayer from './app/components/AmbientLayer';
-import BottomTabBar from './app/components/BottomTabBar';
-import Confetti from './app/components/Confetti';
-import DaySheet from './app/components/DaySheet';
-import XpToast from './app/components/XpToast';
-import HomeScreen from './app/screens/HomeScreen';
-import TrailScreen from './app/screens/TrailScreen';
-import MapScreen from './app/screens/MapScreen';
-import JournalScreen from './app/screens/JournalScreen';
-import ProfileScreen from './app/screens/ProfileScreen';
+import BengaluruTabBar from './app/components/BengaluruTabBar';
+import PlaceDetailSheet from './app/components/PlaceDetailSheet';
+import BengaluruToast from './app/components/BengaluruToast';
+import NavigateScreen from './app/screens/NavigateScreen';
+import ExploreScreen from './app/screens/ExploreScreen';
+import GuideScreen from './app/screens/GuideScreen';
+import RestaurantDetailSheet from './app/components/RestaurantDetailSheet';
+import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
-import { trailDays } from './app/data/sampleTrip';
+import { openDatabase } from './src/db';
+import { seedBengaluruPack } from './src/db/seed';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
-  // Already hidden — nothing to do, and this must never block startup.
+  // Already hidden — nothing to do.
 });
 
-const statusBarInset = Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
-
 const SCREENS = {
-  home: HomeScreen,
-  trail: TrailScreen,
-  map: MapScreen,
-  journal: JournalScreen,
-  profile: ProfileScreen,
+  navigate: NavigateScreen,
+  explore: ExploreScreen,
+  guide: GuideScreen,
+  eat: GuideScreen,
+  offline: GuideScreen,
 };
 
-/**
- * The shell: the weather-tinted ground, the active tab, and everything that
- * floats above it — the day sheet, the reward toast and the confetti.
- */
 function Shell() {
-  const { tab, setTab, reading, openDay, setOpenDay, toast, clearToast, celebrating, reward } =
-    useTrip();
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const {
+    tab,
+    setTab,
+    selectedPlace,
+    closePlace,
+    addedPlaces,
+    togglePlaceInDay,
+    toast,
+  } = useTrip();
 
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((on) => {
-      if (alive) setReduceMotion(on);
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
-    return () => {
-      alive = false;
-      sub?.remove?.();
-    };
-  }, []);
+  const insets = useSafeAreaInsets();
+  const Screen = SCREENS[tab] ?? NavigateScreen;
+  const isAdded = selectedPlace ? addedPlaces.includes(selectedPlace.id) : false;
 
-  const palette = paletteFor(reading.kind);
-  const Screen = SCREENS[tab] ?? HomeScreen;
-  const day = openDay == null ? null : { ...trailDays[openDay], index: openDay };
+  // Ensure plenty of breathing room below iPhone notch / dynamic island
+  const topPadding = Math.max(insets.top, 24) + space[2];
+  const bottomPadding = Math.max(insets.bottom, 16) + 70;
 
   return (
-    <View style={[styles.root, { backgroundColor: palette.sky }]}>
+    <View style={styles.root}>
       <ExpoStatusBar style="dark" />
 
-      {/* The weather sits behind every tab, so the mood follows you around. */}
-      <AmbientLayer kind={reading.kind} reduceMotion={reduceMotion} />
-
+      {/* Screen Body with Dynamic Safe Insets */}
       <View style={styles.body}>
         <Screen
           contentPadding={{
-            paddingTop: statusBarInset + space[3],
-            paddingBottom: space[8],
+            paddingTop: topPadding,
+            paddingBottom: bottomPadding,
           }}
         />
       </View>
 
-      <BottomTabBar active={tab} onChange={setTab} />
-
-      <DaySheet
-        day={day}
-        onClose={() => setOpenDay(null)}
-        onLogSpend={() => {
-          setOpenDay(null);
-          reward('Spend logged', 5);
-        }}
+      {/* 3-Tab Bottom Navigation with Safe Bottom Inset */}
+      <BengaluruTabBar
+        active={tab}
+        onChange={setTab}
+        bottomInset={insets.bottom}
       />
 
-      <XpToast toast={toast} onDone={clearToast} />
-      <Confetti active={celebrating} />
+      {/* Place Detail Bottom Sheet Modal */}
+      <PlaceDetailSheet
+        place={selectedPlace}
+        isAdded={isAdded}
+        onClose={closePlace}
+        onToggleAdd={togglePlaceInDay}
+      />
+
+      {/* Restaurant Detail Bottom Sheet Modal */}
+      <RestaurantDetailSheet />
+
+      {/* Popup Notification Toast */}
+      <BengaluruToast toast={toast} topInset={insets.top} />
     </View>
   );
 }
@@ -95,19 +94,31 @@ export default function App() {
   const { fontsReady } = useOrganicFonts();
 
   useEffect(() => {
+    async function initDatabase() {
+      try {
+        const db = await openDatabase();
+        await seedBengaluruPack(db);
+      } catch {
+        // Fallback or web notification
+      }
+    }
+    initDatabase();
+  }, []);
+
+  useEffect(() => {
     if (fontsReady) {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsReady]);
 
-  // Holding the splash until the display face is ready avoids a visible reflow
-  // from the system font into Caprasimo on the first frame.
-  if (!fontsReady) return null;
-
   return (
-    <TripProvider>
-      <Shell />
-    </TripProvider>
+    <SafeAreaProvider>
+      <TripProvider>
+        <MobileDeviceFrame>
+          <Shell />
+        </MobileDeviceFrame>
+      </TripProvider>
+    </SafeAreaProvider>
   );
 }
 
