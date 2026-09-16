@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -184,13 +185,20 @@ export default function SearchBar({ onSelectDestination }) {
         </ScrollView>
       </View>
 
-      {/* Full-Screen Search Modal with Live Geocoding */}
-      <Modal visible={isOpen} animationType="slide" transparent onRequestClose={() => setIsOpen(false)}>
-        <View style={styles.modalScrim}>
-          <View style={styles.modalContent}>
-            {/* Header & Search Input */}
-            <View style={styles.inputHeader}>
-              <View style={styles.inputWrapper}>
+      {/* Search Modal with Live Geocoding */}
+      {isOpen && (() => {
+        const Container = Platform.OS === 'web' ? View : Modal;
+        const containerProps = Platform.OS === 'web'
+          ? { style: [StyleSheet.absoluteFill, { zIndex: 1000 }] }
+          : { visible: true, animationType: 'slide', transparent: true, onRequestClose: () => setIsOpen(false) };
+
+        return (
+          <Container {...containerProps}>
+            <View style={styles.modalScrim}>
+              <View style={styles.modalContent}>
+                {/* Header & Search Input */}
+                <View style={styles.inputHeader}>
+                  <View style={styles.inputWrapper}>
                 <Svg
                   width={18}
                   height={18}
@@ -308,8 +316,10 @@ export default function SearchBar({ onSelectDestination }) {
             </ScrollView>
           </View>
         </View>
-      </Modal>
-    </>
+      </Container>
+    );
+  })()}
+</>
   );
 }
 

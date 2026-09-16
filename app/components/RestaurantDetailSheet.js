@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -147,13 +148,15 @@ export default function RestaurantDetailSheet() {
     fireToast(`Getting directions to ${r.name.split(',')[0]}`);
   };
 
+  if (!selectedRestaurant) return null;
+
+  const Container = Platform.OS === 'web' ? View : Modal;
+  const containerProps = Platform.OS === 'web'
+    ? { style: [StyleSheet.absoluteFill, { zIndex: 1000 }] }
+    : { transparent: true, visible: true, animationType: 'none', onRequestClose: closeRestaurant };
+
   return (
-    <Modal
-      transparent
-      visible={!!selectedRestaurant}
-      animationType="none"
-      onRequestClose={closeRestaurant}
-    >
+    <Container {...containerProps}>
       {/* Backdrop */}
       <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={closeRestaurant} />
@@ -297,7 +300,7 @@ export default function RestaurantDetailSheet() {
           </View>
         </ScrollView>
       </Animated.View>
-    </Modal>
+    </Container>
   );
 }
 

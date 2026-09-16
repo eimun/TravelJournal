@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,14 +28,13 @@ export default function PlaceDetailSheet({
   };
 
   const lineColor = getLineColor(place.line);
+  const Container = Platform.OS === 'web' ? View : Modal;
+  const containerProps = Platform.OS === 'web'
+    ? { style: [StyleSheet.absoluteFill, { zIndex: 1000 }] }
+    : { visible: true, transparent: true, animationType: 'slide', onRequestClose: onClose };
 
   return (
-    <Modal
-      visible={Boolean(place)}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Container {...containerProps}>
       <View style={styles.scrim}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         
@@ -179,7 +179,7 @@ export default function PlaceDetailSheet({
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </Container>
   );
 }
 
