@@ -377,6 +377,8 @@ export function TripProvider({ children }) {
       packPct,
       startPackDownload,
       toast,
+      fireToast,
+      clearToast,
       // Search Modal
       isSearchOpen,
       searchTarget,

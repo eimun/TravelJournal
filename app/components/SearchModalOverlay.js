@@ -96,7 +96,7 @@ export default function SearchModalOverlay() {
     ? { style: [StyleSheet.absoluteFill, { zIndex: 1200 }] }
     : { visible: true, animationType: 'slide', transparent: false, onRequestClose: closeSearch };
 
-  const topInset = Math.max(insets.top, 20) + 8;
+  const topInset = Math.max(insets.top, 46) + 6;
 
   return (
     <Container {...containerProps}>
