@@ -33,6 +33,19 @@ export function TripProvider({ children }) {
     POPULAR_DESTINATIONS[2],
   ]);
 
+  // Search Modal state
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchTarget, setSearchTarget] = useState('destination'); // 'destination' | 'origin'
+
+  const openSearch = useCallback((target = 'destination') => {
+    setSearchTarget(target);
+    setIsSearchOpen(true);
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setIsSearchOpen(false);
+  }, []);
+
   // Food / Explore tab state
   const [cuisineFilter, setCuisineFilter] = useState('all');
   const [dietFilter, setDietFilter] = useState('all'); // 'all' | 'veg' | 'nonveg' | 'halal' | 'jain'
@@ -364,8 +377,11 @@ export function TripProvider({ children }) {
       packPct,
       startPackDownload,
       toast,
-      fireToast,
-      clearToast,
+      // Search Modal
+      isSearchOpen,
+      searchTarget,
+      openSearch,
+      closeSearch,
       // Restaurant / Food tab
       cuisineFilter,
       setCuisineFilter,
@@ -393,6 +409,10 @@ export function TripProvider({ children }) {
       activeRoute,
       activeStepIndex,
       recentSearches,
+      isSearchOpen,
+      searchTarget,
+      openSearch,
+      closeSearch,
       budget,
       byCostPlaces,
       fitCount,

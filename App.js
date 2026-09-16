@@ -16,6 +16,7 @@ import NavigateScreen from './app/screens/NavigateScreen';
 import ExploreScreen from './app/screens/ExploreScreen';
 import GuideScreen from './app/screens/GuideScreen';
 import RestaurantDetailSheet from './app/components/RestaurantDetailSheet';
+import SearchModalOverlay from './app/components/SearchModalOverlay';
 import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
 import { openDatabase } from './src/db';
@@ -72,6 +73,9 @@ function Shell() {
         onChange={setTab}
         bottomInset={insets.bottom}
       />
+
+      {/* Search Modal Overlay (Full Mobile Screen) */}
+      <SearchModalOverlay />
 
       {/* Place Detail Bottom Sheet Modal */}
       <PlaceDetailSheet
