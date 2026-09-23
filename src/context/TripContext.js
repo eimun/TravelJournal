@@ -13,6 +13,7 @@ import { getDistanceBetween } from '../../app/data/transitData';
 import { POPULAR_DESTINATIONS } from '../../app/data/transitData';
 import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
 import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
+import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
 
 const TripContext = createContext(null);
 
@@ -51,6 +52,8 @@ export function TripProvider({ children }) {
   const [dietFilter, setDietFilter] = useState('all'); // 'all' | 'veg' | 'nonveg' | 'halal' | 'jain'
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [visitedRestaurants, setVisitedRestaurants] = useState([]);
+  const [liveOsmRestaurants, setLiveOsmRestaurants] = useState([]);
+  const [isFetchingOsm, setIsFetchingOsm] = useState(false);
 
   // Eat / Guide tab state
   const [dish, setDish] = useState('benne');
@@ -206,6 +209,45 @@ export function TripProvider({ children }) {
     );
   }, []);
 
+  const fetchNearbyOsm = useCallback(
+    async (customLat, customLon, areaName) => {
+      const lat = customLat || userLocation?.latitude || 12.9716;
+      const lon = customLon || userLocation?.longitude || 77.5946;
+
+      setIsFetchingOsm(true);
+      try {
+        const results = await fetchNearbyOsmRestaurants({
+          latitude: lat,
+          longitude: lon,
+          radiusMeters: 2200,
+          limit: 25,
+        });
+
+        if (results && results.length > 0) {
+          setLiveOsmRestaurants((prev) => {
+            const map = new Map();
+            prev.forEach((r) => map.set(r.id, r));
+            results.forEach((r) => map.set(r.id, r));
+            return Array.from(map.values());
+          });
+          const locationLabel = areaName ? ` near ${areaName}` : '';
+          fireToast(`🌐 Discovered ${results.length} live eateries${locationLabel}!`);
+          return results;
+        } else {
+          fireToast('No extra eateries found in immediate radius; showing offline spots.');
+          return [];
+        }
+      } catch (err) {
+        console.warn('Failed to fetch live OSM restaurants:', err);
+        fireToast('Network timeout. Showing curated offline eateries.');
+        return [];
+      } finally {
+        setIsFetchingOsm(false);
+      }
+    },
+    [userLocation, fireToast],
+  );
+
   const togglePlaceInDay = useCallback(
     (placeId) => {
       const target = PLACES.find((p) => p.id === placeId);
@@ -287,9 +329,21 @@ export function TripProvider({ children }) {
     return PLACES.find((p) => p.id === selectedPlaceId) || null;
   }, [selectedPlaceId]);
 
+  const allRestaurants = useMemo(() => {
+    if (!liveOsmRestaurants || liveOsmRestaurants.length === 0) {
+      return RESTAURANTS;
+    }
+    const existingIds = new Set(RESTAURANTS.map((r) => r.id));
+    const existingNames = new Set(RESTAURANTS.map((r) => r.name.toLowerCase().trim()));
+    const uniqueOsm = liveOsmRestaurants.filter(
+      (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
+    );
+    return [...RESTAURANTS, ...uniqueOsm];
+  }, [liveOsmRestaurants]);
+
   const selectedRestaurant = useMemo(() => {
-    return RESTAURANTS.find((r) => r.id === selectedRestaurantId) || null;
-  }, [selectedRestaurantId]);
+    return allRestaurants.find((r) => r.id === selectedRestaurantId) || null;
+  }, [allRestaurants, selectedRestaurantId]);
 
   // Eateries within ~1000m of any station or waypoint on the active route
   const routeEateries = useMemo(() => {
@@ -308,7 +362,7 @@ export function TripProvider({ children }) {
     if (routeWaypoints.length === 0) return [];
 
     const matched = [];
-    for (const r of RESTAURANTS) {
+    for (const r of allRestaurants) {
       let minDistance = Infinity;
       let closestWp = null;
 
@@ -330,11 +384,11 @@ export function TripProvider({ children }) {
     }
 
     return matched.sort((a, b) => a.routeDistanceMeters - b.routeDistanceMeters);
-  }, [activeRoute]);
+  }, [activeRoute, allRestaurants]);
 
   // Sorted/filtered restaurant list for Explore tab
   const filteredRestaurants = useMemo(() => {
-    let list = [...RESTAURANTS];
+    let list = [...allRestaurants];
 
     // cuisine filter
     if (cuisineFilter !== 'all') {
@@ -365,7 +419,7 @@ export function TripProvider({ children }) {
     }
 
     return list;
-  }, [cuisineFilter, dietFilter, userLocation, routeEateries]);
+  }, [allRestaurants, cuisineFilter, dietFilter, userLocation, routeEateries]);
 
   // Filtered Eateries for Eat / Guide tab
   const filteredEateries = useMemo(() => {
@@ -441,7 +495,11 @@ export function TripProvider({ children }) {
       toggleVisitedRestaurant,
       filteredRestaurants,
       routeEateries,
-      restaurants: RESTAURANTS,
+      liveOsmRestaurants,
+      isFetchingOsm,
+      fetchNearbyOsm,
+      allRestaurants,
+      restaurants: allRestaurants,
     }),
     [
       tab,
@@ -494,6 +552,10 @@ export function TripProvider({ children }) {
       toggleVisitedRestaurant,
       filteredRestaurants,
       routeEateries,
+      liveOsmRestaurants,
+      isFetchingOsm,
+      fetchNearbyOsm,
+      allRestaurants,
     ],
   );
 

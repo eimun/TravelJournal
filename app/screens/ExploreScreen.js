@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -73,6 +74,9 @@ export default function ExploreScreen({ contentPadding }) {
     activeRoute,
     destination,
     setTab,
+    liveOsmRestaurants,
+    isFetchingOsm,
+    fetchNearbyOsm,
   } = useTrip();
 
   const mealCtx = getMealContext();
@@ -324,6 +328,46 @@ export default function ExploreScreen({ contentPadding }) {
         </Text>
       </View>
 
+      {/* ── OpenStreetMap Live Discovery Banner ── */}
+      <View style={styles.osmDiscoveryBanner}>
+        <View style={styles.osmIconCircle}>
+          <Text style={{ fontSize: 20 }}>🌐</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <Text style={styles.osmTitle}>Explore Live with OpenStreetMap</Text>
+            <View style={styles.osmLiveHeaderBadge}>
+              <View style={styles.osmLivePulseDot} />
+              <Text style={styles.osmLiveHeaderBadgeText}>
+                {liveOsmRestaurants.length > 0 ? `${liveOsmRestaurants.length} ADDED` : 'OVERPASS'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.osmSubtitle}>
+            {liveOsmRestaurants.length > 0
+              ? `${liveOsmRestaurants.length} live OSM eateries loaded around your area.`
+              : 'Discover 20+ live local restaurants & cafes on-demand via OSM Overpass API.'}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => fetchNearbyOsm()}
+          disabled={isFetchingOsm}
+          style={({ pressed }) => [
+            styles.osmFetchButton,
+            isFetchingOsm && styles.osmFetchButtonDisabled,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] },
+          ]}
+        >
+          {isFetchingOsm ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text style={styles.osmFetchButtonText}>
+              {liveOsmRestaurants.length > 0 ? 'Refresh' : 'Discover'}
+            </Text>
+          )}
+        </Pressable>
+      </View>
+
       {/* ── All Restaurants List ── */}
       <View style={styles.listSection}>
         <View style={styles.listHeaderRow}>
@@ -371,6 +415,11 @@ export default function ExploreScreen({ contentPadding }) {
                     <View style={{ flex: 1 }}>
                       <View style={styles.cardNameRow}>
                         <Text style={styles.cardName} numberOfLines={1}>{r.name}</Text>
+                        {r.isOsmLive && (
+                          <View style={styles.osmLivePill}>
+                            <Text style={styles.osmLivePillText}>OSM</Text>
+                          </View>
+                        )}
                         {isVisited && (
                           <View style={styles.visitedPill}>
                             <Text style={styles.visitedPillText}>✓</Text>
@@ -1009,5 +1058,87 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fontFamily.bodyBold,
     color: colors.accentRamp[600],
+  },
+  osmDiscoveryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    ...shadow.sm,
+  },
+  osmIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  osmTitle: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+  },
+  osmLiveHeaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#0284c7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+  },
+  osmLivePulseDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#38bdf8',
+  },
+  osmLiveHeaderBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  osmSubtitle: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#94a3b8',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  osmFetchButton: {
+    backgroundColor: colors.accentRamp[700],
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 80,
+  },
+  osmFetchButtonDisabled: {
+    opacity: 0.7,
+  },
+  osmFetchButtonText: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+  },
+  osmLivePill: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+    marginLeft: 6,
+  },
+  osmLivePillText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0369a1',
   },
 });

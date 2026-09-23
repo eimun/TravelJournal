@@ -229,6 +229,13 @@ export default function RestaurantDetailSheet() {
 
           {/* Tags */}
           <View style={styles.tagsRow}>
+            {r.isOsmLive && (
+              <View style={[styles.tagPill, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd' }]}>
+                <Text style={[styles.tagText, { color: '#0369a1', fontFamily: fontFamily.bodyBold }]}>
+                  🌐 OpenStreetMap Live
+                </Text>
+              </View>
+            )}
             {r.tags.map((t) => <TagPill key={t} tag={t} />)}
             <View style={styles.tagPill}>
               <Text style={[styles.tagText, { color: colors.neutral[600] }]}>📅 {r.established}</Text>
