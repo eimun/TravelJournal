@@ -6,6 +6,7 @@ import {
   calculateMetroFare,
   getDistanceBetween,
   getMajesticInterchangeGuide,
+  getMetroPlatformAndGateInfo,
 } from '../data/transitData';
 import { formatDistance, estimateWalkMinutes } from './locationService';
 
@@ -366,12 +367,18 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
 
     const departureInfo = getNextMetroDeparture(originStation.id, originStation.line, travelDate);
 
-    const directionTerminus =
-      originIdx < destIdx
-        ? originLineList[originLineList.length - 1].name.split('(')[0].trim()
-        : originLineList[0].name.split('(')[0].trim();
-
-    const platform = originIdx < destIdx ? 'Platform 1' : 'Platform 2';
+    const originGatePlatform = getMetroPlatformAndGateInfo({
+      stationId: originStation.id,
+      line: originStation.line,
+      fromIdx: originIdx,
+      toIdx: destIdx,
+    });
+    const destGatePlatform = getMetroPlatformAndGateInfo({
+      stationId: destStation.id,
+      line: destStation.line,
+      fromIdx: originIdx,
+      toIdx: destIdx,
+    });
 
     const metroCoords = stationsSlice.map((st) => ({
       latitude: st.latitude,
@@ -384,13 +391,24 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       line: originStation.line,
       title: `${originStation.line === 'purple' ? 'Purple Line' : 'Green Line'} · ${stopCount} stops`,
       meta: `${originStation.name.split('(')[0]} → ${destStation.name.split('(')[0]} · ₹${metroFare} · ${Math.round(metroRideMinutes)} min`,
-      details: `Board from ${platform} (Direction: ${directionTerminus}).`,
+      details: `Board from ${originGatePlatform.platform} (${originGatePlatform.towards}). Enter via ${originGatePlatform.entryGate}.`,
       nextDeparture: departureInfo,
       intermediateStations: stationsSlice.map((s) => s.name.split('(')[0].trim()),
       icon: 'train',
       cost: metroFare,
       durationMinutes: Math.round(metroRideMinutes),
       coordinates: metroCoords,
+      platformInfo: {
+        platform: originGatePlatform.platform,
+        platformNum: originGatePlatform.platformNum,
+        towards: originGatePlatform.towards,
+        entryGate: originGatePlatform.entryGate,
+        exitGate: destGatePlatform.exitGate,
+        gates: originGatePlatform.gates,
+        destGates: destGatePlatform.gates,
+        originStationName: originStation.name.split('(')[0].trim(),
+        destStationName: destStation.name.split('(')[0].trim(),
+      },
     });
 
     // Milestone 3: De-board Station
@@ -427,6 +445,13 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
         ? originLineList[originLineList.length - 1].name.split('(')[0].trim()
         : originLineList[0].name.split('(')[0].trim();
 
+    const leg1GatePlatform = getMetroPlatformAndGateInfo({
+      stationId: originStation.id,
+      line: originStation.line,
+      fromIdx: originIdx,
+      toIdx: originMajesticIdx,
+    });
+
     const leg1Coords = leg1Slice.map((st) => ({
       latitude: st.latitude,
       longitude: st.longitude,
@@ -438,13 +463,23 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       line: originStation.line,
       title: `${originStation.line === 'purple' ? 'Purple Line' : 'Green Line'} to Majestic (${leg1Stops} stops)`,
       meta: `${originStation.name.split('(')[0]} → Majestic · ${Math.round(leg1Minutes)} min`,
-      details: `Board towards ${leg1Direction}.`,
+      details: `Board from ${leg1GatePlatform.platform} (${leg1GatePlatform.towards}). Enter via ${leg1GatePlatform.entryGate}.`,
       nextDeparture: departureLeg1,
       intermediateStations: leg1Slice.map((s) => s.name.split('(')[0].trim()),
       icon: 'train',
       cost: 0,
       durationMinutes: Math.round(leg1Minutes),
       coordinates: leg1Coords,
+      platformInfo: {
+        platform: leg1GatePlatform.platform,
+        platformNum: leg1GatePlatform.platformNum,
+        towards: leg1GatePlatform.towards,
+        entryGate: leg1GatePlatform.entryGate,
+        exitGate: 'Concourse Transfer Level',
+        gates: leg1GatePlatform.gates,
+        originStationName: originStation.name.split('(')[0].trim(),
+        destStationName: 'Kempegowda Majestic',
+      },
     });
 
     // Milestone 3: Majestic Interchange
@@ -493,10 +528,17 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       new Date(travelDate.getTime() + (firstMileStep.durationMinutes + leg1Minutes + 4) * 60 * 1000),
     );
 
-    const leg2Direction =
-      destMajesticIdx < destIdx
-        ? destLineList[destLineList.length - 1].name.split('(')[0].trim()
-        : destLineList[0].name.split('(')[0].trim();
+    const leg2GatePlatform = getMetroPlatformAndGateInfo({
+      stationId: destStation.id,
+      line: destStation.line,
+      fromIdx: destMajesticIdx,
+      toIdx: destIdx,
+    });
+
+    // At Majestic: Platform 1/2 for Purple, Platform 3/4 for Green
+    const majesticBoardPlatform = destStation.line === 'green'
+      ? (destIdx > destMajesticIdx ? 'Platform 4 (Towards Silk Institute)' : 'Platform 3 (Towards Madavara)')
+      : (destIdx > destMajesticIdx ? 'Platform 2 (Towards Challaghatta)' : 'Platform 1 (Towards Whitefield)');
 
     const leg2Coords = leg2Slice.map((st) => ({
       latitude: st.latitude,
@@ -509,13 +551,22 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       line: destStation.line,
       title: `${destStation.line === 'purple' ? 'Purple Line' : 'Green Line'} to destination (${leg2Stops} stops)`,
       meta: `Majestic → ${destStation.name.split('(')[0]} · Combined ₹${combinedMetroFare} · ${Math.round(leg2Minutes)} min`,
-      details: `Board towards ${leg2Direction}.`,
+      details: `Board from ${majesticBoardPlatform}.`,
       nextDeparture: departureLeg2,
       intermediateStations: leg2Slice.map((s) => s.name.split('(')[0].trim()),
       icon: 'train',
       cost: combinedMetroFare,
       durationMinutes: Math.round(leg2Minutes),
       coordinates: leg2Coords,
+      platformInfo: {
+        platform: majesticBoardPlatform,
+        towards: leg2GatePlatform.towards,
+        entryGate: 'Level 1/2 Paid Transfer',
+        exitGate: leg2GatePlatform.exitGate,
+        destGates: leg2GatePlatform.gates,
+        originStationName: 'Majestic',
+        destStationName: destStation.name.split('(')[0].trim(),
+      },
     });
 
     // Milestone 4: De-board Station

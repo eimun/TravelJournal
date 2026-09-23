@@ -69,9 +69,23 @@ export default function ExploreScreen({ contentPadding }) {
     openRestaurant,
     visitedRestaurants,
     userLocation,
+    routeEateries,
+    activeRoute,
+    destination,
+    setTab,
   } = useTrip();
 
   const mealCtx = getMealContext();
+
+  const effectiveDietFilters = useMemo(() => {
+    if (routeEateries && routeEateries.length > 0) {
+      return [
+        { id: 'route', label: `Along Route (${routeEateries.length})`, emoji: '🚇' },
+        ...DIET_FILTERS,
+      ];
+    }
+    return DIET_FILTERS;
+  }, [routeEateries]);
 
   // Get time-aware "hot right now" suggestions (top 3 open restaurants by rating)
   const hotNow = useMemo(() => {
@@ -108,7 +122,7 @@ export default function ExploreScreen({ contentPadding }) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterStrip}
       >
-        {DIET_FILTERS.map((f) => {
+        {effectiveDietFilters.map((f) => {
           const active = dietFilter === f.id;
           return (
             <Pressable
@@ -155,6 +169,101 @@ export default function ExploreScreen({ contentPadding }) {
           );
         })}
       </ScrollView>
+
+      {/* ── Along Your Metro Route Section ── */}
+      {routeEateries && routeEateries.length > 0 ? (
+        <View style={styles.routeSection}>
+          <View style={styles.routeSectionHeader}>
+            <View style={styles.routeHeaderLeft}>
+              <View style={styles.routeBadge}>
+                <Text style={styles.routeBadgeText}>🚇 METRO EATERIES</Text>
+              </View>
+              <Text style={styles.routeHeading}>Food Along Your Route</Text>
+              <Text style={styles.routeSubHeading}>
+                Near stations between your origin and {destination?.name?.split(',')[0] || 'destination'}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => setDietFilter(dietFilter === 'route' ? 'all' : 'route')}
+              style={({ pressed }) => [
+                styles.viewAllRouteBtn,
+                dietFilter === 'route' && styles.viewAllRouteBtnActive,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <Text style={[styles.viewAllRouteText, dietFilter === 'route' && styles.viewAllRouteTextActive]}>
+                {dietFilter === 'route' ? 'Filtered ✓' : `Filter (${routeEateries.length})`}
+              </Text>
+            </Pressable>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.routeScroll}
+          >
+            {routeEateries.map((r) => {
+              const isVisited = visitedRestaurants.includes(r.id);
+              return (
+                <Pressable
+                  key={`route_card_${r.id}`}
+                  onPress={() => openRestaurant(r.id)}
+                  style={({ pressed }) => [
+                    styles.routeCard,
+                    pressed && { transform: [{ scale: 0.97 }] },
+                  ]}
+                >
+                  <View style={styles.routeCardTopRow}>
+                    <View style={styles.routeDistanceBadge}>
+                      <Text style={styles.routeDistanceBadgeText} numberOfLines={1}>
+                        📍 ~{r.routeDistanceMeters}m from {r.nearStationName}
+                      </Text>
+                    </View>
+                    {isVisited && (
+                      <View style={styles.routeVisitedDot}>
+                        <Text style={styles.routeVisitedText}>✓</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <Text style={styles.routeCardName} numberOfLines={1}>{r.name}</Text>
+                  <Text style={styles.routeCardArea} numberOfLines={1}>{r.area}</Text>
+
+                  <View style={styles.routeCardDishRow}>
+                    <Text style={styles.routeCardDishName} numberOfLines={1}>
+                      ⭐ {r.mustTry.dish}
+                    </Text>
+                    <Text style={styles.routeCardDishPrice}>₹{r.mustTry.price}</Text>
+                  </View>
+
+                  <View style={styles.routeCardFooter}>
+                    <MiniStars rating={r.rating} />
+                    <Text style={styles.routeCardCuisine}>
+                      {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.label || 'Eatery'}
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : (
+        <Pressable
+          onPress={() => setTab('navigate')}
+          style={({ pressed }) => [styles.planRouteBanner, pressed && { opacity: 0.85 }]}
+        >
+          <View style={styles.planRouteIconCircle}>
+            <Text style={{ fontSize: 16 }}>🧭</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.planRouteBannerTitle}>Plan a route in Navigate tab</Text>
+            <Text style={styles.planRouteBannerSub}>
+              We will automatically show you legendary eateries along your metro stops!
+            </Text>
+          </View>
+          <Text style={styles.planRouteBannerArrow}>→</Text>
+        </Pressable>
+      )}
 
       {/* ── Hot Right Now Banner ── */}
       {hotNow.length > 0 && (
@@ -713,5 +822,192 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     color: colors.neutral[600],
     textAlign: 'center',
+  },
+  // Route Eateries Section
+  routeSection: {
+    marginBottom: 20,
+    backgroundColor: '#fffdf9',
+    borderRadius: radius.lg,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(108, 77, 143, 0.22)',
+    ...shadow.sm,
+  },
+  routeSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  routeHeaderLeft: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  routeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f3e8ff',
+    borderRadius: radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginBottom: 4,
+  },
+  routeBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: '#6c4d8f',
+  },
+  routeHeading: {
+    fontSize: 16,
+    fontFamily: fontFamily.heading,
+    color: colors.neutral[900],
+  },
+  routeSubHeading: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    marginTop: 2,
+  },
+  viewAllRouteBtn: {
+    backgroundColor: colors.neutral[200],
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+  },
+  viewAllRouteBtnActive: {
+    backgroundColor: '#6c4d8f',
+  },
+  viewAllRouteText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  viewAllRouteTextActive: {
+    color: colors.white,
+  },
+  routeScroll: {
+    gap: 12,
+    paddingVertical: 2,
+  },
+  routeCard: {
+    width: 220,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(46, 43, 37, 0.08)',
+    ...shadow.sm,
+  },
+  routeCardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  routeDistanceBadge: {
+    backgroundColor: colors.neutral[100],
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    maxWidth: 180,
+  },
+  routeDistanceBadgeText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
+  },
+  routeVisitedDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.accent2Ramp[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  routeVisitedText: {
+    fontSize: 9,
+    color: colors.white,
+    fontWeight: 'bold',
+  },
+  routeCardName: {
+    fontSize: 14,
+    fontFamily: fontFamily.heading,
+    color: colors.neutral[900],
+  },
+  routeCardArea: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[500],
+    marginTop: 1,
+    marginBottom: 8,
+  },
+  routeCardDishRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.neutral[100],
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    marginBottom: 8,
+  },
+  routeCardDishName: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[800],
+  },
+  routeCardDishPrice: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
+    marginLeft: 4,
+  },
+  routeCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  routeCardCuisine: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[500],
+  },
+  planRouteBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(46, 43, 37, 0.08)',
+    ...shadow.sm,
+  },
+  planRouteIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.accentRamp[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planRouteBannerTitle: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.heading,
+    color: colors.neutral[900],
+  },
+  planRouteBannerSub: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  planRouteBannerArrow: {
+    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[600],
   },
 });

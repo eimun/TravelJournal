@@ -5,6 +5,7 @@ import {
   calculateMetroFare,
   findNearestMetroStation,
   getMajesticInterchangeGuide,
+  getMetroPlatformAndGateInfo,
 } from '../../app/data/transitData';
 import { planTransitRoute } from '../../app/services/directionsService';
 import { formatDistance, estimateWalkMinutes } from '../../app/services/locationService';
@@ -193,5 +194,40 @@ describe('transitData & Routing Service', () => {
     // Walk duration around 25-26 min, flagged with warning
     expect(leg.modes.walk.durationMinutes).toBeGreaterThanOrEqual(25);
     expect(leg.modes.walk.details).toContain('Auto or Bike Taxi strongly recommended');
+  });
+
+  it('provides accurate platform directions and station gate recommendations', () => {
+    // Indiranagar going towards Challaghatta (Westbound, toIdx > fromIdx)
+    const indiranagarWest = getMetroPlatformAndGateInfo({
+      stationId: 'p16',
+      line: 'purple',
+      fromIdx: 15,
+      toIdx: 22,
+    });
+    expect(indiranagarWest.platform).toBe('Platform 2');
+    expect(indiranagarWest.towards).toContain('Towards Challaghatta');
+    expect(indiranagarWest.entryGate).toBe('Gate A');
+    expect(indiranagarWest.exitGate).toBe('Gate B');
+
+    // Indiranagar going towards Whitefield (Eastbound, toIdx < fromIdx)
+    const indiranagarEast = getMetroPlatformAndGateInfo({
+      stationId: 'p16',
+      line: 'purple',
+      fromIdx: 15,
+      toIdx: 5,
+    });
+    expect(indiranagarEast.platform).toBe('Platform 1');
+    expect(indiranagarEast.towards).toContain('Towards Whitefield');
+
+    // Lalbagh (Green line) going South towards Silk Institute
+    const lalbaghSouth = getMetroPlatformAndGateInfo({
+      stationId: 'g14',
+      line: 'green',
+      fromIdx: 13,
+      toIdx: 20,
+    });
+    expect(lalbaghSouth.platform).toBe('Platform 1');
+    expect(lalbaghSouth.towards).toContain('Towards Silk Institute');
+    expect(lalbaghSouth.exitGate).toBe('Gate 4');
   });
 });

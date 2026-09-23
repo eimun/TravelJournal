@@ -291,6 +291,47 @@ export function TripProvider({ children }) {
     return RESTAURANTS.find((r) => r.id === selectedRestaurantId) || null;
   }, [selectedRestaurantId]);
 
+  // Eateries within ~1000m of any station or waypoint on the active route
+  const routeEateries = useMemo(() => {
+    if (!activeRoute || !activeRoute.milestones || activeRoute.milestones.length === 0) {
+      return [];
+    }
+
+    const routeWaypoints = activeRoute.milestones
+      .filter((m) => m.coordinate && m.coordinate.latitude)
+      .map((m) => ({
+        label: m.title || m.label,
+        lat: m.coordinate.latitude,
+        lon: m.coordinate.longitude,
+      }));
+
+    if (routeWaypoints.length === 0) return [];
+
+    const matched = [];
+    for (const r of RESTAURANTS) {
+      let minDistance = Infinity;
+      let closestWp = null;
+
+      for (const wp of routeWaypoints) {
+        const d = getDistanceBetween(wp.lat, wp.lon, r.latitude, r.longitude);
+        if (d < minDistance) {
+          minDistance = d;
+          closestWp = wp;
+        }
+      }
+
+      if (minDistance <= 1100) {
+        matched.push({
+          ...r,
+          routeDistanceMeters: Math.round(minDistance),
+          nearStationName: closestWp?.label || 'Route Station',
+        });
+      }
+    }
+
+    return matched.sort((a, b) => a.routeDistanceMeters - b.routeDistanceMeters);
+  }, [activeRoute]);
+
   // Sorted/filtered restaurant list for Explore tab
   const filteredRestaurants = useMemo(() => {
     let list = [...RESTAURANTS];
@@ -301,7 +342,10 @@ export function TripProvider({ children }) {
     }
 
     // diet filter
-    if (dietFilter === 'veg') {
+    if (dietFilter === 'route') {
+      const routeIds = new Set(routeEateries.map((re) => re.id));
+      list = list.filter((r) => routeIds.has(r.id));
+    } else if (dietFilter === 'veg') {
       list = list.filter((r) => !r.tags.includes('nonveg'));
     } else if (dietFilter === 'nonveg') {
       list = list.filter((r) => r.tags.includes('nonveg'));
@@ -321,7 +365,7 @@ export function TripProvider({ children }) {
     }
 
     return list;
-  }, [cuisineFilter, dietFilter, userLocation]);
+  }, [cuisineFilter, dietFilter, userLocation, routeEateries]);
 
   // Filtered Eateries for Eat / Guide tab
   const filteredEateries = useMemo(() => {
@@ -396,6 +440,7 @@ export function TripProvider({ children }) {
       visitedRestaurants,
       toggleVisitedRestaurant,
       filteredRestaurants,
+      routeEateries,
       restaurants: RESTAURANTS,
     }),
     [
@@ -448,6 +493,7 @@ export function TripProvider({ children }) {
       visitedRestaurants,
       toggleVisitedRestaurant,
       filteredRestaurants,
+      routeEateries,
     ],
   );
 

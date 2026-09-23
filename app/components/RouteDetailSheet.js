@@ -187,6 +187,53 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                 <Text style={styles.stepMeta}>{step.meta}</Text>
                 <Text style={styles.stepDetails}>{step.details}</Text>
 
+                {/* Metro Platform & Station Gate Guidance */}
+                {step.platformInfo && (
+                  <View style={styles.gatePlatformCard}>
+                    <View style={styles.gatePlatformHeader}>
+                      <View style={styles.platformBadge}>
+                        <Text style={styles.platformBadgeText}>🚉 {step.platformInfo.platform}</Text>
+                      </View>
+                      <Text style={styles.platformTowardsText} numberOfLines={1}>
+                        {step.platformInfo.towards}
+                      </Text>
+                    </View>
+
+                    <View style={styles.gatesGrid}>
+                      <View style={styles.gateCol}>
+                        <Text style={styles.gateColLabel}>BOARDING ENTRY</Text>
+                        <Text style={styles.gateColValue} numberOfLines={1}>
+                          {step.platformInfo.entryGate}
+                        </Text>
+                        <Text style={styles.gateColSub} numberOfLines={1}>
+                          {step.platformInfo.originStationName}
+                        </Text>
+                      </View>
+                      <View style={styles.gateColDivider} />
+                      <View style={styles.gateCol}>
+                        <Text style={styles.gateColLabel}>RECOMMENDED EXIT</Text>
+                        <Text style={[styles.gateColValue, { color: colors.accentRamp[700] }]} numberOfLines={1}>
+                          {step.platformInfo.exitGate}
+                        </Text>
+                        <Text style={styles.gateColSub} numberOfLines={1}>
+                          {step.platformInfo.destStationName}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {step.platformInfo.destGates && step.platformInfo.destGates.length > 0 && (
+                      <View style={styles.destGatesTipsList}>
+                        <Text style={styles.destGatesHeader}>Exit Guide for {step.platformInfo.destStationName}:</Text>
+                        {step.platformInfo.destGates.map((g, gi) => (
+                          <Text key={gi} style={styles.gateExitItemText} numberOfLines={1}>
+                            • <Text style={styles.gateExitItemBold}>{g.id}:</Text> {g.exitFor}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
+
                 {/* Multi-modal switcher for connecting legs (Auto / Bike / Cab / Bus / Walk) */}
                 {step.modes && (
                   <ConnectingLegSelector
@@ -550,5 +597,94 @@ const styles = StyleSheet.create({
     color: colors.neutral[600],
     marginTop: 6,
     lineHeight: 17,
+  },
+  gatePlatformCard: {
+    backgroundColor: '#fffdf9',
+    borderRadius: radius.md,
+    padding: 10,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(198, 113, 57, 0.22)',
+    ...shadow.sm,
+  },
+  gatePlatformHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  platformBadge: {
+    backgroundColor: colors.neutral[900],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  platformBadgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+  },
+  platformTowardsText: {
+    flex: 1,
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[800],
+  },
+  gatesGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.neutral[100],
+    borderRadius: radius.sm,
+    padding: 8,
+  },
+  gateCol: {
+    flex: 1,
+  },
+  gateColDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.neutral[300],
+    marginHorizontal: 8,
+  },
+  gateColLabel: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: colors.neutral[500],
+  },
+  gateColValue: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+    marginTop: 1,
+  },
+  gateColSub: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+  },
+  destGatesTipsList: {
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[200],
+    gap: 2,
+  },
+  destGatesHeader: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.5,
+    color: colors.neutral[600],
+    marginBottom: 2,
+  },
+  gateExitItemText: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[700],
+    lineHeight: 15,
+  },
+  gateExitItemBold: {
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
   },
 });

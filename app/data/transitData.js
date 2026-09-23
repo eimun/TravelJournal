@@ -362,8 +362,8 @@ export function getMajesticInterchangeGuide(fromLine, toLine) {
       steps: [
         'Step off Purple Line train at Level 1 (Underground)',
         'Look overhead for bright GREEN wayfinding signage',
-        'Take escalator / stairs down one level to the Green Line concourse',
-        'Platform 1 heads towards Silk Institute (South); Platform 2 heads towards Nagasandra (North)',
+        'Take central escalators down to Green Line concourse (Level 2)',
+        'Platform 3 heads North to Madavara; Platform 4 heads South to Silk Institute',
         'Allow 3 to 4 minutes walking time inside the station',
       ],
       tip: 'Do NOT tap your card/token at the gates inside — transfers are within the paid area!',
@@ -375,9 +375,177 @@ export function getMajesticInterchangeGuide(fromLine, toLine) {
     steps: [
       'Step off Green Line train at Level 2',
       'Follow PURPLE arrows up via escalator to Level 1',
-      'Platform 1 heads towards Whitefield (East); Platform 2 heads towards Challaghatta (West)',
+      'Platform 1 heads East to Whitefield; Platform 2 heads West to Challaghatta',
       'Estimated walking time: 3 minutes',
     ],
     tip: 'Transfers are completely free inside the paid concourse.',
+  };
+}
+
+/**
+ * Gate and exit landmarks for key Bengaluru Metro stations
+ */
+export const STATION_GATES = {
+  p1: {
+    stationName: 'Whitefield (Kadugodi)',
+    gates: [
+      { id: 'Gate A', name: 'Whitefield Main Road', exitFor: 'Kadugodi Bus Stand & Railway Station' },
+      { id: 'Gate B', name: 'ITPL Link Road', exitFor: 'Tech parks, ITPL & Hope Farm junction' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  p4: {
+    stationName: 'Pattandur Agrahara (ITPL)',
+    gates: [
+      { id: 'Gate 1', name: 'ITPL Main Gate', exitFor: 'International Tech Park, Park Square Mall' },
+      { id: 'Gate 2', name: 'Hope Farm Side', exitFor: 'AECS Layout link, residential' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  p12: {
+    stationName: 'KR Pura (Outer Ring Road)',
+    gates: [
+      { id: 'Gate A', name: 'Outer Ring Road (ORR)', exitFor: 'Buses to Marathahalli, Bellandur, Sarjapur' },
+      { id: 'Gate B', name: 'Old Madras Road', exitFor: 'KR Puram Railway Station & market' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  p16: {
+    stationName: 'Indiranagar',
+    gates: [
+      { id: 'Gate A', name: 'CMH Road (Chinmaya Mission)', exitFor: 'CMH Hospital, Double Road, Metro parking' },
+      { id: 'Gate B', name: '100 Feet Road Corner', exitFor: '100 Feet Road cafes, Toit, 12th Main, shopping' },
+    ],
+    defaultExit: 'Gate B',
+  },
+  p18: {
+    stationName: 'Trinity',
+    gates: [
+      { id: 'Gate 1', name: 'MG Road East', exitFor: '1MG Mall, Taj MG Road, Trinity Circle' },
+      { id: 'Gate 2', name: 'Old Airport Road Side', exitFor: 'Command Hospital, Victoria Layout' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  p19: {
+    stationName: 'MG Road',
+    gates: [
+      { id: 'Gate A', name: 'Church Street & Brigade Road', exitFor: 'Church St cafes, Brigade Rd, Empire, bookstores' },
+      { id: 'Gate B', name: 'MG Road Boulevard', exitFor: 'Rangoli Metro Art Centre, Anil Kumble Circle' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  p20: {
+    stationName: 'Cubbon Park',
+    gates: [
+      { id: 'Gate 1', name: 'Cubbon Park Main Entrance', exitFor: 'Cubbon Park shade walk, KSLTA, Press Club' },
+      { id: 'Gate 2', name: 'Chinnaswamy Stadium / GPO', exitFor: 'Cricket Stadium, High Court of Karnataka, GPO' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  p21: {
+    stationName: 'Dr. BR Ambedkar Vidhana Soudha',
+    gates: [
+      { id: 'Gate 1', name: 'Vidhana Soudha Side', exitFor: 'Vidhana Soudha & Vikas Soudha legislative complex' },
+      { id: 'Gate 2', name: 'High Court / MS Building', exitFor: 'Karnataka High Court, Government offices' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  p23: {
+    stationName: 'Nadaprabhu Kempegowda (Majestic)',
+    gates: [
+      { id: 'Gate A', name: 'BMTC City Bus Stand', exitFor: 'Majestic Bus Station, KSRTC terminal' },
+      { id: 'Gate B', name: 'KSR City Railway Station', exitFor: 'Bangalore City Railway Station footbridge' },
+      { id: 'Gate C', name: 'Tank Bund Road / Chickpet', exitFor: 'Chickpet commercial market & Gandhinagar' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  p24: {
+    stationName: 'KSR Bengaluru City Railway Station',
+    gates: [
+      { id: 'Gate 1', name: 'Railway Station Footbridge', exitFor: 'Direct platform 1-10 entrance to KSR SBC' },
+      { id: 'Gate 2', name: 'Subhash Nagar Side', exitFor: 'Autos & city drop-off' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  g13: {
+    stationName: 'National College (Basavanagudi)',
+    gates: [
+      { id: 'Gate 1', name: 'Gandhi Bazaar / DVG Road', exitFor: 'Vidyarthi Bhavan, Gandhi Bazaar, Ramakrishna Ashrama' },
+      { id: 'Gate 2', name: 'Pampa Mahakavi Road', exitFor: 'National College grounds, Basavanagudi post office' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  g14: {
+    stationName: 'Lalbagh',
+    gates: [
+      { id: 'Gate 4', name: 'West Gate / Lalbagh Fort Rd', exitFor: 'Lalbagh Botanical Garden West Gate & MTR Restaurant' },
+      { id: 'Gate 1', name: 'RV Road Side', exitFor: 'Krumbiegel Road, South Bengaluru links' },
+    ],
+    defaultExit: 'Gate 4',
+  },
+  g15: {
+    stationName: 'South End Circle',
+    gates: [
+      { id: 'Gate A', name: 'Ashoka Pillar / Jayanagar 1st', exitFor: 'South End Circle, Ashoka Pillar monument' },
+      { id: 'Gate B', name: 'Pattabhirama Temple Side', exitFor: 'Jayanagar 2nd & 3rd block' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  g16: {
+    stationName: 'Jayanagar',
+    gates: [
+      { id: 'Gate 1', name: 'Jayanagar 4th Block Complex', exitFor: '4th Block Shopping Complex, Maiyas, Cool Joint' },
+      { id: 'Gate 2', name: '30th Cross / 11th Main', exitFor: 'Cosmopolitan Club, residential Jayanagar' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+};
+
+/**
+ * Returns platform direction and gate details for a station on a journey
+ */
+export function getMetroPlatformAndGateInfo({ stationId, line, fromIdx = 0, toIdx = 1 }) {
+  const isEastboundOrSouthbound = toIdx > fromIdx;
+  let platformNum = 1;
+  let towardsHeadsign = '';
+
+  if (line === 'purple') {
+    // Eastbound (index 0 to 35): Whitefield is index 0 in list, Challaghatta is index 35
+    // Notice PURPLE_STATIONS: index 0 is Whitefield, index 35 is Challaghatta
+    // If going from index 0 -> 35, going Towards Challaghatta (Westbound)
+    // If going from index 35 -> 0, going Towards Whitefield (Eastbound)
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Challaghatta (Westbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Whitefield / ITPL (Eastbound)';
+    }
+  } else {
+    // Green Line: index 0 is Madavara (North), index 28 is Silk Institute (South)
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Silk Institute (Southbound)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Madavara / Nagasandra (Northbound)';
+    }
+  }
+
+  const gateData = STATION_GATES[stationId] || {
+    gates: [
+      { id: 'Gate 1', name: 'Main Road Entrance', exitFor: 'Street level access & auto stand' },
+      { id: 'Gate 2', name: 'Opposite Side Entrance', exitFor: 'Pedestrian crossing & parking' },
+    ],
+    defaultExit: 'Gate 1',
+  };
+
+  return {
+    platform: `Platform ${platformNum}`,
+    platformNum,
+    towards: towardsHeadsign,
+    entryGate: gateData.gates[0]?.id || 'Gate 1',
+    exitGate: gateData.defaultExit,
+    gates: gateData.gates,
   };
 }
