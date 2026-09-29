@@ -9,6 +9,7 @@ import {
   getMetroPlatformAndGateInfo,
 } from '../data/transitData';
 import { formatDistance, estimateWalkMinutes } from './locationService';
+import { calculateDynamicFareMatrix } from '../../src/domain/dynamicFare';
 
 /**
  * Fetches real road-level geometry from OSRM road routing engine.
@@ -69,11 +70,13 @@ export function buildConnectingLeg({
   const busMin = Math.max(5, Math.round(distanceMeters / 250) + 3);
   const cabMin = Math.max(4, Math.round(distanceMeters / 300) + 3);
 
-  const autoMeterFare = Math.max(30, Math.round(30 + Math.max(0, (distanceMeters - 2000) / 1000) * 15));
-  const autoQuoteFare = Math.round(autoMeterFare * 1.85);
-  const bikeFare = Math.max(20, Math.round(20 + ((distanceMeters - 1000) / 1000) * 7));
+  const dynamicFare = calculateDynamicFareMatrix(distanceMeters, new Date());
+  const autoMeterFare = dynamicFare.providers.rtoMeter.fare;
+  const autoAppFare = dynamicFare.providers.nammaYatri.fare;
+  const autoQuoteFare = dynamicFare.providers.streetQuote.fare;
+  const bikeFare = dynamicFare.providers.rapidoBike.fare;
   const busFare = 10;
-  const cabFare = Math.max(79, Math.round(75 + ((distanceMeters - 1000) / 1000) * 18));
+  const cabFare = Math.max(89, Math.round(dynamicFare.providers.uberOla.fare + 45));
 
   const modes = {
     auto: {
@@ -82,14 +85,16 @@ export function buildConnectingLeg({
       icon: 'car',
       emoji: '🛺',
       durationMinutes: autoMin,
-      fare: autoMeterFare,
+      fare: autoAppFare,
+      meterFare: autoMeterFare,
       quoteFare: autoQuoteFare,
+      dynamicFare,
       title: `Auto to ${locationName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${autoMin} min · Meter ₹${autoMeterFare}`,
+      meta: `${formatDistance(distanceMeters)} · ~${autoMin} min · App ~₹${autoAppFare} (Meter ₹${autoMeterFare})`,
       details: seniorMode
-        ? `Senior/Family Pick: Hop into a meter auto (~${autoMin} min). Drops right at the station elevator/ramp.`
-        : `Take meter auto (~${autoMin} min). Ask for meter (approx ₹${autoMeterFare}) or book on Namma Yatri / Uber.`,
-      tip: `Drivers right at gate quote ~₹${autoQuoteFare}. Walk 40m past gate to main street or demand meter.`,
+        ? `Senior/Family Pick: Hop into a meter auto or Namma Yatri (~${autoMin} min). Drops right at the station elevator/ramp.`
+        : `Take auto (~${autoMin} min). Namma Yatri ~₹${autoAppFare}, Uber/Ola ~${dynamicFare.providers.uberOla.fareRange || `₹${dynamicFare.providers.uberOla.fare}`}. Meter rate: ₹${autoMeterFare}.`,
+      tip: `${dynamicFare.surge.label}. Offline drivers quote ~₹${autoQuoteFare}. Use Namma Yatri or ask for meter.`,
     },
     bike: {
       key: 'bike',
@@ -167,6 +172,7 @@ export function buildConnectingLeg({
     selectedMode: defaultMode,
     modes,
     distanceMeters,
+    dynamicFare,
     fromCoord,
     toCoord,
     coordinates: [fromCoord, toCoord],

@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
+import DynamicAutoFareCard from './DynamicAutoFareCard';
 
 export default function ConnectingLegSelector({
   step,
@@ -159,6 +160,14 @@ export default function ConnectingLegSelector({
           </View>
         )}
       </View>
+
+      {/* Live Dynamic Auto Fare Matrix & Surge Comparison */}
+      {currentKey === 'auto' && (step.dynamicFare || modes.auto?.dynamicFare) && (
+        <DynamicAutoFareCard
+          dynamicFare={step.dynamicFare || modes.auto?.dynamicFare}
+          distanceMeters={step.distanceMeters}
+        />
+      )}
 
       {/* Selected Mode Insider Tip */}
       {currentMode.tip && (
