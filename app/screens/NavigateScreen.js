@@ -16,6 +16,7 @@ import SearchBar from '../components/SearchBar';
 import RouteDetailSheet from '../components/RouteDetailSheet';
 import MilestoneRibbon from '../components/MilestoneRibbon';
 import WebRoadMap from '../components/WebRoadMap';
+import StationBlueprintModal from '../components/StationBlueprintModal';
 
 let MapView, Marker, Polyline;
 try {
@@ -45,6 +46,7 @@ export default function NavigateScreen({ contentPadding }) {
   const [mapMode, setMapMode] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [showBlueprint, setShowBlueprint] = useState(false);
 
   const mapRef = useRef(null);
   const scrollRef = useRef(null);
@@ -283,6 +285,20 @@ export default function NavigateScreen({ contentPadding }) {
                 {mapMode ? 'Transit Graph' : 'Google Map'}
               </Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => setShowBlueprint(true)}
+              style={({ pressed }) => [
+                styles.mapControlBtn,
+                styles.blueprintMapControlBtn,
+                pressed && { transform: [{ scale: 0.95 }] },
+              ]}
+            >
+              <Text style={{ fontSize: 11 }}>🏢</Text>
+              <Text style={[styles.mapControlBtnText, styles.blueprintMapControlText]}>
+                Blueprint
+              </Text>
+            </Pressable>
           </View>
 
           {/* Map legend footer */}
@@ -379,6 +395,12 @@ export default function NavigateScreen({ contentPadding }) {
             onFocusMap={() => {}}
           />
         </ScrollView>
+
+        {/* Station Blueprint Modal (Wide Screen) */}
+        <StationBlueprintModal
+          visible={showBlueprint}
+          onClose={() => setShowBlueprint(false)}
+        />
       </View>
     );
   }
@@ -430,6 +452,12 @@ export default function NavigateScreen({ contentPadding }) {
           <Text style={styles.floatingMapText}>View Map ⬆️</Text>
         </Pressable>
       )}
+
+      {/* Station Blueprint Modal (Mobile Screen) */}
+      <StationBlueprintModal
+        visible={showBlueprint}
+        onClose={() => setShowBlueprint(false)}
+      />
     </View>
   );
 }
@@ -544,6 +572,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[800],
+  },
+  blueprintMapControlBtn: {
+    backgroundColor: '#0f172a',
+  },
+  blueprintMapControlText: {
+    color: '#38bdf8',
   },
   mapLegendBar: {
     position: 'absolute',

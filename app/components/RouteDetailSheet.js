@@ -10,12 +10,15 @@ import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import ConnectingLegSelector from './ConnectingLegSelector';
+import StationBlueprintModal from './StationBlueprintModal';
 
 export default function RouteDetailSheet({ route, onFocusMap }) {
   const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode } = useTrip();
   const [expandedStationStep, setExpandedStationStep] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedModes, setSelectedModes] = useState({});
+  const [showBlueprintModal, setShowBlueprintModal] = useState(false);
+  const [blueprintPathId, setBlueprintPathId] = useState(null);
 
   const routeSteps = route?.steps;
   const effectiveSteps = useMemo(() => {
@@ -238,6 +241,34 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         </View>
       )}
 
+      {/* Station Blueprint Quick Action */}
+      <Pressable
+        onPress={() => {
+          setBlueprintPathId('ksr_to_purple');
+          setShowBlueprintModal(true);
+        }}
+        style={({ pressed }) => [
+          styles.blueprintHubBanner,
+          pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+        ]}
+      >
+        <View style={styles.blueprintHubIconWrap}>
+          <Text style={{ fontSize: 20 }}>🏢</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.blueprintHubTitle}>Majestic Concourse Blueprint</Text>
+            <View style={styles.blueprint3DBadge}>
+              <Text style={styles.blueprint3DBadgeText}>3D GUIDE</Text>
+            </View>
+          </View>
+          <Text style={styles.blueprintHubSub}>
+            Interactive 4-level cross-section, gates (A–F), platform lifts & cloakroom
+          </Text>
+        </View>
+        <Text style={styles.blueprintHubArrow}>➔</Text>
+      </Pressable>
+
       {/* Step-by-Step Stepper with Interactive Map Highlights */}
       <View style={styles.stepperHeaderRow}>
         <Text style={styles.stepperSectionHeading}>EXACT STEP-BY-STEP ROUTE</Text>
@@ -357,6 +388,36 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         ))}
                       </View>
                     )}
+
+                    {/* Direct Blueprint Trigger for Station */}
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setBlueprintPathId(
+                          step.type === 'transfer'
+                            ? 'purple_to_green_transfer'
+                            : 'ksr_to_purple',
+                        );
+                        setShowBlueprintModal(true);
+                      }}
+                      style={({ pressed }) => [
+                        styles.blueprintActionBtn,
+                        pressed && { opacity: 0.8 },
+                      ]}
+                    >
+                      <Text style={styles.blueprintActionBtnIcon}>🏢</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.blueprintActionBtnTitle}>
+                          Majestic Station Concourse Blueprint
+                        </Text>
+                        <Text style={styles.blueprintActionBtnSub}>
+                          {step.type === 'transfer'
+                            ? 'See 1-min transfer route between Purple & Green lines'
+                            : 'See gate-to-platform route & step-free elevators'}
+                        </Text>
+                      </View>
+                      <Text style={styles.blueprintActionBtnArrow}>➔</Text>
+                    </Pressable>
                   </View>
                 )}
 
@@ -418,6 +479,12 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         })}
       </View>
 
+      {/* Majestic Concourse Blueprint Modal */}
+      <StationBlueprintModal
+        visible={showBlueprintModal}
+        onClose={() => setShowBlueprintModal(false)}
+        initialPathId={blueprintPathId}
+      />
     </View>
   );
 }
@@ -1025,5 +1092,85 @@ const styles = StyleSheet.create({
   gateExitItemBold: {
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[900],
+  },
+  blueprintHubBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: radius.lg,
+    padding: 14,
+    marginTop: 14,
+    marginBottom: 6,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    ...shadow.sm,
+  },
+  blueprintHubIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#1e293b',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blueprintHubTitle: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+  },
+  blueprint3DBadge: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+  },
+  blueprint3DBadgeText: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  blueprintHubSub: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#94a3b8',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  blueprintHubArrow: {
+    fontSize: 14,
+    color: '#38bdf8',
+    fontFamily: fontFamily.bodyBold,
+  },
+  blueprintActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: radius.md,
+    padding: 10,
+    marginTop: 10,
+    gap: 10,
+  },
+  blueprintActionBtnIcon: {
+    fontSize: 18,
+  },
+  blueprintActionBtnTitle: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1e293b',
+  },
+  blueprintActionBtnSub: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  blueprintActionBtnArrow: {
+    fontSize: 12,
+    color: '#0284c7',
+    fontFamily: fontFamily.bodyBold,
   },
 });
