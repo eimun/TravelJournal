@@ -9,8 +9,7 @@ import {
 } from 'react';
 
 import { PLACES, EATERIES_DB, RESTAURANTS } from '../../app/data/bengaluruData';
-import { getDistanceBetween } from '../../app/data/transitData';
-import { POPULAR_DESTINATIONS } from '../../app/data/transitData';
+import { getDistanceBetween, POPULAR_DESTINATIONS } from '../../app/data/transitData';
 import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
 import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
 import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
@@ -100,12 +99,17 @@ export function TripProvider({ children }) {
 
   const [activeStepIndex, setActiveStepIndex] = useState(null);
   const [enrichedRoute, setEnrichedRoute] = useState(null);
+  const [seniorMode, setSeniorMode] = useState(false);
+
+  const toggleSeniorMode = useCallback(() => {
+    setSeniorMode((prev) => !prev);
+  }, []);
 
   // Compute baseline transit route whenever userLocation or destination changes
   const baseRoute = useMemo(() => {
     if (!userLocation || !destination) return null;
-    return planTransitRoute(userLocation, destination);
-  }, [userLocation, destination]);
+    return planTransitRoute(userLocation, destination, new Date(), { seniorMode });
+  }, [userLocation, destination, seniorMode]);
 
   // Asynchronously fetch real street road geometry and update route
   useEffect(() => {
@@ -451,6 +455,8 @@ export function TripProvider({ children }) {
       activeRoute,
       activeStepIndex,
       setActiveStepIndex,
+      seniorMode,
+      toggleSeniorMode,
       recentSearches,
       budget,
       setBudget,
@@ -513,6 +519,9 @@ export function TripProvider({ children }) {
       swapOriginDestination,
       activeRoute,
       activeStepIndex,
+      setActiveStepIndex,
+      seniorMode,
+      toggleSeniorMode,
       recentSearches,
       isSearchOpen,
       searchTarget,
