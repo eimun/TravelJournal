@@ -249,9 +249,14 @@ export function TripProvider({ children }) {
           (preferredProvider === 'foursquare' || preferredProvider === 'auto') &&
           apiKeys.foursquare
         ) {
+          const searchQuery =
+            cuisineFilter && cuisineFilter !== 'all'
+              ? `${cuisineFilter} restaurant`
+              : 'restaurant';
           results = await fetchFoursquarePlacesRestaurants({
             latitude: lat,
             longitude: lon,
+            query: searchQuery,
             apiKey: apiKeys.foursquare,
           });
           if (results.length > 0) sourceUsed = 'Foursquare';

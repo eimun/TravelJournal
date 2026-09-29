@@ -186,12 +186,14 @@ export async function fetchFoursquarePlacesRestaurants({
   latitude,
   longitude,
   radiusMeters = 3000,
+  query = 'restaurant',
   limit = 20,
   apiKey = API_KEYS.foursquare,
 }) {
   if (!apiKey || !latitude || !longitude) return [];
 
-  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&limit=${limit}`;
+  const encodedQuery = encodeURIComponent(query);
+  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&query=${encodedQuery}&limit=${limit}`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
