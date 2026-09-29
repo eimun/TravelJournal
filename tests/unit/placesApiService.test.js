@@ -79,6 +79,31 @@ describe('placesApiService (Google Places & Foursquare)', () => {
     expect(restaurant.cuisine).toBe('southindian');
   });
 
+  it('correctly transforms current Foursquare Places API schema with fsq_place_id and direct lat/lng', () => {
+    const liveFsqPlace = {
+      fsq_place_id: '4bb224ccf964a52010bd3ce3',
+      latitude: 12.966995,
+      longitude: 77.595612,
+      categories: [{ fsq_category_id: '4bf58dd8d48988d10f941735', name: 'Indian Restaurant' }],
+      location: {
+        address: 'ITC Royal Gardenia',
+        locality: 'Bangalore',
+        region: 'Karnātaka',
+        formatted_address: 'ITC Royal Gardenia, Bangalore, Karnātaka',
+      },
+      name: 'Kebabs & Kurries',
+    };
+
+    const restaurant = transformFoursquarePlace(liveFsqPlace);
+
+    expect(restaurant.id).toBe('fsq_4bb224ccf964a52010bd3ce3');
+    expect(restaurant.name).toBe('Kebabs & Kurries');
+    expect(restaurant.latitude).toBe(12.966995);
+    expect(restaurant.longitude).toBe(77.595612);
+    expect(restaurant.area).toBe('Bangalore');
+    expect(restaurant.source).toBe('foursquare');
+  });
+
   it('safely handles missing API keys without throwing uncaught errors', async () => {
     const googleResults = await fetchGooglePlacesRestaurants({
       latitude: 12.9716,

@@ -17,18 +17,19 @@ export const API_KEYS = {
  * Transform a Google Places API result item into our app's Restaurant schema
  */
 export function transformGooglePlace(place, apiKey = '') {
-  const lat = place.geometry?.location?.lat || place.location?.latitude || 12.9716;
-  const lng = place.geometry?.location?.lng || place.location?.longitude || 77.5946;
+  const lat = place.location?.latitude || place.geometry?.location?.lat || 12.9716;
+  const lng = place.location?.longitude || place.geometry?.location?.lng || 77.5946;
+  const displayName = place.displayName?.text || place.name || 'Bengaluru Restaurant';
 
   // Infer cuisine from types and name
   const cuisine = inferCuisine({
-    name: place.name,
+    name: displayName,
     amenity: 'restaurant',
     cuisine: (place.types || []).join(' '),
   });
 
   const dietTags = Array.from(
-    inferDietaryTags({ name: place.name, cuisine: (place.types || []).join(' ') }, cuisine)
+    inferDietaryTags({ name: displayName, cuisine: (place.types || []).join(' ') }, cuisine)
   );
 
   // Photo URL generation
@@ -47,7 +48,7 @@ export function transformGooglePlace(place, apiKey = '') {
     nearestMetro = `${nearestStation.name} (${lineName}) · ${walkMins} min walk (${nearestStation.distanceMeters}m)`;
   }
 
-  const priceLevel = place.price_level !== undefined ? Math.min(3, Math.max(1, place.price_level)) : 2;
+  const priceLevel = place.priceLevel || place.price_level !== undefined ? Math.min(3, Math.max(1, place.priceLevel || place.price_level)) : 2;
 
   return {
     id: `gplace_${place.place_id || place.id || Math.random().toString(36).substr(2, 9)}`,
@@ -77,11 +78,11 @@ export function transformGooglePlace(place, apiKey = '') {
 }
 
 /**
- * Transform a Foursquare v3 Places API item into our app's Restaurant schema
+ * Transform a Foursquare Places API item into our app's Restaurant schema
  */
 export function transformFoursquarePlace(place) {
-  const lat = place.geocodes?.main?.latitude || place.location?.latitude || 12.9716;
-  const lng = place.geocodes?.main?.longitude || place.location?.longitude || 77.5946;
+  const lat = place.latitude || place.geocodes?.main?.latitude || place.location?.latitude || 12.9716;
+  const lng = place.longitude || place.geocodes?.main?.longitude || place.location?.longitude || 77.5946;
 
   const categoryNames = (place.categories || []).map((c) => c.name).join(' ');
   const cuisine = inferCuisine({
@@ -115,9 +116,10 @@ export function transformFoursquarePlace(place) {
   const priceTier = place.price ? Math.min(3, Math.max(1, place.price)) : 2;
 
   const address = place.location?.formatted_address || place.location?.address || 'Bengaluru';
+  const id = place.fsq_place_id || place.fsq_id || Math.random().toString(36).substr(2, 9);
 
   return {
-    id: `fsq_${place.fsq_id || Math.random().toString(36).substr(2, 9)}`,
+    id: `fsq_${id}`,
     name: place.name || 'Bengaluru Food Spot',
     area: place.location?.locality || place.location?.neighborhood?.[0] || address.split(',')[0],
     cuisine,
@@ -177,7 +179,8 @@ export async function fetchGooglePlacesRestaurants({
 }
 
 /**
- * Fetch from Foursquare Places API (v3)
+ * Fetch from Foursquare Places API
+ * Uses current Foursquare Places API with X-Places-Api-Version header
  */
 export async function fetchFoursquarePlacesRestaurants({
   latitude,
@@ -188,17 +191,20 @@ export async function fetchFoursquarePlacesRestaurants({
 }) {
   if (!apiKey || !latitude || !longitude) return [];
 
-  const url = `https://api.foursquare.com/v3/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&categories=13000&limit=${limit}`;
+  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&limit=${limit}`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);
+
+  const authHeader = apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`;
 
   try {
     const res = await fetch(url, {
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        Authorization: apiKey,
+        Authorization: authHeader,
+        'X-Places-Api-Version': '2025-06-17',
       },
     });
     clearTimeout(timer);
