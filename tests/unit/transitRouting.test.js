@@ -230,4 +230,35 @@ describe('transitData & Routing Service', () => {
     expect(lalbaghSouth.towards).toContain('Towards Silk Institute');
     expect(lalbaghSouth.exitGate).toBe('Gate 4');
   });
+
+  it('calculates Direct Cab comparison, money savings, and food equivalents', () => {
+    const origin = { latitude: 12.9784, longitude: 77.5726, name: 'Majestic' };
+    const destination = { latitude: 12.9757, longitude: 77.6066, name: 'MG Road' };
+
+    const route = planTransitRoute(origin, destination);
+    expect(route).toBeDefined();
+    expect(route.autoAdvisory).toBeDefined();
+
+    const adv = route.autoAdvisory;
+    expect(adv.cabFare).toBeGreaterThan(route.totalCost);
+    expect(adv.moneySaved).toBeGreaterThan(0);
+    expect(adv.foodEquivalent).toBeDefined();
+    expect(adv.scamAlert).toContain('meter');
+    expect(adv.fare).toBeGreaterThanOrEqual(30); // Base meter fare
+  });
+
+  it('prioritizes low-fatigue connections in Mom & Dad Mode (seniorMode)', () => {
+    const origin = { latitude: 12.9784, longitude: 77.5726, name: 'Majestic' };
+    const destination = { latitude: 12.9507, longitude: 77.5848, name: 'Lalbagh' };
+
+    const seniorRoute = planTransitRoute(origin, destination, { seniorMode: true });
+    expect(seniorRoute).toBeDefined();
+    expect(seniorRoute.seniorMode).toBe(true);
+
+    // Connecting legs in senior mode should default to auto if distance > 250m
+    const firstMile = seniorRoute.steps.find((s) => s.id === 'first_mile');
+    if (firstMile && firstMile.distanceMeters > 250) {
+      expect(firstMile.selectedMode).toBe('auto');
+    }
+  });
 });
