@@ -12,7 +12,7 @@ import { useTrip } from '../../src/context/TripContext';
 import ConnectingLegSelector from './ConnectingLegSelector';
 
 export default function RouteDetailSheet({ route, onFocusMap }) {
-  const { fireToast, activeStepIndex, setActiveStepIndex } = useTrip();
+  const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode } = useTrip();
   const [expandedStationStep, setExpandedStationStep] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedModes, setSelectedModes] = useState({});
@@ -60,6 +60,13 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
     fireToast('Navigation active! Follow step 1.');
   };
 
+  const advisory = route?.autoAdvisory;
+  const directCabFare = advisory?.cabFare || Math.max(140, Math.round(dynamicTotalCost * 5.5));
+  const directCabMinutes = advisory?.cabDurationMinutes || Math.round(dynamicTotalDuration * 1.5 + 10);
+  const moneySaved = Math.max(0, directCabFare - dynamicTotalCost);
+  const savingsPct = directCabFare > 0 ? Math.round((moneySaved / directCabFare) * 100) : 0;
+  const foodEquivalent = advisory?.foodEquivalent || (moneySaved > 85 ? `${Math.floor(moneySaved / 85)} Benne Dosas` : '2 Filter Coffees');
+
   return (
     <View style={styles.sheet}>
       {/* Route Quick Summary Card */}
@@ -95,6 +102,125 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
             </Text>
           </Pressable>
         </View>
+      </View>
+
+      {/* Mom & Dad Mode (Senior & Family Accessibility) Toggle */}
+      <Pressable
+        onPress={() => {
+          toggleSeniorMode();
+          fireToast(
+            !seniorMode
+              ? '🧓 Mom & Dad Mode active! Lifts & minimal walking prioritized.'
+              : 'Standard explorer mode restored.'
+          );
+        }}
+        style={({ pressed }) => [
+          styles.seniorToggleCard,
+          seniorMode && styles.seniorToggleCardActive,
+          pressed && { opacity: 0.92 },
+        ]}
+      >
+        <View style={styles.seniorToggleLeft}>
+          <Text style={styles.seniorToggleIcon}>🧓</Text>
+          <View style={{ flex: 1 }}>
+            <View style={styles.seniorTitleRow}>
+              <Text style={[styles.seniorTitle, seniorMode && styles.seniorTitleActive]}>
+                Mom & Dad Mode
+              </Text>
+              <View
+                style={[
+                  styles.seniorStatusPill,
+                  seniorMode && styles.seniorStatusPillActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.seniorStatusText,
+                    seniorMode && styles.seniorStatusTextActive,
+                  ]}
+                >
+                  {seniorMode ? 'ACTIVE' : 'OFF'}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.seniorSubtitle}>
+              {seniorMode
+                ? 'Minimal walking (<250m) · Lifts & escalators prioritized · Sit-down dining'
+                : 'Tap to make route easy for parents: lifts, no steep stairs & short auto hops'}
+            </Text>
+          </View>
+        </View>
+      </Pressable>
+
+      {/* Smart Fare Comparator & Money Saved Meter */}
+      <View style={styles.comparatorCard}>
+        <View style={styles.comparatorHeaderRow}>
+          <View style={styles.comparatorTagBadge}>
+            <Text style={styles.comparatorTagText}>FARE COMPARISON & SAVINGS</Text>
+          </View>
+          <View style={styles.savingsPill}>
+            <Text style={styles.savingsPillText}>💰 Save ₹{moneySaved}</Text>
+          </View>
+        </View>
+
+        {/* Side-by-Side Comparison Columns */}
+        <View style={styles.comparisonGrid}>
+          {/* Direct Cab Column */}
+          <View style={styles.cabCol}>
+            <View style={styles.colHeaderRow}>
+              <Text style={styles.colEmoji}>🚖</Text>
+              <Text style={styles.colTitle}>Direct Cab</Text>
+            </View>
+            <Text style={styles.colSub}>Uber / Ola direct</Text>
+            <Text style={styles.cabFareText}>~₹{directCabFare}</Text>
+            <Text style={styles.cabDurationText}>⏱️ {directCabMinutes} min (traffic)</Text>
+            <View style={styles.cabRiskBadge}>
+              <Text style={styles.cabRiskText}>Surge + Traffic Block</Text>
+            </View>
+          </View>
+
+          {/* VS Badge */}
+          <View style={styles.vsContainer}>
+            <Text style={styles.vsText}>VS</Text>
+          </View>
+
+          {/* Metro + Transit Column */}
+          <View style={styles.transitCol}>
+            <View style={styles.colHeaderRow}>
+              <Text style={styles.colEmoji}>🚇</Text>
+              <Text style={styles.colTitle}>Metro + Auto</Text>
+            </View>
+            <Text style={styles.colSub}>Step-by-step route</Text>
+            <Text style={styles.transitFareText}>₹{dynamicTotalCost}</Text>
+            <Text style={styles.transitDurationText}>⚡ {dynamicTotalDuration} min (fast)</Text>
+            <View style={styles.transitWinBadge}>
+              <Text style={styles.transitWinText}>{savingsPct}% Cheaper</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Street Food Conversion Banner */}
+        <View style={styles.foodRewardBanner}>
+          <Text style={styles.foodRewardEmoji}>🥞</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.foodRewardTitle}>
+              You save ₹{moneySaved} on this ride!
+            </Text>
+            <Text style={styles.foodRewardSubtitle}>
+              That is equivalent to {foodEquivalent}! Enjoy local delicacies with the money you saved.
+            </Text>
+          </View>
+        </View>
+
+        {/* Anti-Scam Shield & Auto Meter Tip */}
+        {advisory && (
+          <View style={styles.scamShieldBox}>
+            <Text style={styles.scamShieldTitle}>🛡️ LOCAL SCAM SHIELD</Text>
+            <Text style={styles.scamShieldText}>
+              Official meter rate: ~₹{advisory.fare || 30}. {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Live Metro Departure Alert Banner */}
@@ -292,16 +418,6 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         })}
       </View>
 
-      {/* Auto Advisory Box */}
-      {route.autoAdvisory && (
-        <View style={styles.autoAdvisoryCard}>
-          <View style={styles.advisoryHeaderRow}>
-            <Text style={styles.advisoryTitle}>AUTO & CAB COMPARISON</Text>
-            <Text style={styles.advisoryFare}>Meter: ~₹{route.autoAdvisory.fare}</Text>
-          </View>
-          <Text style={styles.advisoryTip}>{route.autoAdvisory.tip}</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -567,36 +683,259 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     color: colors.neutral[800],
   },
-  autoAdvisoryCard: {
-    backgroundColor: colors.neutral[100],
+  // Mom & Dad Mode Card Styles
+  seniorToggleCard: {
+    backgroundColor: '#fbf8f2',
     borderRadius: radius.md,
-    padding: 14,
-    marginTop: 14,
+    padding: 12,
+    marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(46, 43, 37, 0.08)',
+    borderColor: 'rgba(198, 113, 57, 0.25)',
   },
-  advisoryHeaderRow: {
+  seniorToggleCardActive: {
+    backgroundColor: '#f5efe4',
+    borderColor: colors.accentRamp[600],
+    borderWidth: 1.5,
+  },
+  seniorToggleLeft: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 10,
   },
-  advisoryTitle: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    letterSpacing: 1,
-    color: colors.neutral[700],
+  seniorToggleIcon: {
+    fontSize: 22,
   },
-  advisoryFare: {
-    fontSize: 12,
+  seniorTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  seniorTitle: {
+    fontSize: 13,
     fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  seniorTitleActive: {
     color: colors.accentRamp[700],
   },
-  advisoryTip: {
-    fontSize: 12,
+  seniorStatusPill: {
+    backgroundColor: colors.neutral[300],
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+  },
+  seniorStatusPillActive: {
+    backgroundColor: colors.accentRamp[600],
+  },
+  seniorStatusText: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+    letterSpacing: 0.6,
+  },
+  seniorStatusTextActive: {
+    color: colors.white,
+  },
+  seniorSubtitle: {
+    fontSize: 11,
     fontFamily: fontFamily.body,
     color: colors.neutral[600],
+    marginTop: 2,
+    lineHeight: 15,
+  },
+
+  // Comparator & Money Saved Meter Styles
+  comparatorCard: {
+    backgroundColor: '#fffdf9',
+    borderRadius: radius.lg,
+    padding: 14,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(46, 43, 37, 0.1)',
+    ...shadow.sm,
+  },
+  comparatorHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  comparatorTagBadge: {
+    backgroundColor: colors.neutral[200],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  comparatorTagText: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: colors.neutral[700],
+  },
+  savingsPill: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  savingsPillText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: '#166534',
+  },
+  comparisonGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  cabCol: {
+    flex: 1,
+    backgroundColor: '#fef2f2',
+    borderRadius: radius.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  transitCol: {
+    flex: 1,
+    backgroundColor: '#f0fdf4',
+    borderRadius: radius.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  colHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  colEmoji: {
+    fontSize: 14,
+  },
+  colTitle: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  colSub: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    marginTop: 1,
+  },
+  cabFareText: {
+    fontSize: 16,
+    fontFamily: fontFamily.heading,
+    color: '#991b1b',
+    marginTop: 4,
+  },
+  transitFareText: {
+    fontSize: 16,
+    fontFamily: fontFamily.heading,
+    color: '#166534',
+    marginTop: 4,
+  },
+  cabDurationText: {
+    fontSize: 10,
+    fontFamily: fontFamily.body,
+    color: '#7f1d1d',
+    marginTop: 2,
+  },
+  transitDurationText: {
+    fontSize: 10,
+    fontFamily: fontFamily.body,
+    color: '#14532d',
+    marginTop: 2,
+  },
+  cabRiskBadge: {
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
     marginTop: 6,
-    lineHeight: 17,
+    alignSelf: 'flex-start',
+  },
+  cabRiskText: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#991b1b',
+  },
+  transitWinBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  transitWinText: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#166534',
+  },
+  vsContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.neutral[200],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vsText: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  foodRewardBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#fffbeb',
+    borderRadius: radius.md,
+    padding: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  foodRewardEmoji: {
+    fontSize: 22,
+  },
+  foodRewardTitle: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#92400e',
+  },
+  foodRewardSubtitle: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#78350f',
+    marginTop: 1,
+    lineHeight: 15,
+  },
+  scamShieldBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.sm,
+    padding: 9,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  scamShieldTitle: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: colors.neutral[700],
+    marginBottom: 2,
+  },
+  scamShieldText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[700],
+    lineHeight: 14,
   },
   gatePlatformCard: {
     backgroundColor: '#fffdf9',
