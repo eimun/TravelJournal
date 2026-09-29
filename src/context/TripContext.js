@@ -54,6 +54,7 @@ export function TripProvider({ children }) {
   // Food / Explore tab state
   const [cuisineFilter, setCuisineFilter] = useState('all');
   const [dietFilter, setDietFilter] = useState('all'); // 'all' | 'veg' | 'nonveg' | 'halal' | 'jain'
+  const [sourceFilter, setSourceFilter] = useState('all'); // 'all' | 'foursquare' | 'curated'
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
   const [visitedRestaurants, setVisitedRestaurants] = useState([]);
   const [liveOsmRestaurants, setLiveOsmRestaurants] = useState([]);
@@ -300,6 +301,20 @@ export function TripProvider({ children }) {
 
   const fetchNearbyOsm = fetchNearbyLive;
 
+  // Automatically fetch live Foursquare / OSM restaurants on startup
+  const autoFetchedLiveRef = useRef(false);
+  useEffect(() => {
+    if (userLocation && !autoFetchedLiveRef.current) {
+      autoFetchedLiveRef.current = true;
+      fetchNearbyLive(
+        userLocation.latitude,
+        userLocation.longitude,
+        userLocation.name || 'Central Bengaluru',
+        'auto',
+      );
+    }
+  }, [userLocation, fetchNearbyLive]);
+
   const togglePlaceInDay = useCallback(
     (placeId) => {
       const target = PLACES.find((p) => p.id === placeId);
@@ -387,10 +402,10 @@ export function TripProvider({ children }) {
     }
     const existingIds = new Set(RESTAURANTS.map((r) => r.id));
     const existingNames = new Set(RESTAURANTS.map((r) => r.name.toLowerCase().trim()));
-    const uniqueOsm = liveOsmRestaurants.filter(
+    const uniqueLive = liveOsmRestaurants.filter(
       (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
     );
-    return [...RESTAURANTS, ...uniqueOsm];
+    return [...uniqueLive, ...RESTAURANTS];
   }, [liveOsmRestaurants]);
 
   const selectedRestaurant = useMemo(() => {
@@ -442,6 +457,13 @@ export function TripProvider({ children }) {
   const filteredRestaurants = useMemo(() => {
     let list = [...allRestaurants];
 
+    // Source filter: 'all' | 'foursquare' | 'curated'
+    if (sourceFilter === 'foursquare') {
+      list = list.filter((r) => r.source === 'foursquare' || r.isFsqLive);
+    } else if (sourceFilter === 'curated') {
+      list = list.filter((r) => !r.isLive && r.source !== 'foursquare');
+    }
+
     // cuisine filter
     if (cuisineFilter !== 'all') {
       list = list.filter((r) => r.cuisine === cuisineFilter);
@@ -471,7 +493,7 @@ export function TripProvider({ children }) {
     }
 
     return list;
-  }, [allRestaurants, cuisineFilter, dietFilter, userLocation, routeEateries]);
+  }, [allRestaurants, sourceFilter, cuisineFilter, dietFilter, userLocation, routeEateries]);
 
   // Filtered Eateries for Eat / Guide tab
   const filteredEateries = useMemo(() => {
@@ -537,6 +559,8 @@ export function TripProvider({ children }) {
       openSearch,
       closeSearch,
       // Restaurant / Food tab
+      sourceFilter,
+      setSourceFilter,
       cuisineFilter,
       setCuisineFilter,
       dietFilter,
@@ -600,6 +624,7 @@ export function TripProvider({ children }) {
       toast,
       fireToast,
       clearToast,
+      sourceFilter,
       cuisineFilter,
       setCuisineFilter,
       dietFilter,

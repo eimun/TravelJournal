@@ -229,10 +229,28 @@ export default function RestaurantDetailSheet() {
 
           {/* Tags */}
           <View style={styles.tagsRow}>
-            {r.isOsmLive && (
+            {r.source === 'foursquare' || r.isFsqLive ? (
+              <View style={[styles.tagPill, { backgroundColor: '#f3e8ff', borderColor: '#d8b4fe' }]}>
+                <Text style={[styles.tagText, { color: '#7e22ce', fontFamily: fontFamily.bodyBold }]}>
+                  ⚡ Foursquare Live Verified
+                </Text>
+              </View>
+            ) : r.source === 'google' ? (
+              <View style={[styles.tagPill, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
+                <Text style={[styles.tagText, { color: '#1d4ed8', fontFamily: fontFamily.bodyBold }]}>
+                  🔵 Google Places Verified
+                </Text>
+              </View>
+            ) : r.isOsmLive ? (
               <View style={[styles.tagPill, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd' }]}>
                 <Text style={[styles.tagText, { color: '#0369a1', fontFamily: fontFamily.bodyBold }]}>
                   🌐 OpenStreetMap Live
+                </Text>
+              </View>
+            ) : (
+              <View style={[styles.tagPill, { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
+                <Text style={[styles.tagText, { color: '#92400e', fontFamily: fontFamily.bodyBold }]}>
+                  🏛️ Bengaluru Heritage Legend
                 </Text>
               </View>
             )}

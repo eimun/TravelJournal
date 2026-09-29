@@ -74,6 +74,9 @@ export function transformGooglePlace(place, apiKey = '') {
     insiderNote: `Verified location via Google Places (${place.user_ratings_total || 0} reviews). ${place.vicinity || ''}`,
     established: 'Google Places Verified',
     source: 'google',
+    isLive: true,
+    isGoogleLive: true,
+    verifiedBy: 'Google Places API',
   };
 }
 
@@ -140,8 +143,11 @@ export function transformFoursquarePlace(place) {
       { name: 'Fresh Brew / Drink', price: 70 },
     ],
     insiderNote: `Discovered on Foursquare (${categoryNames || 'Dining'}). Address: ${address}`,
-    established: 'Foursquare Curated',
+    established: 'Foursquare Live Verified',
     source: 'foursquare',
+    isLive: true,
+    isFsqLive: true,
+    verifiedBy: 'Foursquare Places API',
   };
 }
 

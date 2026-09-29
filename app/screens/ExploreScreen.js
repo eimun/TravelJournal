@@ -63,6 +63,8 @@ function MiniStars({ rating }) {
 export default function ExploreScreen({ contentPadding }) {
   const {
     filteredRestaurants,
+    sourceFilter,
+    setSourceFilter,
     cuisineFilter,
     setCuisineFilter,
     dietFilter,
@@ -77,9 +79,18 @@ export default function ExploreScreen({ contentPadding }) {
     liveOsmRestaurants,
     isFetchingOsm,
     fetchNearbyOsm,
+    allRestaurants: totalRestaurants,
   } = useTrip();
 
   const mealCtx = getMealContext();
+
+  const fsqCount = useMemo(() => {
+    return (totalRestaurants || []).filter((r) => r.source === 'foursquare' || r.isFsqLive).length;
+  }, [totalRestaurants]);
+
+  const heritageCount = useMemo(() => {
+    return (totalRestaurants || []).filter((r) => !r.isLive && r.source !== 'foursquare').length;
+  }, [totalRestaurants]);
 
   const effectiveDietFilters = useMemo(() => {
     if (routeEateries && routeEateries.length > 0) {
@@ -118,6 +129,56 @@ export default function ExploreScreen({ contentPadding }) {
           </Svg>
           <Text style={styles.locationChipText}>Near you</Text>
         </View>
+      </View>
+
+      {/* ── Live Source / Provider Quick Toggle ── */}
+      <View style={styles.sourceBarContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.sourceStrip}
+        >
+          <Pressable
+            onPress={() => setSourceFilter('all')}
+            style={({ pressed }) => [
+              styles.sourceChip,
+              sourceFilter === 'all' && styles.sourceChipActive,
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <Text style={[styles.sourceChipText, sourceFilter === 'all' && styles.sourceChipTextActive]}>
+              🍽️ All ({(totalRestaurants || []).length})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSourceFilter('foursquare')}
+            style={({ pressed }) => [
+              styles.sourceChip,
+              styles.sourceChipFsq,
+              sourceFilter === 'foursquare' && styles.sourceChipFsqActive,
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <View style={styles.fsqDot} />
+            <Text style={[styles.sourceChipText, styles.sourceChipFsqText, sourceFilter === 'foursquare' && styles.sourceChipFsqTextActive]}>
+              ⚡ Foursquare Live ({fsqCount})
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSourceFilter('curated')}
+            style={({ pressed }) => [
+              styles.sourceChip,
+              sourceFilter === 'curated' && styles.sourceChipActive,
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <Text style={[styles.sourceChipText, sourceFilter === 'curated' && styles.sourceChipTextActive]}>
+              🏛️ Heritage Legends ({heritageCount})
+            </Text>
+          </Pressable>
+        </ScrollView>
       </View>
 
       {/* ── Diet Quick Filter ── */}
@@ -328,25 +389,25 @@ export default function ExploreScreen({ contentPadding }) {
         </Text>
       </View>
 
-      {/* ── OpenStreetMap Live Discovery Banner ── */}
+      {/* ── Live Places Radar & Provider Status Banner ── */}
       <View style={styles.osmDiscoveryBanner}>
         <View style={styles.osmIconCircle}>
-          <Text style={{ fontSize: 20 }}>🌐</Text>
+          <Text style={{ fontSize: 20 }}>⚡</Text>
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <Text style={styles.osmTitle}>Explore Live with OpenStreetMap</Text>
-            <View style={styles.osmLiveHeaderBadge}>
+            <Text style={styles.osmTitle}>Live Foursquare & Transit Radar</Text>
+            <View style={styles.fsqLivePillBadge}>
               <View style={styles.osmLivePulseDot} />
-              <Text style={styles.osmLiveHeaderBadgeText}>
-                {liveOsmRestaurants.length > 0 ? `${liveOsmRestaurants.length} ADDED` : 'OVERPASS'}
+              <Text style={styles.fsqLivePillBadgeText}>
+                {fsqCount > 0 ? `${fsqCount} FSQ LIVE` : 'FOURSQUARE ACTIVE'}
               </Text>
             </View>
           </View>
           <Text style={styles.osmSubtitle}>
-            {liveOsmRestaurants.length > 0
-              ? `${liveOsmRestaurants.length} live OSM eateries loaded around your area.`
-              : 'Discover 20+ live local restaurants & cafes on-demand via OSM Overpass API.'}
+            {fsqCount > 0
+              ? `${fsqCount} live Bengaluru venues loaded via Foursquare Places API. Verified open timings & metro links.`
+              : 'Connecting to Foursquare Places API for real-time live restaurants & cafes.'}
           </Text>
         </View>
         <Pressable
@@ -354,6 +415,7 @@ export default function ExploreScreen({ contentPadding }) {
           disabled={isFetchingOsm}
           style={({ pressed }) => [
             styles.osmFetchButton,
+            styles.fsqFetchButton,
             isFetchingOsm && styles.osmFetchButtonDisabled,
             pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] },
           ]}
@@ -362,7 +424,7 @@ export default function ExploreScreen({ contentPadding }) {
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <Text style={styles.osmFetchButtonText}>
-              {liveOsmRestaurants.length > 0 ? 'Refresh' : 'Discover'}
+              {fsqCount > 0 ? '🔄 Refresh' : '⚡ Scan Live'}
             </Text>
           )}
         </Pressable>
@@ -415,9 +477,21 @@ export default function ExploreScreen({ contentPadding }) {
                     <View style={{ flex: 1 }}>
                       <View style={styles.cardNameRow}>
                         <Text style={styles.cardName} numberOfLines={1}>{r.name}</Text>
-                        {r.isOsmLive && (
+                        {r.source === 'foursquare' || r.isFsqLive ? (
+                          <View style={styles.fsqLiveBadge}>
+                            <Text style={styles.fsqLiveBadgeText}>⚡ FSQ LIVE</Text>
+                          </View>
+                        ) : r.source === 'google' ? (
+                          <View style={styles.googleLiveBadge}>
+                            <Text style={styles.googleLiveBadgeText}>GOOGLE</Text>
+                          </View>
+                        ) : r.isOsmLive ? (
                           <View style={styles.osmLivePill}>
                             <Text style={styles.osmLivePillText}>OSM</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.heritagePill}>
+                            <Text style={styles.heritagePillText}>🏛️ LEGEND</Text>
                           </View>
                         )}
                         {isVisited && (
@@ -1140,5 +1214,116 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: fontFamily.bodyBold,
     color: '#0369a1',
+  },
+  fsqLiveBadge: {
+    backgroundColor: '#f3e8ff',
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+    marginLeft: 6,
+  },
+  fsqLiveBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#7e22ce',
+    letterSpacing: 0.3,
+  },
+  googleLiveBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+    marginLeft: 6,
+  },
+  googleLiveBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1d4ed8',
+  },
+  heritagePill: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+    marginLeft: 6,
+  },
+  heritagePillText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#92400e',
+  },
+  sourceBarContainer: {
+    marginBottom: 10,
+  },
+  sourceStrip: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  sourceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface[100],
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  sourceChipActive: {
+    backgroundColor: colors.neutral[900],
+    borderColor: colors.neutral[900],
+  },
+  sourceChipText: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  sourceChipTextActive: {
+    color: '#ffffff',
+  },
+  sourceChipFsq: {
+    backgroundColor: '#faf5ff',
+    borderColor: '#e9d5ff',
+  },
+  sourceChipFsqActive: {
+    backgroundColor: '#7e22ce',
+    borderColor: '#7e22ce',
+  },
+  sourceChipFsqText: {
+    color: '#6b21a8',
+  },
+  sourceChipFsqTextActive: {
+    color: '#ffffff',
+  },
+  fsqDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#a855f7',
+  },
+  fsqLivePillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#7e22ce',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+  },
+  fsqLivePillBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  fsqFetchButton: {
+    backgroundColor: '#7e22ce',
   },
 });
