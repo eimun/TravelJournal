@@ -28,6 +28,7 @@ try {
 }
 
 export default function NavigateScreen({ contentPadding }) {
+  const { width: windowWidth } = useWindowDimensions();
   const isWideScreen = false;
 
   const {

@@ -244,7 +244,7 @@ export default function WebRoadMap({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#f8f6f0',
     borderRadius: 16,
     overflow: 'hidden',
