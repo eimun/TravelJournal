@@ -57,8 +57,10 @@ export function buildConnectingLeg({
   fromCoord,
   toCoord,
   distanceMeters,
+  seniorMode = false,
 }) {
-  const isLongDistance = distanceMeters > 800;
+  // If seniorMode is active, minimize walking to under 250m
+  const isLongDistance = seniorMode ? distanceMeters > 250 : distanceMeters > 800;
   const defaultMode = isLongDistance ? 'auto' : 'walk';
 
   const walkMin = estimateWalkMinutes(distanceMeters);
@@ -67,8 +69,8 @@ export function buildConnectingLeg({
   const busMin = Math.max(5, Math.round(distanceMeters / 250) + 3);
   const cabMin = Math.max(4, Math.round(distanceMeters / 300) + 3);
 
-  const autoMeterFare = Math.max(30, Math.round(30 + ((distanceMeters - 1500) / 1000) * 15));
-  const autoQuoteFare = Math.round(autoMeterFare * 1.8);
+  const autoMeterFare = Math.max(30, Math.round(30 + Math.max(0, (distanceMeters - 2000) / 1000) * 15));
+  const autoQuoteFare = Math.round(autoMeterFare * 1.85);
   const bikeFare = Math.max(20, Math.round(20 + ((distanceMeters - 1000) / 1000) * 7));
   const busFare = 10;
   const cabFare = Math.max(79, Math.round(75 + ((distanceMeters - 1000) / 1000) * 18));
@@ -84,8 +86,10 @@ export function buildConnectingLeg({
       quoteFare: autoQuoteFare,
       title: `Auto to ${locationName}`,
       meta: `${formatDistance(distanceMeters)} · ~${autoMin} min · Meter ₹${autoMeterFare}`,
-      details: `Take meter auto (~${autoMin} min). Ask for meter (approx ₹${autoMeterFare}) or book on Namma Yatri / Uber.`,
-      tip: `Drivers at gate quote ~₹${autoQuoteFare}. Walk 50m past station gate or insist on meter.`,
+      details: seniorMode
+        ? `Senior/Family Pick: Hop into a meter auto (~${autoMin} min). Drops right at the station elevator/ramp.`
+        : `Take meter auto (~${autoMin} min). Ask for meter (approx ₹${autoMeterFare}) or book on Namma Yatri / Uber.`,
+      tip: `Drivers right at gate quote ~₹${autoQuoteFare}. Walk 40m past gate to main street or demand meter.`,
     },
     bike: {
       key: 'bike',
@@ -174,8 +178,16 @@ export function buildConnectingLeg({
  * Computes optimal step-by-step route between origin and destination,
  * with multi-modal first/last-mile comparison, real road geometry, and milestones.
  */
-export function planTransitRoute(origin, destination, travelDate = new Date()) {
+export function planTransitRoute(origin, destination, travelDate = new Date(), options = {}) {
   if (!origin || !destination) return null;
+
+  let travelDateObj = travelDate instanceof Date ? travelDate : new Date();
+  let opts = options;
+  if (travelDate && !(travelDate instanceof Date) && typeof travelDate === 'object') {
+    opts = travelDate;
+    travelDateObj = opts.travelDate || new Date();
+  }
+  const seniorMode = !!opts.seniorMode;
 
   const totalDirectDistance = getDistanceBetween(
     origin.latitude,
@@ -217,7 +229,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       fromCoord: originCoord,
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
+      seniorMode,
     });
+
+    const legitMeter = 30;
+    const directCab = 79;
+    const savings = Math.max(0, directCab - shortLeg.cost);
 
     return {
       type: 'walk_direct',
@@ -229,9 +246,21 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       coordinates: walkCoords,
       milestones,
       steps: [shortLeg],
+      seniorMode,
       autoAdvisory: {
-        fare: 30,
-        tip: 'Short distance. Walking is pleasant, or take a quick auto for ₹30.',
+        fare: legitMeter,
+        streetQuote: 60,
+        cabFare: directCab,
+        cabDurationMinutes: 8,
+        transitCost: shortLeg.cost,
+        transitDurationMinutes: shortLeg.durationMinutes,
+        moneySaved: savings,
+        timeSaved: 2,
+        dosaCount: 0,
+        coffeeCount: 2,
+        foodEquivalent: '2 Filter Coffees',
+        tip: 'Short distance. Walking is pleasant, or hop into a quick meter auto for ₹30.',
+        scamAlert: 'Drivers asking ₹80–₹100 for this short walk are overcharging. Ask for meter.',
       },
     };
   }
@@ -252,7 +281,10 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
   const isSameStation = originStation && destStation && originStation.id === destStation.id;
 
   if (isSameStation || !originStation || !destStation) {
-    const autoMeter = Math.max(30, Math.round(30 + ((totalDirectDistance - 1500) / 1000) * 15));
+    const distanceKm = Math.max(0.5, totalDirectDistance / 1000);
+    const legitAutoMeter = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2) * 15));
+    const streetQuote = Math.round(legitAutoMeter * 1.85);
+    const directCab = Math.max(89, Math.round(80 + distanceKm * 22));
     const autoCoords = [originCoord, destCoord];
 
     const milestones = [
@@ -281,7 +313,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       fromCoord: originCoord,
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
+      seniorMode,
     });
+
+    const savings = Math.max(0, directCab - directLeg.cost);
+    const dosaCount = Math.floor(savings / 85);
+    const coffeeCount = Math.max(1, Math.floor((savings % 85) / 20));
 
     return {
       type: 'auto_bus',
@@ -293,9 +330,21 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
       coordinates: autoCoords,
       milestones,
       steps: [directLeg],
+      seniorMode,
       autoAdvisory: {
-        fare: autoMeter,
-        tip: `Fair meter fare is ₹${autoMeter}. If asking more than ₹${autoMeter + 40}, book an auto via Uber/Namma Yatri.`,
+        fare: legitAutoMeter,
+        streetQuote,
+        cabFare: directCab,
+        cabDurationMinutes: directLeg.durationMinutes + 5,
+        transitCost: directLeg.cost,
+        transitDurationMinutes: directLeg.durationMinutes,
+        moneySaved: savings,
+        timeSaved: 5,
+        dosaCount,
+        coffeeCount,
+        foodEquivalent: dosaCount > 0 ? `${dosaCount} Benne Dosas + ${coffeeCount} Filter Coffees` : `${coffeeCount} Filter Coffees`,
+        tip: `Fair meter fare is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. If street auto asks more than ₹${streetQuote}, insist on meter or book via Namma Yatri.`,
+        scamAlert: `Drivers at major spots quote ₹${streetQuote}+ without meter. Always ask for meter.`,
       },
     };
   }
@@ -335,6 +384,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     fromCoord: originCoord,
     toCoord: originStationCoord,
     distanceMeters: walkToOriginStationMeters,
+    seniorMode,
   });
   totalTime += firstMileStep.durationMinutes;
   totalFare += firstMileStep.cost;
@@ -365,7 +415,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     const metroFare = calculateMetroFare(stopCount);
     totalFare += metroFare;
 
-    const departureInfo = getNextMetroDeparture(originStation.id, originStation.line, travelDate);
+    const departureInfo = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj);
 
     const originGatePlatform = getMetroPlatformAndGateInfo({
       stationId: originStation.id,
@@ -439,7 +489,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     const leg1Minutes = Math.max(2, leg1Stops * 2.2);
     totalTime += leg1Minutes;
 
-    const departureLeg1 = getNextMetroDeparture(originStation.id, originStation.line, travelDate);
+    const departureLeg1 = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj);
     const leg1Direction =
       originIdx < originMajesticIdx
         ? originLineList[originLineList.length - 1].name.split('(')[0].trim()
@@ -525,7 +575,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     const departureLeg2 = getNextMetroDeparture(
       'majestic',
       destStation.line,
-      new Date(travelDate.getTime() + (firstMileStep.durationMinutes + leg1Minutes + 4) * 60 * 1000),
+      new Date(travelDateObj.getTime() + (firstMileStep.durationMinutes + leg1Minutes + 4) * 60 * 1000),
     );
 
     const leg2GatePlatform = getMetroPlatformAndGateInfo({
@@ -589,6 +639,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     fromCoord: destStationCoord,
     toCoord: destCoord,
     distanceMeters: walkFromDestStationMeters,
+    seniorMode,
   });
   totalTime += lastMileStep.durationMinutes;
   totalFare += lastMileStep.cost;
@@ -612,8 +663,22 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     }
   });
 
-  const fullAutoFare = Math.max(40, Math.round(35 + ((totalDirectDistance - 1500) / 1000) * 16));
-  const fullCabFare = Math.max(120, Math.round(100 + ((totalDirectDistance - 1500) / 1000) * 22));
+  const distanceKm = Math.max(1, totalDirectDistance / 1000);
+  const legitAutoFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2) * 15));
+  const streetAutoQuote = Math.round(legitAutoFare * 1.85);
+  const fullCabFare = Math.max(149, Math.round(110 + distanceKm * 25));
+  const cabTrafficMinutes = Math.max(20, Math.round(distanceKm * 3.6) + 12);
+
+  const transitCost = totalFare;
+  const transitMinutes = Math.round(totalTime);
+  const moneySaved = Math.max(0, fullCabFare - transitCost);
+  const timeSaved = Math.max(0, cabTrafficMinutes - transitMinutes);
+
+  const dosaCount = Math.floor(moneySaved / 85);
+  const coffeeCount = Math.max(1, Math.floor((moneySaved % 85) / 20));
+  const foodEquivalent = dosaCount > 0
+    ? `${dosaCount} Benne Masala Dosas + ${coffeeCount} Filter Coffees`
+    : `${coffeeCount} Filter Coffees`;
 
   return {
     type: 'transit_metro',
@@ -628,10 +693,21 @@ export function planTransitRoute(origin, destination, travelDate = new Date()) {
     destStation,
     isSameLine,
     steps,
+    seniorMode,
     autoAdvisory: {
-      fare: fullAutoFare,
+      fare: legitAutoFare,
+      streetQuote: streetAutoQuote,
       cabFare: fullCabFare,
-      tip: `A direct auto across town would cost ~₹${fullAutoFare} on meter (drivers often ask ₹${Math.round(fullAutoFare * 1.8)}). Metro saves you from Bengaluru traffic bottlenecks!`,
+      cabDurationMinutes: cabTrafficMinutes,
+      transitCost,
+      transitDurationMinutes: transitMinutes,
+      moneySaved,
+      timeSaved,
+      dosaCount,
+      coffeeCount,
+      foodEquivalent,
+      tip: `Direct cab would cost ~₹${fullCabFare} and get stuck in city traffic (${cabTrafficMinutes} min). Metro costs only ₹${transitCost} and takes ${transitMinutes} min!`,
+      scamAlert: `Never pay street auto quotes of ₹${streetAutoQuote}+. Insist on meter (fair rate: ~₹${legitAutoFare}) or take the metro.`,
     },
   };
 }
