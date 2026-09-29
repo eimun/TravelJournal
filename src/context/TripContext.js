@@ -13,6 +13,11 @@ import { getDistanceBetween, POPULAR_DESTINATIONS } from '../../app/data/transit
 import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
 import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
 import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
+import {
+  fetchGooglePlacesRestaurants,
+  fetchFoursquarePlacesRestaurants,
+  API_KEYS,
+} from '../../app/services/placesApiService';
 
 const TripContext = createContext(null);
 
@@ -53,6 +58,11 @@ export function TripProvider({ children }) {
   const [visitedRestaurants, setVisitedRestaurants] = useState([]);
   const [liveOsmRestaurants, setLiveOsmRestaurants] = useState([]);
   const [isFetchingOsm, setIsFetchingOsm] = useState(false);
+  const [apiKeys, setApiKeys] = useState(API_KEYS);
+
+  const setApiKey = useCallback((provider, key) => {
+    setApiKeys((prev) => ({ ...prev, [provider]: key }));
+  }, []);
 
   // Eat / Guide tab state
   const [dish, setDish] = useState('benne');
@@ -213,19 +223,50 @@ export function TripProvider({ children }) {
     );
   }, []);
 
-  const fetchNearbyOsm = useCallback(
-    async (customLat, customLon, areaName) => {
+  const fetchNearbyLive = useCallback(
+    async (customLat, customLon, areaName, preferredProvider = 'auto') => {
       const lat = customLat || userLocation?.latitude || 12.9716;
       const lon = customLon || userLocation?.longitude || 77.5946;
 
       setIsFetchingOsm(true);
       try {
-        const results = await fetchNearbyOsmRestaurants({
-          latitude: lat,
-          longitude: lon,
-          radiusMeters: 2200,
-          limit: 25,
-        });
+        let results = [];
+        let sourceUsed = 'OpenStreetMap';
+
+        // 1. Try Google Places if key configured
+        if ((preferredProvider === 'google' || preferredProvider === 'auto') && apiKeys.google) {
+          results = await fetchGooglePlacesRestaurants({
+            latitude: lat,
+            longitude: lon,
+            apiKey: apiKeys.google,
+          });
+          if (results.length > 0) sourceUsed = 'Google Places';
+        }
+
+        // 2. Try Foursquare Places if key configured and no results yet
+        if (
+          results.length === 0 &&
+          (preferredProvider === 'foursquare' || preferredProvider === 'auto') &&
+          apiKeys.foursquare
+        ) {
+          results = await fetchFoursquarePlacesRestaurants({
+            latitude: lat,
+            longitude: lon,
+            apiKey: apiKeys.foursquare,
+          });
+          if (results.length > 0) sourceUsed = 'Foursquare';
+        }
+
+        // 3. Fallback to OpenStreetMap Overpass (No key required, 100% free)
+        if (results.length === 0) {
+          results = await fetchNearbyOsmRestaurants({
+            latitude: lat,
+            longitude: lon,
+            radiusMeters: 2200,
+            limit: 25,
+          });
+          if (results.length > 0) sourceUsed = 'OpenStreetMap';
+        }
 
         if (results && results.length > 0) {
           setLiveOsmRestaurants((prev) => {
@@ -235,22 +276,24 @@ export function TripProvider({ children }) {
             return Array.from(map.values());
           });
           const locationLabel = areaName ? ` near ${areaName}` : '';
-          fireToast(`🌐 Discovered ${results.length} live eateries${locationLabel}!`);
+          fireToast(`🌐 Discovered ${results.length} live spots via ${sourceUsed}${locationLabel}!`);
           return results;
         } else {
           fireToast('No extra eateries found in immediate radius; showing offline spots.');
           return [];
         }
       } catch (err) {
-        console.warn('Failed to fetch live OSM restaurants:', err);
+        console.warn('Failed to fetch live restaurants:', err);
         fireToast('Network timeout. Showing curated offline eateries.');
         return [];
       } finally {
         setIsFetchingOsm(false);
       }
     },
-    [userLocation, fireToast],
+    [userLocation, apiKeys, fireToast],
   );
+
+  const fetchNearbyOsm = fetchNearbyLive;
 
   const togglePlaceInDay = useCallback(
     (placeId) => {
@@ -504,6 +547,9 @@ export function TripProvider({ children }) {
       liveOsmRestaurants,
       isFetchingOsm,
       fetchNearbyOsm,
+      fetchNearbyLive,
+      apiKeys,
+      setApiKey,
       allRestaurants,
       restaurants: allRestaurants,
     }),
