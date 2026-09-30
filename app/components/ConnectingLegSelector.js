@@ -9,6 +9,7 @@ import {
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import DynamicAutoFareCard from './DynamicAutoFareCard';
 import BmtcBusScheduleModal from './BmtcBusScheduleModal';
+import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
 
 export default function ConnectingLegSelector({
   step,
@@ -24,6 +25,16 @@ export default function ConnectingLegSelector({
   const currentKey = selectedModeKey || step.selectedMode || step.defaultMode || 'auto';
   const currentMode = modes[currentKey] || modes.auto;
   const isLong = step.isLongDistance;
+
+  const matchedBus =
+    step.matchedBus ||
+    modes.bus?.matchedBus ||
+    (step.fromStation || step.toStation ? findBusesForLocation(step.fromStation || step.toStation)[0] : null);
+
+  const busSchedule =
+    step.busSchedule ||
+    modes.bus?.busSchedule ||
+    (matchedBus ? calculateUpcomingBusDepartures(matchedBus, new Date()) : null);
 
   const modeKeys = ['auto', 'bike', 'cab', 'bus', 'walk'];
 
@@ -177,15 +188,47 @@ export default function ConnectingLegSelector({
           <View style={styles.busHeaderRow}>
             <View style={styles.busHeaderLeft}>
               <View style={styles.busBadge}>
-                <Text style={styles.busBadgeText}>BMTC PUBLIC TRANSIT</Text>
+                <Text style={styles.busBadgeText}>BMTC PUBLIC TRANSIT · TODAY'S TIMINGS</Text>
               </View>
-              <Text style={styles.busTitle}>Metro Feeder & City Bus Routes</Text>
-              <Text style={styles.busSubtitle}>Direct bus stand outside station · Flat ₹10–₹15</Text>
+              <Text style={styles.busTitle}>
+                {matchedBus ? `Route ${matchedBus.routeNumber} Feeder` : 'Metro Feeder & City Bus Routes'}
+              </Text>
+              <Text style={styles.busSubtitle}>
+                {matchedBus ? matchedBus.name : 'Direct bus stand outside station · Flat ₹10–₹15'}
+              </Text>
             </View>
             <Text style={styles.busEmoji}>🚌</Text>
           </View>
+
+          {/* Today's upcoming departures for this exact leg */}
+          {busSchedule && busSchedule.departures && busSchedule.departures.length > 0 && (
+            <View style={styles.todayBusScheduleBox}>
+              <View style={styles.todayBusRow}>
+                <View style={styles.todayBusLeft}>
+                  <View style={styles.liveGreenDot} />
+                  <Text style={styles.todayBusNextText}>
+                    Next bus in <Text style={styles.boldText}>{busSchedule.nextBusInMinutes}m</Text> ({busSchedule.departures[0]?.timeFormatted})
+                  </Text>
+                </View>
+                <Text style={styles.todayBusFreqText}>{busSchedule.frequencyText}</Text>
+              </View>
+
+              <View style={styles.todayDepPillsRow}>
+                <Text style={styles.todayDepPillsLabel}>Today's next buses:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.todayDepPillsScroll}>
+                  {busSchedule.departures.slice(1, 4).map((dep, di) => (
+                    <View key={di} style={styles.todayDepPill}>
+                      <Text style={styles.todayDepPillTime}>{dep.timeFormatted}</Text>
+                      <Text style={styles.todayDepPillSub}>+{dep.inMinutes}m</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          )}
+
           <Text style={styles.busDesc}>
-            BMTC feeder buses run every 6–12 mins on major corridors with 0% surge. Best option to avoid auto negotiations!
+            BMTC feeder buses run every 6–12 mins on this corridor with 0% surge. Ideal to bypass overpriced autos!
           </Text>
           <Pressable
             onPress={() => setShowBusModal(true)}
@@ -194,7 +237,7 @@ export default function ConnectingLegSelector({
               pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
             ]}
           >
-            <Text style={styles.busScheduleButtonText}>🚌 View Live Bus Timings & Feeder Routes</Text>
+            <Text style={styles.busScheduleButtonText}>🚌 View All BMTC Routes & Timetable</Text>
           </Pressable>
         </View>
       )}
@@ -503,5 +546,79 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
     color: '#ffffff',
+  },
+  todayBusScheduleBox: {
+    backgroundColor: '#f0fdf4',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    padding: 10,
+    marginBottom: 10,
+  },
+  todayBusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  todayBusLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  liveGreenDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#16a34a',
+  },
+  todayBusNextText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.body,
+    color: '#14532d',
+  },
+  boldText: {
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
+  },
+  todayBusFreqText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#16a34a',
+  },
+  todayDepPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  todayDepPillsLabel: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#15803d',
+  },
+  todayDepPillsScroll: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  todayDepPill: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#86efac',
+    borderRadius: radius.xs,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  todayDepPillTime: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#14532d',
+  },
+  todayDepPillSub: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.body,
+    color: '#16a34a',
   },
 });

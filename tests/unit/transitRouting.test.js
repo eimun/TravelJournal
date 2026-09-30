@@ -7,7 +7,7 @@ import {
   getMajesticInterchangeGuide,
   getMetroPlatformAndGateInfo,
 } from '../../app/data/transitData';
-import { planTransitRoute } from '../../app/services/directionsService';
+import { planTransitRoute, buildConnectingLeg } from '../../app/services/directionsService';
 import { formatDistance, estimateWalkMinutes } from '../../app/services/locationService';
 
 describe('transitData & Routing Service', () => {
@@ -39,12 +39,32 @@ describe('transitData & Routing Service', () => {
     expect(peakDeparture.status).toBe('running');
     expect(peakDeparture.frequencyMinutes).toBe(5);
     expect(peakDeparture.nextInMinutes).toBeGreaterThanOrEqual(1);
+    expect(peakDeparture.departures.length).toBeGreaterThanOrEqual(3);
+    expect(peakDeparture.departures[0].timeFormatted).toBeDefined();
+    expect(peakDeparture.operatingHours).toContain('05:00 AM');
 
     // 2:00 AM (Closed night hours)
     const nightDate = new Date(2026, 8, 14, 2, 0);
     const nightDeparture = getNextMetroDeparture('p19', 'purple', nightDate);
     expect(nightDeparture.status).toBe('closed');
     expect(nightDeparture.scheduledTime).toContain('05:00 AM');
+  });
+
+  it('buildConnectingLeg matches relevant BMTC route and attaches today upcoming departures', () => {
+    const leg = buildConnectingLeg({
+      id: 'last_mile_test',
+      legType: 'last_mile',
+      locationName: 'Whitefield',
+      fromCoord: { latitude: 12.9909, longitude: 77.6525 },
+      toCoord: { latitude: 12.9877, longitude: 77.7289 },
+      distanceMeters: 2500,
+    });
+
+    expect(leg.modes.bus).toBeDefined();
+    expect(leg.matchedBus).toBeDefined();
+    expect(leg.busSchedule).toBeDefined();
+    expect(leg.busSchedule.departures.length).toBeGreaterThanOrEqual(1);
+    expect(leg.busSchedule.departures[0].timeFormatted).toBeDefined();
   });
 
   it('finds the closest metro station to given coordinates', () => {

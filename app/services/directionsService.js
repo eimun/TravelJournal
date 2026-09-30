@@ -10,6 +10,7 @@ import {
 } from '../data/transitData';
 import { formatDistance, estimateWalkMinutes } from './locationService';
 import { calculateDynamicFareMatrix } from '../../src/domain/dynamicFare';
+import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
 
 /**
  * Fetches real road-level geometry from OSRM road routing engine.
@@ -78,6 +79,10 @@ export function buildConnectingLeg({
   const busFare = 10;
   const cabFare = Math.max(89, Math.round(dynamicFare.providers.uberOla.fare + 45));
 
+  const matchedBuses = findBusesForLocation(locationName);
+  const matchedBus = matchedBuses.length > 0 ? matchedBuses[0] : null;
+  const busSchedule = matchedBus ? calculateUpcomingBusDepartures(matchedBus, new Date()) : null;
+
   const modes = {
     auto: {
       key: 'auto',
@@ -130,10 +135,17 @@ export function buildConnectingLeg({
       durationMinutes: busMin,
       fare: busFare,
       quoteFare: busFare,
-      title: `BMTC Feeder Bus to ${locationName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${busMin} min · ₹${busFare}`,
-      details: `BMTC metro feeder bus (MF-series). Economical choice (~${busMin} min). Stops right at station gate.`,
-      tip: `Pay cash (₹10 note) or UPI QR via Tummoc / conductor scanner.`,
+      ordinaryFare: matchedBus ? matchedBus.ordinaryFare : busFare,
+      matchedBus,
+      busSchedule,
+      title: matchedBus ? `BMTC ${matchedBus.routeNumber} to ${locationName}` : `BMTC Feeder Bus to ${locationName}`,
+      meta: busSchedule && busSchedule.departures?.[0]
+        ? `Next in ${busSchedule.nextBusInMinutes}m (${busSchedule.departures[0].timeFormatted}) · ₹${busFare}`
+        : `${formatDistance(distanceMeters)} · ~${busMin} min · ₹${busFare}`,
+      details: matchedBus
+        ? `BMTC ${matchedBus.routeNumber}: ${matchedBus.name}. Next bus in ${busSchedule.nextBusInMinutes} mins (${busSchedule.departures[0]?.timeFormatted}). ${busSchedule.frequencyText}.`
+        : `BMTC metro feeder bus (MF-series). Economical choice (~${busMin} min). Stops right at station gate.`,
+      tip: `Pay cash (₹10 note) or UPI QR via Tummoc / conductor scanner. Zero surge guarantee.`,
     },
     walk: {
       key: 'walk',
@@ -173,6 +185,9 @@ export function buildConnectingLeg({
     modes,
     distanceMeters,
     dynamicFare,
+    matchedBus,
+    busSchedule,
+    locationName,
     fromCoord,
     toCoord,
     coordinates: [fromCoord, toCoord],

@@ -244,7 +244,7 @@ export const POPULAR_DESTINATIONS = [
 
 /**
  * Calculates real-time next train departure details from any station
- * based on current hour & day.
+ * based on current hour & day, including today's upcoming trains schedule.
  */
 export function getNextMetroDeparture(stationId, line = 'purple', targetDate = new Date()) {
   const hour = targetDate.getHours();
@@ -256,9 +256,13 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
   if (!isOperating) {
     return {
       status: 'closed',
+      isOperating: false,
       nextInMinutes: null,
       scheduledTime: 'Opens 05:00 AM',
+      departures: [],
       frequencyMinutes: 15,
+      frequencyLabel: 'Closed (Resumes 05:00 AM)',
+      operatingHours: '05:00 AM – 23:15 PM',
       note: 'Metro service closed for the night. Resumes at 5:00 AM.',
     };
   }
@@ -267,28 +271,44 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
   // Normal hours: 11:00 - 17:00 (interval ~7-8 mins)
   // Early morning / Late night: 05:00 - 08:00 & 20:30 - 23:15 (interval ~10-12 mins)
   let frequency = 8;
+  let frequencyLabel = 'Regular frequency: every 8 mins';
   if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
     frequency = 5;
+    frequencyLabel = 'Peak rush: every 4–5 mins';
   } else if (hour < 8 || hour >= 21) {
     frequency = 12;
+    frequencyLabel = 'Late evening: every 12 mins';
   }
 
   // Calculate simulated countdown based on current minutes modulo frequency
   const remainder = minute % frequency;
   const minutesUntilNext = remainder === 0 ? frequency : frequency - remainder;
 
-  const nextDepartureDate = new Date(targetDate.getTime() + minutesUntilNext * 60 * 1000);
-  const hoursFormatted = nextDepartureDate.getHours() % 12 || 12;
-  const minutesFormatted = String(nextDepartureDate.getMinutes()).padStart(2, '0');
-  const ampm = nextDepartureDate.getHours() >= 12 ? 'PM' : 'AM';
+  const departures = [];
+  for (let i = 0; i < 4; i++) {
+    const mins = minutesUntilNext + i * frequency;
+    const depDate = new Date(targetDate.getTime() + mins * 60 * 1000);
+    const hoursFormatted = depDate.getHours() % 12 || 12;
+    const minutesFormatted = String(depDate.getMinutes()).padStart(2, '0');
+    const ampm = depDate.getHours() >= 12 ? 'PM' : 'AM';
+    departures.push({
+      inMinutes: mins,
+      timeFormatted: `${hoursFormatted}:${minutesFormatted} ${ampm}`,
+      isNext: i === 0,
+    });
+  }
 
   return {
     status: 'running',
+    isOperating: true,
     nextInMinutes: minutesUntilNext,
-    scheduledTime: `${hoursFormatted}:${minutesFormatted} ${ampm}`,
+    scheduledTime: departures[0]?.timeFormatted,
+    departures,
     frequencyMinutes: frequency,
-    lineColor: line === 'purple' ? PURPLE_LINE : GREEN_LINE,
-    lineName: line === 'purple' ? 'Purple Line' : 'Green Line',
+    frequencyLabel,
+    operatingHours: '05:00 AM – 23:15 PM',
+    lineColor: line === 'green' ? GREEN_LINE : PURPLE_LINE,
+    lineName: line === 'green' ? 'Green Line' : 'Purple Line',
     note: `Runs every ${frequency} min during this hour`,
   };
 }

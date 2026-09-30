@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -355,6 +356,54 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         {step.platformInfo.towards}
                       </Text>
                     </View>
+
+                    {/* Today's Live Upcoming Trains on this Route */}
+                    {step.nextDeparture && (
+                      <View style={styles.metroLiveTimingsBox}>
+                        <View style={styles.metroLiveTimingsHeader}>
+                          <View style={styles.pulseLiveRow}>
+                            <View style={styles.pulseGreenDot} />
+                            <Text style={styles.metroLiveTitle}>TODAY'S UPCOMING TRAINS</Text>
+                          </View>
+                          <Text style={styles.metroLiveFreq}>
+                            {step.nextDeparture.frequencyLabel || `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
+                          </Text>
+                        </View>
+
+                        <View style={styles.metroNextCountdownRow}>
+                          <Text style={styles.metroNextCountdownText}>
+                            Next train in{' '}
+                            <Text style={styles.metroBoldText}>
+                              {step.nextDeparture.nextInMinutes !== null
+                                ? `${step.nextDeparture.nextInMinutes} mins`
+                                : 'Closed'}
+                            </Text>{' '}
+                            ({step.nextDeparture.scheduledTime})
+                          </Text>
+                          <Text style={styles.metroOperatingText}>
+                            {step.nextDeparture.operatingHours || '05:00 AM – 23:15 PM'}
+                          </Text>
+                        </View>
+
+                        {step.nextDeparture.departures && step.nextDeparture.departures.length > 1 && (
+                          <View style={styles.metroUpcomingPillsRow}>
+                            <Text style={styles.metroUpcomingLabel}>Following departures:</Text>
+                            <ScrollView
+                              horizontal
+                              showsHorizontalScrollIndicator={false}
+                              contentContainerStyle={styles.metroUpcomingScroll}
+                            >
+                              {step.nextDeparture.departures.slice(1, 4).map((d, di) => (
+                                <View key={di} style={styles.metroDepPill}>
+                                  <Text style={styles.metroDepPillTime}>{d.timeFormatted}</Text>
+                                  <Text style={styles.metroDepPillSub}>+{d.inMinutes}m</Text>
+                                </View>
+                              ))}
+                            </ScrollView>
+                          </View>
+                        )}
+                      </View>
+                    )}
 
                     <View style={styles.gatesGrid}>
                       <View style={styles.gateCol}>
@@ -1172,5 +1221,97 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#0284c7',
     fontFamily: fontFamily.bodyBold,
+  },
+  metroLiveTimingsBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  metroLiveTimingsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  pulseLiveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  pulseGreenDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#16a34a',
+  },
+  metroLiveTitle: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.6,
+    color: '#334155',
+  },
+  metroLiveFreq: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#64748b',
+  },
+  metroNextCountdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  metroNextCountdownText: {
+    fontSize: 12,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[900],
+  },
+  metroBoldText: {
+    fontFamily: fontFamily.bodyBold,
+    color: '#16a34a',
+  },
+  metroOperatingText: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[500],
+  },
+  metroUpcomingPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  metroUpcomingLabel: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[500],
+  },
+  metroUpcomingScroll: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  metroDepPill: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: radius.xs,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metroDepPillTime: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  metroDepPillSub: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.body,
+    color: '#64748b',
   },
 });
