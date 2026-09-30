@@ -20,6 +20,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
   const [selectedModes, setSelectedModes] = useState({});
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const [blueprintPathId, setBlueprintPathId] = useState(null);
+  const [showSavingsBreakdown, setShowSavingsBreakdown] = useState(false);
 
   const routeSteps = route?.steps;
   const effectiveSteps = useMemo(() => {
@@ -108,167 +109,111 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         </View>
       </View>
 
-      {/* Mom & Dad Mode (Senior & Family Accessibility) Toggle */}
-      <Pressable
-        onPress={() => {
-          toggleSeniorMode();
-          fireToast(
-            !seniorMode
-              ? '🧓 Mom & Dad Mode active! Lifts & minimal walking prioritized.'
-              : 'Standard explorer mode restored.'
-          );
-        }}
-        style={({ pressed }) => [
-          styles.seniorToggleCard,
-          seniorMode && styles.seniorToggleCardActive,
-          pressed && { opacity: 0.92 },
-        ]}
-      >
-        <View style={styles.seniorToggleLeft}>
-          <Text style={styles.seniorToggleIcon}>🧓</Text>
-          <View style={{ flex: 1 }}>
-            <View style={styles.seniorTitleRow}>
-              <Text style={[styles.seniorTitle, seniorMode && styles.seniorTitleActive]}>
-                Mom & Dad Mode
-              </Text>
-              <View
-                style={[
-                  styles.seniorStatusPill,
-                  seniorMode && styles.seniorStatusPillActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.seniorStatusText,
-                    seniorMode && styles.seniorStatusTextActive,
-                  ]}
-                >
-                  {seniorMode ? 'ACTIVE' : 'OFF'}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.seniorSubtitle}>
-              {seniorMode
-                ? 'Minimal walking (<250m) · Lifts & escalators prioritized · Sit-down dining'
-                : 'Tap to make route easy for parents: lifts, no steep stairs & short auto hops'}
-            </Text>
-          </View>
-        </View>
-      </Pressable>
+      {/* Clean Quick Utilities Strip (Mom & Dad Mode + Savings Callout) */}
+      <View style={styles.utilityActionStrip}>
+        <Pressable
+          onPress={() => {
+            toggleSeniorMode();
+            fireToast(
+              !seniorMode
+                ? '🧓 Mom & Dad Mode active! Lifts & minimal walking prioritized.'
+                : 'Standard explorer mode restored.'
+            );
+          }}
+          style={({ pressed }) => [
+            styles.seniorPillBtn,
+            seniorMode && styles.seniorPillBtnActive,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text style={styles.seniorPillEmoji}>🧓</Text>
+          <Text style={[styles.seniorPillLabel, seniorMode && styles.seniorPillLabelActive]}>
+            {seniorMode ? 'Mom & Dad Mode: Active' : 'Mom & Dad Mode'}
+          </Text>
+        </Pressable>
 
-      {/* Smart Fare Comparator & Money Saved Meter */}
-      <View style={styles.comparatorCard}>
-        <View style={styles.comparatorHeaderRow}>
-          <View style={styles.comparatorTagBadge}>
-            <Text style={styles.comparatorTagText}>FARE COMPARISON & SAVINGS</Text>
-          </View>
-          <View style={styles.savingsPill}>
-            <Text style={styles.savingsPillText}>💰 Save ₹{moneySaved}</Text>
-          </View>
-        </View>
-
-        {/* Side-by-Side Comparison Columns */}
-        <View style={styles.comparisonGrid}>
-          {/* Direct Cab Column */}
-          <View style={styles.cabCol}>
-            <View style={styles.colHeaderRow}>
-              <Text style={styles.colEmoji}>🚖</Text>
-              <Text style={styles.colTitle}>Direct Cab</Text>
-            </View>
-            <Text style={styles.colSub}>Uber / Ola direct</Text>
-            <Text style={styles.cabFareText}>~₹{directCabFare}</Text>
-            <Text style={styles.cabDurationText}>⏱️ {directCabMinutes} min (traffic)</Text>
-            <View style={styles.cabRiskBadge}>
-              <Text style={styles.cabRiskText}>Surge + Traffic Block</Text>
-            </View>
-          </View>
-
-          {/* VS Badge */}
-          <View style={styles.vsContainer}>
-            <Text style={styles.vsText}>VS</Text>
-          </View>
-
-          {/* Metro + Transit Column */}
-          <View style={styles.transitCol}>
-            <View style={styles.colHeaderRow}>
-              <Text style={styles.colEmoji}>🚇</Text>
-              <Text style={styles.colTitle}>Metro + Auto</Text>
-            </View>
-            <Text style={styles.colSub}>Step-by-step route</Text>
-            <Text style={styles.transitFareText}>₹{dynamicTotalCost}</Text>
-            <Text style={styles.transitDurationText}>⚡ {dynamicTotalDuration} min (fast)</Text>
-            <View style={styles.transitWinBadge}>
-              <Text style={styles.transitWinText}>{savingsPct}% Cheaper</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Street Food Conversion Banner */}
-        <View style={styles.foodRewardBanner}>
-          <Text style={styles.foodRewardEmoji}>🥞</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.foodRewardTitle}>
-              You save ₹{moneySaved} on this ride!
-            </Text>
-            <Text style={styles.foodRewardSubtitle}>
-              That is equivalent to {foodEquivalent}! Enjoy local delicacies with the money you saved.
-            </Text>
-          </View>
-        </View>
-
-        {/* Anti-Scam Shield & Auto Meter Tip */}
-        {advisory && (
-          <View style={styles.scamShieldBox}>
-            <Text style={styles.scamShieldTitle}>🛡️ LOCAL SCAM SHIELD</Text>
-            <Text style={styles.scamShieldText}>
-              Official meter rate: ~₹{advisory.fare || 30}. {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
-            </Text>
-          </View>
-        )}
+        <Pressable
+          onPress={() => setShowSavingsBreakdown((prev) => !prev)}
+          style={({ pressed }) => [
+            styles.savingsCompactPill,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text style={styles.savingsCompactEmoji}>💰</Text>
+          <Text style={styles.savingsCompactText}>Save ₹{moneySaved} vs Cab</Text>
+          <Text style={styles.savingsChevron}>{showSavingsBreakdown ? '▲' : '▼'}</Text>
+        </Pressable>
       </View>
 
-      {/* Live Metro Departure Alert Banner */}
-      {route.steps.find((s) => s.nextDeparture?.status === 'running') && (
-        <View style={styles.liveTimerBanner}>
-          <View style={styles.pulseDot} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.liveTimerTitle}>
-              NEXT METRO DEPARTURE: In {route.steps.find((s) => s.nextDeparture)?.nextDeparture?.nextInMinutes} min
-            </Text>
-            <Text style={styles.liveTimerSubtitle}>
-              Scheduled at {route.steps.find((s) => s.nextDeparture)?.nextDeparture?.scheduledTime} · {route.steps.find((s) => s.nextDeparture)?.nextDeparture?.note}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      {/* Station Blueprint Quick Action */}
-      <Pressable
-        onPress={() => {
-          setBlueprintPathId('ksr_to_purple');
-          setShowBlueprintModal(true);
-        }}
-        style={({ pressed }) => [
-          styles.blueprintHubBanner,
-          pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
-        ]}
-      >
-        <View style={styles.blueprintHubIconWrap}>
-          <Text style={{ fontSize: 20 }}>🏢</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.blueprintHubTitle}>Majestic Concourse Blueprint</Text>
-            <View style={styles.blueprint3DBadge}>
-              <Text style={styles.blueprint3DBadgeText}>3D GUIDE</Text>
+      {/* Expandable Fare Comparison & Food Reward Breakdown */}
+      {showSavingsBreakdown && (
+        <View style={styles.comparatorCard}>
+          <View style={styles.comparatorHeaderRow}>
+            <View style={styles.comparatorTagBadge}>
+              <Text style={styles.comparatorTagText}>FARE COMPARISON & SAVINGS</Text>
+            </View>
+            <View style={styles.savingsPill}>
+              <Text style={styles.savingsPillText}>💰 Save ₹{moneySaved}</Text>
             </View>
           </View>
-          <Text style={styles.blueprintHubSub}>
-            Interactive 4-level cross-section, gates (A–F), platform lifts & cloakroom
-          </Text>
+
+          {/* Side-by-Side Comparison Columns */}
+          <View style={styles.comparisonGrid}>
+            <View style={styles.cabCol}>
+              <View style={styles.colHeaderRow}>
+                <Text style={styles.colEmoji}>🚖</Text>
+                <Text style={styles.colTitle}>Direct Cab</Text>
+              </View>
+              <Text style={styles.colSub}>Uber / Ola direct</Text>
+              <Text style={styles.cabFareText}>~₹{directCabFare}</Text>
+              <Text style={styles.cabDurationText}>⏱️ {directCabMinutes} min (traffic)</Text>
+              <View style={styles.cabRiskBadge}>
+                <Text style={styles.cabRiskText}>Surge + Traffic Block</Text>
+              </View>
+            </View>
+
+            <View style={styles.vsContainer}>
+              <Text style={styles.vsText}>VS</Text>
+            </View>
+
+            <View style={styles.transitCol}>
+              <View style={styles.colHeaderRow}>
+                <Text style={styles.colEmoji}>🚇</Text>
+                <Text style={styles.colTitle}>Metro + Auto</Text>
+              </View>
+              <Text style={styles.colSub}>Step-by-step route</Text>
+              <Text style={styles.transitFareText}>₹{dynamicTotalCost}</Text>
+              <Text style={styles.transitDurationText}>⚡ {dynamicTotalDuration} min (fast)</Text>
+              <View style={styles.transitWinBadge}>
+                <Text style={styles.transitWinText}>{savingsPct}% Cheaper</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Street Food Conversion Banner */}
+          <View style={styles.foodRewardBanner}>
+            <Text style={styles.foodRewardEmoji}>🥞</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.foodRewardTitle}>
+                You save ₹{moneySaved} on this ride!
+              </Text>
+              <Text style={styles.foodRewardSubtitle}>
+                Equivalent to {foodEquivalent}! Enjoy local delicacies with the money saved.
+              </Text>
+            </View>
+          </View>
+
+          {/* Anti-Scam Shield & Auto Meter Tip */}
+          {advisory && (
+            <View style={styles.scamShieldBox}>
+              <Text style={styles.scamShieldTitle}>🛡️ LOCAL SCAM SHIELD</Text>
+              <Text style={styles.scamShieldText}>
+                Official meter rate: ~₹{advisory.fare || 30}. {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
+              </Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.blueprintHubArrow}>➔</Text>
-      </Pressable>
+      )}
 
       {/* Step-by-Step Stepper with Interactive Map Highlights */}
       <View style={styles.stepperHeaderRow}>
@@ -363,31 +308,34 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         <View style={styles.metroLiveTimingsHeader}>
                           <View style={styles.pulseLiveRow}>
                             <View style={styles.pulseGreenDot} />
-                            <Text style={styles.metroLiveTitle}>TODAY'S UPCOMING TRAINS</Text>
+                            <Text style={styles.metroLiveTitle}>LIVE METRO TIMINGS TODAY</Text>
                           </View>
-                          <Text style={styles.metroLiveFreq}>
-                            {step.nextDeparture.frequencyLabel || `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
-                          </Text>
+                          <View style={styles.metroFreqBadge}>
+                            <Text style={styles.metroLiveFreq}>
+                              {step.nextDeparture.frequencyLabel || `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
+                            </Text>
+                          </View>
                         </View>
 
-                        <View style={styles.metroNextCountdownRow}>
-                          <Text style={styles.metroNextCountdownText}>
-                            Next train in{' '}
-                            <Text style={styles.metroBoldText}>
+                        {/* Large, spacious Next Train Callout */}
+                        <View style={styles.nextTrainHeroRow}>
+                          <View style={styles.nextTrainHeroLeft}>
+                            <Text style={styles.nextTrainHeroLabel}>NEXT TRAIN</Text>
+                            <Text style={styles.nextTrainHeroTime}>{step.nextDeparture.scheduledTime}</Text>
+                          </View>
+                          <View style={styles.nextTrainCountdownPill}>
+                            <Text style={styles.nextTrainCountdownPillText}>
                               {step.nextDeparture.nextInMinutes !== null
-                                ? `${step.nextDeparture.nextInMinutes} mins`
+                                ? `In ${step.nextDeparture.nextInMinutes} mins`
                                 : 'Closed'}
-                            </Text>{' '}
-                            ({step.nextDeparture.scheduledTime})
-                          </Text>
-                          <Text style={styles.metroOperatingText}>
-                            {step.nextDeparture.operatingHours || '05:00 AM – 23:15 PM'}
-                          </Text>
+                            </Text>
+                          </View>
                         </View>
 
+                        {/* Consecutive Departures Today */}
                         {step.nextDeparture.departures && step.nextDeparture.departures.length > 1 && (
-                          <View style={styles.metroUpcomingPillsRow}>
-                            <Text style={styles.metroUpcomingLabel}>Following departures:</Text>
+                          <View style={styles.metroUpcomingSection}>
+                            <Text style={styles.metroUpcomingLabel}>Following trains today:</Text>
                             <ScrollView
                               horizontal
                               showsHorizontalScrollIndicator={false}
@@ -396,12 +344,18 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                               {step.nextDeparture.departures.slice(1, 4).map((d, di) => (
                                 <View key={di} style={styles.metroDepPill}>
                                   <Text style={styles.metroDepPillTime}>{d.timeFormatted}</Text>
-                                  <Text style={styles.metroDepPillSub}>+{d.inMinutes}m</Text>
+                                  <View style={styles.pillSubBadge}>
+                                    <Text style={styles.metroDepPillSub}>+{d.inMinutes}m</Text>
+                                  </View>
                                 </View>
                               ))}
                             </ScrollView>
                           </View>
                         )}
+
+                        <Text style={styles.metroOperatingFooter}>
+                          Daily Service: {step.nextDeparture.operatingHours || '05:00 AM – 23:15 PM'}
+                        </Text>
                       </View>
                     )}
 
@@ -1222,20 +1176,81 @@ const styles = StyleSheet.create({
     color: '#0284c7',
     fontFamily: fontFamily.bodyBold,
   },
-  metroLiveTimingsBox: {
-    backgroundColor: '#f8fafc',
-    borderRadius: radius.md,
+  utilityActionStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  seniorPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    padding: 10,
-    marginTop: 8,
-    marginBottom: 8,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    gap: 6,
+    ...shadow.sm,
+  },
+  seniorPillBtnActive: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#3b82f6',
+  },
+  seniorPillEmoji: {
+    fontSize: 14,
+  },
+  seniorPillLabel: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#334155',
+  },
+  seniorPillLabelActive: {
+    color: '#1d4ed8',
+  },
+  savingsCompactPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#86efac',
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    ...shadow.sm,
+  },
+  savingsCompactEmoji: {
+    fontSize: 13,
+  },
+  savingsCompactText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#166534',
+  },
+  savingsChevron: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#16a34a',
+  },
+  metroLiveTimingsBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 10,
+    ...shadow.sm,
   },
   metroLiveTimingsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 10,
   },
   pulseLiveRow: {
     flexDirection: 'row',
@@ -1243,75 +1258,111 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   pulseGreenDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#16a34a',
   },
   metroLiveTitle: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontFamily: fontFamily.bodyBold,
-    letterSpacing: 0.6,
-    color: '#334155',
+    letterSpacing: 0.5,
+    color: '#0f172a',
+  },
+  metroFreqBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.xs,
   },
   metroLiveFreq: {
-    fontSize: 9.5,
+    fontSize: 10.5,
     fontFamily: fontFamily.bodyMedium,
-    color: '#64748b',
+    color: '#475569',
   },
-  metroNextCountdownRow: {
+  nextTrainHeroRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.sm,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
-  metroNextCountdownText: {
-    fontSize: 12,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[900],
+  nextTrainHeroLeft: {
+    gap: 2,
   },
-  metroBoldText: {
-    fontFamily: fontFamily.bodyBold,
-    color: '#16a34a',
-  },
-  metroOperatingText: {
+  nextTrainHeroLabel: {
     fontSize: 9.5,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[500],
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: '#64748b',
   },
-  metroUpcomingPillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  nextTrainHeroTime: {
+    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  nextTrainCountdownPill: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  nextTrainCountdownPillText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
+  },
+  metroUpcomingSection: {
+    marginBottom: 8,
   },
   metroUpcomingLabel: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontFamily: fontFamily.bodyMedium,
-    color: colors.neutral[500],
+    color: '#475569',
+    marginBottom: 6,
   },
   metroUpcomingScroll: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
   metroDepPill: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: radius.xs,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    ...shadow.sm,
   },
   metroDepPillTime: {
-    fontSize: 10,
+    fontSize: 13,
     fontFamily: fontFamily.bodyBold,
     color: '#0f172a',
   },
+  pillSubBadge: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: radius.xs,
+  },
   metroDepPillSub: {
-    fontSize: 8.5,
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#2563eb',
+  },
+  metroOperatingFooter: {
+    fontSize: 10.5,
     fontFamily: fontFamily.body,
     color: '#64748b',
+    marginTop: 2,
   },
 });

@@ -16,7 +16,7 @@ export default function ConnectingLegSelector({
   selectedModeKey,
   onSelectMode,
 }) {
-  const [showComparison, setShowComparison] = useState(true);
+  const [showComparison, setShowComparison] = useState(false);
   const [showBusModal, setShowBusModal] = useState(false);
 
   if (!step?.modes) return null;
@@ -203,23 +203,38 @@ export default function ConnectingLegSelector({
           {/* Today's upcoming departures for this exact leg */}
           {busSchedule && busSchedule.departures && busSchedule.departures.length > 0 && (
             <View style={styles.todayBusScheduleBox}>
-              <View style={styles.todayBusRow}>
-                <View style={styles.todayBusLeft}>
+              <View style={styles.todayBusHeader}>
+                <View style={styles.liveGreenRow}>
                   <View style={styles.liveGreenDot} />
-                  <Text style={styles.todayBusNextText}>
-                    Next bus in <Text style={styles.boldText}>{busSchedule.nextBusInMinutes}m</Text> ({busSchedule.departures[0]?.timeFormatted})
-                  </Text>
+                  <Text style={styles.todayBusHeading}>LIVE BUS TIMINGS TODAY</Text>
                 </View>
-                <Text style={styles.todayBusFreqText}>{busSchedule.frequencyText}</Text>
+                <View style={styles.busFreqBadge}>
+                  <Text style={styles.todayBusFreqText}>{busSchedule.frequencyText}</Text>
+                </View>
               </View>
 
-              <View style={styles.todayDepPillsRow}>
-                <Text style={styles.todayDepPillsLabel}>Today's next buses:</Text>
+              {/* Next Bus Hero Callout */}
+              <View style={styles.nextBusHeroRow}>
+                <View style={styles.nextBusHeroLeft}>
+                  <Text style={styles.nextBusHeroLabel}>NEXT BUS DEPARTURE</Text>
+                  <Text style={styles.nextBusHeroTime}>{busSchedule.departures[0]?.timeFormatted}</Text>
+                </View>
+                <View style={styles.nextBusCountdownPill}>
+                  <Text style={styles.nextBusCountdownText}>
+                    In {busSchedule.nextBusInMinutes} mins
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.todayUpcomingSection}>
+                <Text style={styles.todayDepPillsLabel}>Following buses today:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.todayDepPillsScroll}>
                   {busSchedule.departures.slice(1, 4).map((dep, di) => (
                     <View key={di} style={styles.todayDepPill}>
                       <Text style={styles.todayDepPillTime}>{dep.timeFormatted}</Text>
-                      <Text style={styles.todayDepPillSub}>+{dep.inMinutes}m</Text>
+                      <View style={styles.busPillSubBadge}>
+                        <Text style={styles.todayDepPillSub}>+{dep.inMinutes}m</Text>
+                      </View>
                     </View>
                   ))}
                 </ScrollView>
@@ -552,73 +567,121 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: '#bbf7d0',
-    padding: 10,
+    padding: 12,
     marginBottom: 10,
+    ...shadow.sm,
   },
-  todayBusRow: {
+  todayBusHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  todayBusLeft: {
+  liveGreenRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   liveGreenDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#16a34a',
   },
-  todayBusNextText: {
-    fontSize: 11.5,
-    fontFamily: fontFamily.body,
+  todayBusHeading: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.5,
     color: '#14532d',
   },
-  boldText: {
+  busFreqBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.xs,
+  },
+  todayBusFreqText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#15803d',
+  },
+  nextBusHeroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: radius.sm,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  nextBusHeroLeft: {
+    gap: 2,
+  },
+  nextBusHeroLabel: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.8,
+    color: '#16a34a',
+  },
+  nextBusHeroTime: {
+    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
+    color: '#14532d',
+  },
+  nextBusCountdownPill: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  nextBusCountdownText: {
+    fontSize: 12.5,
     fontFamily: fontFamily.bodyBold,
     color: '#15803d',
   },
-  todayBusFreqText: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyMedium,
-    color: '#16a34a',
-  },
-  todayDepPillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  todayUpcomingSection: {
+    marginBottom: 4,
   },
   todayDepPillsLabel: {
-    fontSize: 9.5,
+    fontSize: 11,
     fontFamily: fontFamily.bodyMedium,
-    color: '#15803d',
+    color: '#166534',
+    marginBottom: 6,
   },
   todayDepPillsScroll: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
   todayDepPill: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#86efac',
-    borderRadius: radius.xs,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
+    ...shadow.sm,
   },
   todayDepPillTime: {
-    fontSize: 10,
+    fontSize: 13,
     fontFamily: fontFamily.bodyBold,
     color: '#14532d',
   },
+  busPillSubBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: radius.xs,
+  },
   todayDepPillSub: {
-    fontSize: 8.5,
-    fontFamily: fontFamily.body,
-    color: '#16a34a',
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
   },
 });

@@ -287,34 +287,6 @@ export default function NavigateScreen({ contentPadding }) {
                 {mapMode ? 'Transit Graph' : 'Google Map'}
               </Text>
             </Pressable>
-
-            <Pressable
-              onPress={() => setShowBlueprint(true)}
-              style={({ pressed }) => [
-                styles.mapControlBtn,
-                styles.blueprintMapControlBtn,
-                pressed && { transform: [{ scale: 0.95 }] },
-              ]}
-            >
-              <Text style={{ fontSize: 11 }}>🏢</Text>
-              <Text style={[styles.mapControlBtnText, styles.blueprintMapControlText]}>
-                Blueprint
-              </Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => setShowBmtcModal(true)}
-              style={({ pressed }) => [
-                styles.mapControlBtn,
-                styles.busMapControlBtn,
-                pressed && { transform: [{ scale: 0.95 }] },
-              ]}
-            >
-              <Text style={{ fontSize: 11 }}>🚌</Text>
-              <Text style={[styles.mapControlBtnText, styles.busMapControlText]}>
-                BMTC Buses
-              </Text>
-            </Pressable>
           </View>
 
           {/* Map legend footer */}
@@ -392,6 +364,30 @@ export default function NavigateScreen({ contentPadding }) {
           <View style={styles.searchSection}>
             <SearchBar onSelectDestination={selectDestination} />
           </View>
+          <View style={styles.quickUtilityRow}>
+            <Pressable
+              onPress={() => setShowBlueprint(true)}
+              style={styles.quickUtilityBtn}
+            >
+              <Text style={styles.quickUtilityEmoji}>🏢</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
+                <Text style={styles.quickUtilitySub}>3D Concourse</Text>
+              </View>
+              <Text style={styles.quickUtilityArrow}>➔</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setShowBmtcModal(true)}
+              style={[styles.quickUtilityBtn, styles.quickUtilityBtnBus]}
+            >
+              <Text style={styles.quickUtilityEmoji}>🚌</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Routes</Text>
+                <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Timetables</Text>
+              </View>
+              <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
+            </Pressable>
+          </View>
           {renderMapBlock(380)}
           <MilestoneRibbon
             milestones={activeRoute?.milestones}
@@ -441,6 +437,40 @@ export default function NavigateScreen({ contentPadding }) {
 
         <View style={styles.searchSection}>
           <SearchBar onSelectDestination={selectDestination} />
+        </View>
+
+        {/* Transit Quick Utilities Row */}
+        <View style={styles.quickUtilityRow}>
+          <Pressable
+            onPress={() => setShowBlueprint(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <Text style={styles.quickUtilityEmoji}>🏢</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
+              <Text style={styles.quickUtilitySub}>3D Concourse & Gates</Text>
+            </View>
+            <Text style={styles.quickUtilityArrow}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowBmtcModal(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnBus,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <Text style={styles.quickUtilityEmoji}>🚌</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Bus Routes</Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Feeders & Passes</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
+          </Pressable>
         </View>
 
         {renderMapBlock()}
@@ -601,17 +631,57 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[800],
   },
-  blueprintMapControlBtn: {
-    backgroundColor: '#0f172a',
+  quickUtilityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 12,
   },
-  blueprintMapControlText: {
-    color: '#38bdf8',
+  quickUtilityBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: radius.md,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    gap: 8,
+    ...shadow.sm,
   },
-  busMapControlBtn: {
-    backgroundColor: '#14532d',
+  quickUtilityBtnBus: {
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
   },
-  busMapControlText: {
-    color: '#86efac',
+  quickUtilityEmoji: {
+    fontSize: 18,
+  },
+  quickUtilityTitle: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  quickUtilityTitleBus: {
+    color: '#14532d',
+  },
+  quickUtilitySub: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.body,
+    color: '#64748b',
+    marginTop: 1,
+  },
+  quickUtilitySubBus: {
+    color: '#16a34a',
+  },
+  quickUtilityArrow: {
+    fontSize: 11,
+    color: '#64748b',
+    fontFamily: fontFamily.bodyBold,
+  },
+  quickUtilityArrowBus: {
+    color: '#15803d',
   },
   mapLegendBar: {
     position: 'absolute',
