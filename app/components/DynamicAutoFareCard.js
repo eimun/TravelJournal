@@ -8,10 +8,12 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
+import FareReliabilityModal from './FareReliabilityModal';
 
 export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
   const { fireToast } = useTrip();
   const [showNegotiationModal, setShowNegotiationModal] = useState(false);
+  const [showReliabilityModal, setShowReliabilityModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
   if (!dynamicFare || !dynamicFare.providers) return null;
@@ -46,8 +48,16 @@ export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
 
       {/* Provider Price Comparison Grid */}
       <View style={styles.matrixHeaderRow}>
-        <Text style={styles.matrixHeading}>REAL-TIME PRICE COMPARISON</Text>
-        <Text style={styles.matrixSub}>{dynamicFare.distanceKm} km ride</Text>
+        <View>
+          <Text style={styles.matrixHeading}>REAL-TIME PRICE COMPARISON</Text>
+          <Text style={styles.matrixSub}>{dynamicFare.distanceKm} km ride</Text>
+        </View>
+        <Pressable
+          onPress={() => setShowReliabilityModal(true)}
+          style={({ pressed }) => [styles.auditPill, pressed && { opacity: 0.8 }]}
+        >
+          <Text style={styles.auditPillText}>🛡️ Price Reliability</Text>
+        </Pressable>
       </View>
 
       <View style={styles.providersList}>
@@ -173,6 +183,30 @@ export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
           <Text style={styles.copyPillText}>{copied ? '✓ Copied' : 'Copy'}</Text>
         </View>
       </Pressable>
+
+      {/* Fare Reliability & Multi-Platform Audit Link */}
+      <Pressable
+        onPress={() => setShowReliabilityModal(true)}
+        style={({ pressed }) => [
+          styles.auditBannerBtn,
+          pressed && { opacity: 0.88, transform: [{ scale: 0.99 }] },
+        ]}
+      >
+        <Text style={styles.auditBannerIcon}>📊</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.auditBannerTitle}>Why do auto & cab prices fluctuate?</Text>
+          <Text style={styles.auditBannerSub}>
+            Empirical multi-platform benchmark (Uber vs Rapido vs Namma Yatri)
+          </Text>
+        </View>
+        <Text style={styles.auditBannerArrow}>➔</Text>
+      </Pressable>
+
+      {/* Reliability Modal */}
+      <FareReliabilityModal
+        visible={showReliabilityModal}
+        onClose={() => setShowReliabilityModal(false)}
+      />
     </View>
   );
 }
@@ -358,5 +392,48 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[700],
+  },
+  auditPill: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: radius.full,
+  },
+  auditPillText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1d4ed8',
+  },
+  auditBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    borderRadius: radius.md,
+    padding: 10,
+    marginTop: 10,
+    gap: 10,
+  },
+  auditBannerIcon: {
+    fontSize: 18,
+  },
+  auditBannerTitle: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1e40af',
+  },
+  auditBannerSub: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.body,
+    color: '#3b82f6',
+    marginTop: 1.5,
+  },
+  auditBannerArrow: {
+    fontSize: 12,
+    color: '#1d4ed8',
+    fontFamily: fontFamily.bodyBold,
   },
 });
