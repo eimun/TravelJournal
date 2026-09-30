@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import DynamicAutoFareCard from './DynamicAutoFareCard';
+import BmtcBusScheduleModal from './BmtcBusScheduleModal';
 
 export default function ConnectingLegSelector({
   step,
@@ -15,6 +16,7 @@ export default function ConnectingLegSelector({
   onSelectMode,
 }) {
   const [showComparison, setShowComparison] = useState(true);
+  const [showBusModal, setShowBusModal] = useState(false);
 
   if (!step?.modes) return null;
 
@@ -169,12 +171,47 @@ export default function ConnectingLegSelector({
         />
       )}
 
+      {/* BMTC Feeder & Bus Schedules Card */}
+      {currentKey === 'bus' && (
+        <View style={styles.busInfoCard}>
+          <View style={styles.busHeaderRow}>
+            <View style={styles.busHeaderLeft}>
+              <View style={styles.busBadge}>
+                <Text style={styles.busBadgeText}>BMTC PUBLIC TRANSIT</Text>
+              </View>
+              <Text style={styles.busTitle}>Metro Feeder & City Bus Routes</Text>
+              <Text style={styles.busSubtitle}>Direct bus stand outside station · Flat ₹10–₹15</Text>
+            </View>
+            <Text style={styles.busEmoji}>🚌</Text>
+          </View>
+          <Text style={styles.busDesc}>
+            BMTC feeder buses run every 6–12 mins on major corridors with 0% surge. Best option to avoid auto negotiations!
+          </Text>
+          <Pressable
+            onPress={() => setShowBusModal(true)}
+            style={({ pressed }) => [
+              styles.busScheduleButton,
+              pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <Text style={styles.busScheduleButtonText}>🚌 View Live Bus Timings & Feeder Routes</Text>
+          </Pressable>
+        </View>
+      )}
+
       {/* Selected Mode Insider Tip */}
       {currentMode.tip && (
         <View style={styles.selectedTipBox}>
           <Text style={styles.selectedTipText}>💡 {currentMode.tip}</Text>
         </View>
       )}
+
+      {/* BMTC Bus Modal */}
+      <BmtcBusScheduleModal
+        visible={showBusModal}
+        onClose={() => setShowBusModal(false)}
+        initialQuery={step.fromStation || step.toStation || ''}
+      />
     </View>
   );
 }
@@ -399,5 +436,72 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bodyMedium,
     color: colors.accentRamp[800],
     lineHeight: 16,
+  },
+  busInfoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    padding: 14,
+    marginTop: 12,
+    ...shadow.sm,
+  },
+  busHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  busHeaderLeft: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  busBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.xs,
+    marginBottom: 4,
+  },
+  busBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
+    letterSpacing: 0.6,
+  },
+  busTitle: {
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+    color: '#14532d',
+  },
+  busSubtitle: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: '#16a34a',
+    marginTop: 2,
+  },
+  busEmoji: {
+    fontSize: 24,
+  },
+  busDesc: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  busScheduleButton: {
+    backgroundColor: '#15803d',
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  busScheduleButtonText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
   },
 });

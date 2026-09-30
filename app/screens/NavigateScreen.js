@@ -17,6 +17,7 @@ import RouteDetailSheet from '../components/RouteDetailSheet';
 import MilestoneRibbon from '../components/MilestoneRibbon';
 import WebRoadMap from '../components/WebRoadMap';
 import StationBlueprintModal from '../components/StationBlueprintModal';
+import BmtcBusScheduleModal from '../components/BmtcBusScheduleModal';
 
 let MapView, Marker, Polyline;
 try {
@@ -47,6 +48,7 @@ export default function NavigateScreen({ contentPadding }) {
   const [mapExpanded, setMapExpanded] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [showBlueprint, setShowBlueprint] = useState(false);
+  const [showBmtcModal, setShowBmtcModal] = useState(false);
 
   const mapRef = useRef(null);
   const scrollRef = useRef(null);
@@ -299,6 +301,20 @@ export default function NavigateScreen({ contentPadding }) {
                 Blueprint
               </Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => setShowBmtcModal(true)}
+              style={({ pressed }) => [
+                styles.mapControlBtn,
+                styles.busMapControlBtn,
+                pressed && { transform: [{ scale: 0.95 }] },
+              ]}
+            >
+              <Text style={{ fontSize: 11 }}>🚌</Text>
+              <Text style={[styles.mapControlBtnText, styles.busMapControlText]}>
+                BMTC Buses
+              </Text>
+            </Pressable>
           </View>
 
           {/* Map legend footer */}
@@ -401,6 +417,12 @@ export default function NavigateScreen({ contentPadding }) {
           visible={showBlueprint}
           onClose={() => setShowBlueprint(false)}
         />
+
+        {/* BMTC Bus Timetable Modal (Wide Screen) */}
+        <BmtcBusScheduleModal
+          visible={showBmtcModal}
+          onClose={() => setShowBmtcModal(false)}
+        />
       </View>
     );
   }
@@ -457,6 +479,12 @@ export default function NavigateScreen({ contentPadding }) {
       <StationBlueprintModal
         visible={showBlueprint}
         onClose={() => setShowBlueprint(false)}
+      />
+
+      {/* BMTC Bus Timetable Modal (Mobile Screen) */}
+      <BmtcBusScheduleModal
+        visible={showBmtcModal}
+        onClose={() => setShowBmtcModal(false)}
       />
     </View>
   );
@@ -578,6 +606,12 @@ const styles = StyleSheet.create({
   },
   blueprintMapControlText: {
     color: '#38bdf8',
+  },
+  busMapControlBtn: {
+    backgroundColor: '#14532d',
+  },
+  busMapControlText: {
+    color: '#86efac',
   },
   mapLegendBar: {
     position: 'absolute',
