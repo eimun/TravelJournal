@@ -8,12 +8,9 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
-import FareReliabilityModal from './FareReliabilityModal';
 
 export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
-  const { fireToast } = useTrip();
-  const [showNegotiationModal, setShowNegotiationModal] = useState(false);
-  const [showReliabilityModal, setShowReliabilityModal] = useState(false);
+  const { fireToast, openFareReliability } = useTrip();
   const [copied, setCopied] = useState(false);
 
   if (!dynamicFare || !dynamicFare.providers) return null;
@@ -53,7 +50,7 @@ export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
           <Text style={styles.matrixSub}>{dynamicFare.distanceKm} km ride</Text>
         </View>
         <Pressable
-          onPress={() => setShowReliabilityModal(true)}
+          onPress={openFareReliability}
           style={({ pressed }) => [styles.auditPill, pressed && { opacity: 0.8 }]}
         >
           <Text style={styles.auditPillText}>🛡️ Price Reliability</Text>
@@ -186,7 +183,7 @@ export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
 
       {/* Fare Reliability & Multi-Platform Audit Link */}
       <Pressable
-        onPress={() => setShowReliabilityModal(true)}
+        onPress={openFareReliability}
         style={({ pressed }) => [
           styles.auditBannerBtn,
           pressed && { opacity: 0.88, transform: [{ scale: 0.99 }] },
@@ -201,12 +198,6 @@ export default function DynamicAutoFareCard({ dynamicFare, distanceMeters }) {
         </View>
         <Text style={styles.auditBannerArrow}>➔</Text>
       </Pressable>
-
-      {/* Reliability Modal */}
-      <FareReliabilityModal
-        visible={showReliabilityModal}
-        onClose={() => setShowReliabilityModal(false)}
-      />
     </View>
   );
 }

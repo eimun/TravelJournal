@@ -81,11 +81,19 @@ export default function MobileDeviceFrame({ children }) {
 
         {/* Screen Display Container */}
         <View style={styles.screenInner}>
-          {/* Dynamic Island */}
-          <View style={styles.dynamicIslandContainer}>
+          {/* Realistic iPhone Top Status Bar with Dynamic Island */}
+          <View style={styles.topStatusBarContainer}>
+            <Text style={styles.statusTime}>9:41</Text>
             <View style={styles.dynamicIsland}>
               <View style={styles.cameraLens} />
               <View style={styles.sensorDot} />
+            </View>
+            <View style={styles.statusIcons}>
+              <Text style={styles.statusSignalText}>●●●●</Text>
+              <Text style={styles.statusWifiText}>5G</Text>
+              <View style={styles.batteryIcon}>
+                <View style={styles.batteryLevel} />
+              </View>
             </View>
           </View>
 
@@ -233,20 +241,65 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  dynamicIslandContainer: {
+  topStatusBarContainer: {
     position: 'absolute',
-    top: 10,
+    top: 0,
     left: 0,
     right: 0,
+    height: 44,
+    backgroundColor: '#FAF8F5',
+    flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 999,
+    justifyContent: 'space-between',
+    paddingHorizontal: 22,
+    zIndex: 9999,
     pointerEvents: 'none',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  statusTime: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0f172a',
+    width: 44,
+  },
+  statusIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    width: 54,
+    justifyContent: 'flex-end',
+  },
+  statusSignalText: {
+    fontSize: 7,
+    color: '#0f172a',
+    letterSpacing: 0.5,
+  },
+  statusWifiText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  batteryIcon: {
+    width: 19,
+    height: 10,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: '#0f172a',
+    padding: 1,
+    justifyContent: 'center',
+  },
+  batteryLevel: {
+    width: '80%',
+    height: '100%',
+    backgroundColor: '#0f172a',
+    borderRadius: 1.5,
   },
   dynamicIsland: {
-    width: 108,
-    height: 26,
+    width: 106,
+    height: 25,
     backgroundColor: '#000000',
-    borderRadius: 13,
+    borderRadius: 12.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',

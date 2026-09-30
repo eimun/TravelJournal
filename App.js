@@ -17,6 +17,7 @@ import ExploreScreen from './app/screens/ExploreScreen';
 import GuideScreen from './app/screens/GuideScreen';
 import RestaurantDetailSheet from './app/components/RestaurantDetailSheet';
 import SearchModalOverlay from './app/components/SearchModalOverlay';
+import FareReliabilityModal from './app/components/FareReliabilityModal';
 import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
 import { openDatabase } from './src/db';
@@ -43,14 +44,16 @@ function Shell() {
     addedPlaces,
     togglePlaceInDay,
     toast,
+    isFareReliabilityOpen,
+    closeFareReliability,
   } = useTrip();
 
   const insets = useSafeAreaInsets();
   const Screen = SCREENS[tab] ?? NavigateScreen;
   const isAdded = selectedPlace ? addedPlaces.includes(selectedPlace.id) : false;
 
-  // Ensure plenty of breathing room below iPhone notch / dynamic island
-  const topPadding = Math.max(insets.top, 24) + space[2];
+  // Ensure plenty of breathing room below iPhone status bar / dynamic island
+  const topPadding = Math.max(insets.top, 46) + space[2];
   const bottomPadding = Math.max(insets.bottom, 16) + 70;
 
   return (
@@ -87,6 +90,12 @@ function Shell() {
 
       {/* Restaurant Detail Bottom Sheet Modal */}
       <RestaurantDetailSheet />
+
+      {/* Fare Reliability & Multi-Platform Audit Modal */}
+      <FareReliabilityModal
+        visible={isFareReliabilityOpen}
+        onClose={closeFareReliability}
+      />
 
       {/* Popup Notification Toast */}
       <BengaluruToast toast={toast} topInset={insets.top} />

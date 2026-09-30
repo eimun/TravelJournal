@@ -27,7 +27,7 @@ export default function FareReliabilityModal({ visible, onClose }) {
   const Container = Platform.OS === 'web' ? View : Modal;
   const containerProps =
     Platform.OS === 'web'
-      ? { style: [StyleSheet.absoluteFill, { zIndex: 1300 }] }
+      ? { style: [StyleSheet.absoluteFill, { zIndex: 12000 }] }
       : { transparent: true, visible: true, animationType: 'slide', onRequestClose: onClose };
 
   return (

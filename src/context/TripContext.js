@@ -51,6 +51,15 @@ export function TripProvider({ children }) {
     setIsSearchOpen(false);
   }, []);
 
+  // Fare Reliability & Multi-Platform Audit Modal
+  const [isFareReliabilityOpen, setIsFareReliabilityOpen] = useState(false);
+  const openFareReliability = useCallback(() => {
+    setIsFareReliabilityOpen(true);
+  }, []);
+  const closeFareReliability = useCallback(() => {
+    setIsFareReliabilityOpen(false);
+  }, []);
+
   // Food / Explore tab state
   const [cuisineFilter, setCuisineFilter] = useState('all');
   const [dietFilter, setDietFilter] = useState('all'); // 'all' | 'veg' | 'nonveg' | 'halal' | 'jain'
@@ -558,6 +567,10 @@ export function TripProvider({ children }) {
       searchTarget,
       openSearch,
       closeSearch,
+      // Fare Reliability Modal
+      isFareReliabilityOpen,
+      openFareReliability,
+      closeFareReliability,
       // Restaurant / Food tab
       sourceFilter,
       setSourceFilter,
@@ -602,6 +615,9 @@ export function TripProvider({ children }) {
       searchTarget,
       openSearch,
       closeSearch,
+      isFareReliabilityOpen,
+      openFareReliability,
+      closeFareReliability,
       budget,
       byCostPlaces,
       fitCount,
