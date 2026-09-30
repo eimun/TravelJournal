@@ -13,6 +13,7 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import {
   BMTC_ROUTES,
+  BMTC_DAILY_PASSES,
   calculateUpcomingBusDepartures,
   findBusesForLocation,
 } from '../data/bmtcBusData';
@@ -21,6 +22,7 @@ export default function BmtcBusScheduleModal({ visible, onClose, initialQuery = 
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [categoryFilter, setCategoryFilter] = useState('all'); // 'all' | 'metro_feeder' | 'trunk' | 'airport'
   const [selectedRouteId, setSelectedRouteId] = useState(null);
+  const [showPasses, setShowPasses] = useState(false);
 
   const filteredRoutes = useMemo(() => {
     let list = BMTC_ROUTES;
@@ -133,6 +135,47 @@ export default function BmtcBusScheduleModal({ visible, onClose, initialQuery = 
 
         {/* Scrollable Bus List */}
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollList}>
+          {/* BMTC Daily Pass & Fare Saver Banner */}
+          <Pressable
+            onPress={() => setShowPasses((prev) => !prev)}
+            style={({ pressed }) => [styles.passBanner, pressed && { opacity: 0.9 }]}
+          >
+            <View style={styles.passBannerHeader}>
+              <View style={styles.passIconBadge}>
+                <Text style={{ fontSize: 16 }}>🎫</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.passTitleRow}>
+                  <Text style={styles.passBannerTitle}>BMTC Daily Pass (Unlimited Rides)</Text>
+                  <Text style={styles.passPricePill}>₹70 / ₹140</Text>
+                </View>
+                <Text style={styles.passBannerSub}>
+                  {showPasses ? 'Tap to collapse pass guide' : 'Tap to see how to save 60% vs autos & cabs'}
+                </Text>
+              </View>
+              <Text style={styles.passChevron}>{showPasses ? '▲' : '▼'}</Text>
+            </View>
+
+            {showPasses && (
+              <View style={styles.passListExpanded}>
+                {BMTC_DAILY_PASSES.map((pass) => (
+                  <View key={pass.id} style={styles.passItemCard}>
+                    <View style={styles.passItemHeader}>
+                      <Text style={styles.passItemName}>{pass.name}</Text>
+                      <View style={styles.passItemBadge}>
+                        <Text style={styles.passItemBadgeText}>{pass.badge}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.passItemPrice}>₹{pass.price} · {pass.validity}</Text>
+                    <Text style={styles.passItemCoverage}>🚌 {pass.coverage}</Text>
+                    <Text style={styles.passItemBuy}>📲 {pass.howToBuy}</Text>
+                    <Text style={styles.passItemTip}>💡 {pass.savingsTip}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </Pressable>
+
           {filteredRoutes.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={{ fontSize: 28, marginBottom: 8 }}>🚌</Text>
@@ -568,5 +611,119 @@ const styles = StyleSheet.create({
   stopNameBold: {
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[900],
+  },
+  passBanner: {
+    backgroundColor: '#ecfdf5',
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 12,
+  },
+  passBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  passIconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#d1fae5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  passTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 6,
+  },
+  passBannerTitle: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#065f46',
+  },
+  passPricePill: {
+    backgroundColor: '#059669',
+    color: '#ffffff',
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: radius.xs,
+  },
+  passBannerSub: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: '#047857',
+    marginTop: 2,
+  },
+  passChevron: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: '#059669',
+  },
+  passListExpanded: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#a7f3d0',
+    gap: 10,
+  },
+  passItemCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.sm,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+  },
+  passItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  passItemName: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  passItemBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radius.xs,
+  },
+  passItemBadgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#b45309',
+  },
+  passItemPrice: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#059669',
+    marginBottom: 4,
+  },
+  passItemCoverage: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[700],
+    lineHeight: 14,
+    marginBottom: 2,
+  },
+  passItemBuy: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#2563eb',
+    lineHeight: 14,
+    marginBottom: 2,
+  },
+  passItemTip: {
+    fontSize: 10,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    lineHeight: 14,
   },
 });

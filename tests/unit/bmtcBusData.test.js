@@ -1,5 +1,6 @@
 import {
   BMTC_ROUTES,
+  BMTC_DAILY_PASSES,
   calculateUpcomingBusDepartures,
   findBusesForLocation,
   getBmtcRoutesByType,
@@ -27,6 +28,16 @@ describe('BMTC Bus Schedules and Route Finder Engine', () => {
         expect(typeof route.firstBus).toBe('string');
         expect(typeof route.lastBus).toBe('string');
         expect(route.frequencyMinutes).toBeGreaterThan(0);
+      });
+    });
+
+    it('provides valid BMTC daily passes (Ordinary ₹70 and Vajra ₹140)', () => {
+      expect(BMTC_DAILY_PASSES.length).toBeGreaterThanOrEqual(2);
+      BMTC_DAILY_PASSES.forEach((p) => {
+        expect(p.name).toBeDefined();
+        expect(p.price).toBeGreaterThan(0);
+        expect(p.coverage).toBeDefined();
+        expect(p.howToBuy).toBeDefined();
       });
     });
   });

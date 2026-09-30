@@ -292,6 +292,39 @@ export const BMTC_ROUTES = [
   },
 ];
 
+export const BMTC_DAILY_PASSES = [
+  {
+    id: 'ordinary_daily',
+    name: 'Ordinary Daily Pass',
+    price: 70,
+    validity: '1 Full Day (Until midnight)',
+    coverage: 'All non-AC ordinary, pushpak & Suvarna buses across Bengaluru',
+    howToBuy: 'Ask any bus conductor or buy digital QR pass via Tummoc app',
+    savingsTip: 'Breaks even in 3-4 rides. Ideal for daily commuting with 0% surge.',
+    badge: 'Commuter Favorite',
+  },
+  {
+    id: 'vajra_gold_daily',
+    name: 'Vajra Gold Daily Pass',
+    price: 140,
+    validity: '1 Full Day (Until midnight)',
+    coverage: 'All AC Volvo Vajra buses + all non-AC buses (excludes KIA airport)',
+    howToBuy: 'Available on Volvo conductors or digital on Tummoc app',
+    savingsTip: 'Ride all day in chilled AC comfort across Outer Ring Road & ITPL tech corridors.',
+    badge: 'AC Volvo Comfort',
+  },
+  {
+    id: 'vayu_vajra_daily',
+    name: 'Vayu Vajra Daily Airport Pass',
+    price: 360,
+    validity: '1 Full Day',
+    coverage: 'All BMTC buses including all KIA Airport Volvo routes',
+    howToBuy: 'Available on KIA bus conductors at Airport & KBS Majestic',
+    savingsTip: 'Saves ₹800+ compared to single airport cab (~₹1,200).',
+    badge: 'Airport Special',
+  },
+];
+
 BMTC_ROUTES.forEach((r) => {
   if (r.fare === undefined) {
     r.fare = r.ordinaryFare;
