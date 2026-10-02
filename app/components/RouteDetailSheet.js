@@ -12,6 +12,7 @@ import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import ConnectingLegSelector from './ConnectingLegSelector';
 import StationBlueprintModal from './StationBlueprintModal';
+import SafetyPingModal from './SafetyPingModal';
 
 export default function RouteDetailSheet({ route, onFocusMap }) {
   const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode } = useTrip();
@@ -21,6 +22,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
   const [showBlueprintModal, setShowBlueprintModal] = useState(false);
   const [blueprintPathId, setBlueprintPathId] = useState(null);
   const [showSavingsBreakdown, setShowSavingsBreakdown] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
 
   const routeSteps = route?.steps;
   const effectiveSteps = useMemo(() => {
@@ -72,6 +74,12 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
   const savingsPct = directCabFare > 0 ? Math.round((moneySaved / directCabFare) * 100) : 0;
   const foodEquivalent = advisory?.foodEquivalent || (moneySaved > 85 ? `${Math.floor(moneySaved / 85)} Benne Dosas` : '2 Filter Coffees');
 
+  const metroStep = effectiveSteps.find((s) => s.type === 'metro') || effectiveSteps[0];
+  const safetyStation = metroStep?.platformInfo?.originStationName || route?.originName || 'Namma Metro';
+  const safetyGate = metroStep?.platformInfo?.entryGate || 'Gate 1';
+  const safetyLine = metroStep?.line === 'green' ? 'Green Line Metro' : 'Purple Line Metro';
+  const safetyTowards = metroStep?.platformInfo?.towards || '';
+
   return (
     <View style={styles.sheet}>
       {/* Route Quick Summary Card */}
@@ -109,7 +117,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         </View>
       </View>
 
-      {/* Clean Quick Utilities Strip (Mom & Dad Mode + Savings Callout) */}
+      {/* Clean Quick Utilities Strip (Mom & Dad Mode + Savings Callout + 1-Tap Family Ping) */}
       <View style={styles.utilityActionStrip}>
         <Pressable
           onPress={() => {
@@ -128,7 +136,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         >
           <Text style={styles.seniorPillEmoji}>🧓</Text>
           <Text style={[styles.seniorPillLabel, seniorMode && styles.seniorPillLabelActive]}>
-            {seniorMode ? 'Mom & Dad Mode: Active' : 'Mom & Dad Mode'}
+            {seniorMode ? 'Mom & Dad' : 'Mom & Dad'}
           </Text>
         </Pressable>
 
@@ -140,8 +148,19 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
           ]}
         >
           <Text style={styles.savingsCompactEmoji}>💰</Text>
-          <Text style={styles.savingsCompactText}>Save ₹{moneySaved} vs Cab</Text>
+          <Text style={styles.savingsCompactText}>Save ₹{moneySaved}</Text>
           <Text style={styles.savingsChevron}>{showSavingsBreakdown ? '▲' : '▼'}</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowSafetyModal(true)}
+          style={({ pressed }) => [
+            styles.safetyPillBtn,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text style={styles.safetyPillEmoji}>🛡️</Text>
+          <Text style={styles.safetyPillLabel}>Family Ping</Text>
         </Pressable>
       </View>
 
@@ -487,6 +506,17 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         visible={showBlueprintModal}
         onClose={() => setShowBlueprintModal(false)}
         initialPathId={blueprintPathId}
+      />
+
+      {/* 1-Tap Family Safety Ping Modal */}
+      <SafetyPingModal
+        visible={showSafetyModal}
+        onClose={() => setShowSafetyModal(false)}
+        route={route}
+        currentStation={safetyStation}
+        gate={safetyGate}
+        lineName={safetyLine}
+        towards={safetyTowards}
       />
     </View>
   );
@@ -1235,6 +1265,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: fontFamily.bodyBold,
     color: '#16a34a',
+  },
+  safetyPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    gap: 5,
+    ...shadow.sm,
+  },
+  safetyPillEmoji: {
+    fontSize: 13,
+  },
+  safetyPillLabel: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
   },
   metroLiveTimingsBox: {
     backgroundColor: '#ffffff',

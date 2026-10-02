@@ -18,6 +18,7 @@ import MilestoneRibbon from '../components/MilestoneRibbon';
 import WebRoadMap from '../components/WebRoadMap';
 import StationBlueprintModal from '../components/StationBlueprintModal';
 import BmtcBusScheduleModal from '../components/BmtcBusScheduleModal';
+import CloakroomModal from '../components/CloakroomModal';
 
 let MapView, Marker, Polyline;
 try {
@@ -49,6 +50,7 @@ export default function NavigateScreen({ contentPadding }) {
   const [scrollY, setScrollY] = useState(0);
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showBmtcModal, setShowBmtcModal] = useState(false);
+  const [showCloakroom, setShowCloakroom] = useState(false);
 
   const mapRef = useRef(null);
   const scrollRef = useRef(null);
@@ -440,7 +442,11 @@ export default function NavigateScreen({ contentPadding }) {
         </View>
 
         {/* Transit Quick Utilities Row */}
-        <View style={styles.quickUtilityRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickUtilityScroll}
+        >
           <Pressable
             onPress={() => setShowBlueprint(true)}
             style={({ pressed }) => [
@@ -471,7 +477,23 @@ export default function NavigateScreen({ contentPadding }) {
             </View>
             <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
           </Pressable>
-        </View>
+
+          <Pressable
+            onPress={() => setShowCloakroom(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnCloakroom,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <Text style={styles.quickUtilityEmoji}>🧳</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>Station Cloakrooms</Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>₹30/day · 24/7 Drops</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+          </Pressable>
+        </ScrollView>
 
         {renderMapBlock()}
 
@@ -515,6 +537,12 @@ export default function NavigateScreen({ contentPadding }) {
       <BmtcBusScheduleModal
         visible={showBmtcModal}
         onClose={() => setShowBmtcModal(false)}
+      />
+
+      {/* Station Cloakroom Directory Modal (Mobile Screen) */}
+      <CloakroomModal
+        visible={showCloakroom}
+        onClose={() => setShowCloakroom(false)}
       />
     </View>
   );
@@ -631,15 +659,16 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[800],
   },
-  quickUtilityRow: {
+  quickUtilityScroll: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginTop: 10,
     marginBottom: 12,
+    paddingRight: 10,
   },
   quickUtilityBtn: {
-    flex: 1,
+    width: 172,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffffff',
@@ -655,6 +684,10 @@ const styles = StyleSheet.create({
     borderColor: '#bbf7d0',
     backgroundColor: '#f0fdf4',
   },
+  quickUtilityBtnCloakroom: {
+    borderColor: '#fed7aa',
+    backgroundColor: '#fff7ed',
+  },
   quickUtilityEmoji: {
     fontSize: 18,
   },
@@ -666,6 +699,9 @@ const styles = StyleSheet.create({
   quickUtilityTitleBus: {
     color: '#14532d',
   },
+  quickUtilityTitleCloakroom: {
+    color: '#9a3412',
+  },
   quickUtilitySub: {
     fontSize: 9.5,
     fontFamily: fontFamily.body,
@@ -675,6 +711,9 @@ const styles = StyleSheet.create({
   quickUtilitySubBus: {
     color: '#16a34a',
   },
+  quickUtilitySubCloakroom: {
+    color: '#c2410c',
+  },
   quickUtilityArrow: {
     fontSize: 11,
     color: '#64748b',
@@ -682,6 +721,9 @@ const styles = StyleSheet.create({
   },
   quickUtilityArrowBus: {
     color: '#15803d',
+  },
+  quickUtilityArrowCloakroom: {
+    color: '#ea580c',
   },
   mapLegendBar: {
     position: 'absolute',

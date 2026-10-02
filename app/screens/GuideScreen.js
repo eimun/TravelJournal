@@ -11,6 +11,8 @@ import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 import { DISHES, DIET_OPTIONS, PACK_ITEMS } from '../data/bengaluruData';
 import CircularProgress from '../components/CircularProgress';
+import CloakroomModal from '../components/CloakroomModal';
+import SafetyPingModal from '../components/SafetyPingModal';
 
 const KANNADA_PHRASES = [
   { phrase: 'Meter haaki', english: 'Please put the meter on', context: 'When boarding an auto' },
@@ -31,9 +33,12 @@ export default function GuideScreen({ contentPadding }) {
     packStatus,
     packPct,
     startPackDownload,
+    activeRoute,
   } = useTrip();
 
   const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'food' | 'offline'
+  const [showCloakroomModal, setShowCloakroomModal] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
 
   const isDone = packStatus === 'done';
   const isBusy = packStatus === 'busy';
@@ -113,6 +118,42 @@ export default function GuideScreen({ contentPadding }) {
               • WhatsApp QR tickets give 5% discount on WhatsApp (+91 81055 56677).{'\n'}
               • Majestic interchange takes 3-4 mins walk inside the paid concourse.
             </Text>
+          </View>
+
+          {/* Explorer Safety & Luggage Tools */}
+          <Text style={styles.sectionHeading}>Explorer Safety & Luggage Tools</Text>
+          <View style={styles.toolsRow}>
+            <Pressable
+              onPress={() => setShowCloakroomModal(true)}
+              style={({ pressed }) => [
+                styles.toolCard,
+                { borderColor: '#fed7aa', backgroundColor: '#fff7ed' },
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={styles.toolEmoji}>🧳</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.toolTitle, { color: '#9a3412' }]}>Station Cloakroom Guide</Text>
+                <Text style={styles.toolSub}>KSR Majestic, Yesvantpur & Airport · ₹30/day rates & lock rules</Text>
+              </View>
+              <Text style={[styles.toolArrow, { color: '#ea580c' }]}>➔</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setShowSafetyModal(true)}
+              style={({ pressed }) => [
+                styles.toolCard,
+                { borderColor: '#bbf7d0', backgroundColor: '#f0fdf4' },
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={styles.toolEmoji}>🛡️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.toolTitle, { color: '#14532d' }]}>1-Tap Family Safety Ping</Text>
+                <Text style={styles.toolSub}>Share live metro gate & arrival updates directly on WhatsApp</Text>
+              </View>
+              <Text style={[styles.toolArrow, { color: '#15803d' }]}>➔</Text>
+            </Pressable>
           </View>
 
           {/* Useful Kannada Transit Phrases */}
@@ -242,6 +283,19 @@ export default function GuideScreen({ contentPadding }) {
           </View>
         </View>
       )}
+
+      {/* Cloakroom Directory Modal */}
+      <CloakroomModal
+        visible={showCloakroomModal}
+        onClose={() => setShowCloakroomModal(false)}
+      />
+
+      {/* Safety Ping Modal */}
+      <SafetyPingModal
+        visible={showSafetyModal}
+        onClose={() => setShowSafetyModal(false)}
+        route={activeRoute}
+      />
     </ScrollView>
   );
 }
@@ -326,6 +380,37 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     marginTop: 16,
     marginBottom: 10,
+  },
+  toolsRow: {
+    gap: 10,
+    marginBottom: 6,
+  },
+  toolCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: 12,
+    gap: 10,
+    ...shadow.sm,
+  },
+  toolEmoji: {
+    fontSize: 22,
+  },
+  toolTitle: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+  },
+  toolSub: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: '#64748b',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  toolArrow: {
+    fontSize: 14,
+    fontFamily: fontFamily.bodyBold,
   },
   phrasesList: {
     gap: 8,
