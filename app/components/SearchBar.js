@@ -17,6 +17,8 @@ export default function SearchBar({ onSelectDestination }) {
     userLocation,
     swapOriginDestination,
     openSearch,
+    currentCity,
+    selectDestination,
   } = useTrip();
 
   return (
@@ -68,7 +70,7 @@ export default function SearchBar({ onSelectDestination }) {
           <View style={styles.inputTextsCol}>
             <Text style={styles.fieldLabel}>TO</Text>
             <Text numberOfLines={1} style={styles.fieldValue}>
-              {destination ? destination.name : 'Search any destination in Bengaluru...'}
+              {destination ? (destination.name || destination.title) : `Search any destination in ${currentCity?.name || 'city'}...`}
             </Text>
           </View>
           <View style={[styles.editPill, styles.editPillActive]}>
@@ -83,14 +85,24 @@ export default function SearchBar({ onSelectDestination }) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.quickChipsList}
       >
-        {['Cubbon Park', 'Lalbagh', 'HSR Layout', 'Indiranagar', 'Koramangala', 'BTM Layout', 'Whitefield', 'MG Road'].map((name) => {
-          const isSelected = destination?.name.includes(name);
+        {(currentCity?.quickChips || ['Cubbon Park', 'Lalbagh', 'HSR Layout', 'Indiranagar', 'Koramangala', 'BTM Layout', 'Whitefield', 'MG Road']).map((name) => {
+          const destText = (destination?.name || destination?.title || '').toLowerCase();
+          const isSelected = !!(destText && destText.includes(name.toLowerCase()));
           return (
             <Pressable
               key={name}
               onPress={() => {
+                const matched = currentCity?.popularDestinations?.find(
+                  (d) => (d.name || d.title || '').toLowerCase().includes(name.toLowerCase()),
+                );
+                if (matched) {
+                  onSelectDestination ? onSelectDestination(matched) : selectDestination(matched);
+                  return;
+                }
                 searchBengaluruLocations(name).then((res) => {
-                  if (res && res.length > 0) onSelectDestination(res[0]);
+                  if (res && res.length > 0) {
+                    onSelectDestination ? onSelectDestination(res[0]) : selectDestination(res[0]);
+                  }
                 });
               }}
               style={({ pressed }) => [

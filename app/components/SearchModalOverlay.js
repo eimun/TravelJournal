@@ -40,6 +40,7 @@ export default function SearchModalOverlay() {
     refreshUserLocation,
     isLocating,
     fireToast,
+    currentCity,
   } = useTrip();
 
   const insets = useSafeAreaInsets();
@@ -175,7 +176,7 @@ export default function SearchModalOverlay() {
           {destination && (
             <View style={styles.activeTargetBadge}>
               <Text style={styles.activeTargetText} numberOfLines={1}>
-                To: {destination.name.split(',')[0]}
+                To: {(destination.name || destination.title || 'Destination').split(',')[0]}
               </Text>
             </View>
           )}
@@ -183,13 +184,13 @@ export default function SearchModalOverlay() {
 
         {/* Popular Hubs Strip */}
         <View style={styles.hubsSection}>
-          <Text style={styles.sectionLabel}>POPULAR BENGALURU HUBS</Text>
+          <Text style={styles.sectionLabel}>POPULAR {(currentCity?.name || 'BENGALURU').toUpperCase()} HUBS</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.hubsScroll}
           >
-            {POPULAR_HUBS.map((hub) => (
+            {(currentCity?.popularHubs || POPULAR_HUBS).map((hub) => (
               <Pressable
                 key={hub.name}
                 onPress={() => setQuery(hub.name)}

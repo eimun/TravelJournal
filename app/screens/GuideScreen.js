@@ -105,30 +105,31 @@ export default function GuideScreen({ contentPadding }) {
               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.accentRamp[700]} strokeWidth={2.5}>
                 <Path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
               </Svg>
-              <Text style={styles.tipCardTitle}>AUTO-RICKSHAW SURVIVAL</Text>
+              <Text style={styles.tipCardTitle}>{(currentCity?.autoFareFormula?.vehicleType || 'AUTO-RICKSHAW').toUpperCase()} SURVIVAL</Text>
             </View>
             <Text style={styles.tipCardBody}>
-              • Minimum fare is ₹30 for first 1.9 km, then ₹15/km.{'\n'}
-              • Between 10 PM and 5 AM, fare is 1.5x (Onduvare / one-and-a-half).{'\n'}
-              • Say “Meter haaki” firmly before stepping in.{'\n'}
-              • If drivers refuse or quote double, use Namma Yatri or Uber Auto.
+              • Minimum fare: ₹{currentCity?.autoFareFormula?.baseFare || 30} for first {currentCity?.autoFareFormula?.baseDistanceKm || 2} km, then ₹{currentCity?.autoFareFormula?.perKm || 15}/km.{'\n'}
+              • Night fare ({currentCity?.autoFareFormula?.nightHours || '22:00 – 05:00'}): {currentCity?.autoFareFormula?.nightMultiplier || 1.5}x standard rate.{'\n'}
+              • Essential local phrase: “{currentCity?.autoFareFormula?.lingoPhrase || 'Meter haaki'}” ({currentCity?.autoFareFormula?.hindiMeaning || 'Run by meter'}).{'\n'}
+              • {currentCity?.scamAlert || 'Demand meter or book via verified mobility apps.'}
             </Text>
           </View>
 
-          {/* Namma Metro Hacks */}
+          {/* City Transit Hacks */}
           <View style={styles.tipCard}>
             <View style={styles.tipHeaderRow}>
               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.accent2Ramp[700]} strokeWidth={2.5}>
                 <Circle cx="12" cy="12" r="10" />
                 <Path d="M12 6v6l4 2" />
               </Svg>
-              <Text style={styles.tipCardTitle}>METRO TIMINGS & HACKS</Text>
+              <Text style={styles.tipCardTitle}>{(currentCity?.transitAgency || 'TRANSIT NETWORK').toUpperCase()} GUIDE</Text>
             </View>
             <Text style={styles.tipCardBody}>
-              • First train departs 5:00 AM from terminal stations.{'\n'}
-              • Last train departs 11:00 PM (11:30 PM on Sundays/holidays).{'\n'}
-              • WhatsApp QR tickets give 5% discount on WhatsApp (+91 81055 56677).{'\n'}
-              • Majestic interchange takes 3-4 mins walk inside the paid concourse.
+              {(currentCity?.transitTips || [
+                'First train departs 5:00 AM from terminal stations; last train 11:00 PM.',
+                'WhatsApp QR tickets give 5% discount on official transit bots.',
+                'Major interchanges take 3-4 mins walk inside the paid concourse.',
+              ]).map((tip, idx) => `• ${tip}`).join('\n')}
             </Text>
           </View>
 
@@ -146,7 +147,7 @@ export default function GuideScreen({ contentPadding }) {
               <Text style={styles.toolEmoji}>🧳</Text>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.toolTitle, { color: '#9a3412' }]}>Station Cloakroom Guide</Text>
-                <Text style={styles.toolSub}>KSR Majestic, Yesvantpur & Airport · ₹30/day rates & lock rules</Text>
+                <Text style={styles.toolSub}>{currentCity?.cloakroomHighlight || 'Verified 24/7 railway cloakrooms & locker rules'}</Text>
               </View>
               <Text style={[styles.toolArrow, { color: '#ea580c' }]}>➔</Text>
             </Pressable>
@@ -162,16 +163,16 @@ export default function GuideScreen({ contentPadding }) {
               <Text style={styles.toolEmoji}>🛡️</Text>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.toolTitle, { color: '#14532d' }]}>1-Tap Family Safety Ping</Text>
-                <Text style={styles.toolSub}>Share live metro gate & arrival updates directly on WhatsApp</Text>
+                <Text style={styles.toolSub}>Share live transit gate & arrival updates directly on WhatsApp</Text>
               </View>
               <Text style={[styles.toolArrow, { color: '#15803d' }]}>➔</Text>
             </Pressable>
           </View>
 
-          {/* Useful Kannada Transit Phrases */}
-          <Text style={styles.sectionHeading}>Helpful Kannada Phrases</Text>
+          {/* Useful City Transit Phrases */}
+          <Text style={styles.sectionHeading}>Helpful {currentCity?.localLanguage || 'Local'} Phrases</Text>
           <View style={styles.phrasesList}>
-            {KANNADA_PHRASES.map((item, idx) => (
+            {(currentCity?.localPhrases || KANNADA_PHRASES).map((item, idx) => (
               <View key={idx} style={styles.phraseCard}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.kannadaText}>“{item.phrase}”</Text>
