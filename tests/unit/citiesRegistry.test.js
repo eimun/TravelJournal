@@ -72,4 +72,57 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     const blrCloakrooms = getCloakroomsForCity('bengaluru');
     expect(blrCloakrooms.some((c) => c.name.includes('Majestic'))).toBe(true);
   });
+
+  test('returns city-specific restaurants and dishes for Delhi and Mumbai', () => {
+    const {
+      getRestaurantsForCity,
+      getDishesForCity,
+      getEateriesDbForCity,
+      getSearchHubsForCity,
+    } = require('../../app/data/cityPlacesData');
+
+    // Delhi
+    const delRestaurants = getRestaurantsForCity('delhi');
+    expect(delRestaurants.length).toBeGreaterThanOrEqual(5);
+    expect(delRestaurants.some((r) => r.name.includes('Sita Ram') || r.name.includes("Karim"))).toBe(true);
+
+    const delDishes = getDishesForCity('delhi');
+    expect(delDishes.some((d) => d.id === 'chole' || d.id === 'butterchicken')).toBe(true);
+
+    const delEateries = getEateriesDbForCity('delhi');
+    expect(delEateries.chole.length).toBeGreaterThan(0);
+
+    const delHubs = getSearchHubsForCity('delhi');
+    expect(delHubs.some((h) => h.name.includes('Connaught Place'))).toBe(true);
+
+    // Mumbai
+    const bomRestaurants = getRestaurantsForCity('mumbai');
+    expect(bomRestaurants.length).toBeGreaterThanOrEqual(5);
+    expect(bomRestaurants.some((r) => r.name.includes('Ashok Vada Pav') || r.name.includes('Sardar'))).toBe(true);
+
+    const bomDishes = getDishesForCity('mumbai');
+    expect(bomDishes.some((d) => d.id === 'vadapav' || d.id === 'pavbhaji')).toBe(true);
+
+    const bomEateries = getEateriesDbForCity('mumbai');
+    expect(bomEateries.vadapav.length).toBeGreaterThan(0);
+
+    const bomHubs = getSearchHubsForCity('mumbai');
+    expect(bomHubs.some((h) => h.name.includes('Gateway of India'))).toBe(true);
+  });
+
+  test('searches city-accurate locations via searchCityLocations', async () => {
+    const { searchCityLocations } = require('../../app/services/searchService');
+
+    const delResults = await searchCityLocations('', 'delhi');
+    expect(delResults.length).toBeGreaterThan(0);
+    expect(delResults.some((r) => r.name.includes('Connaught Place') || r.name.includes('New Delhi'))).toBe(true);
+
+    const bomResults = await searchCityLocations('', 'mumbai');
+    expect(bomResults.length).toBeGreaterThan(0);
+    expect(bomResults.some((r) => r.name.includes('Gateway of India') || r.name.includes('CSMT'))).toBe(true);
+
+    const blrResults = await searchCityLocations('', 'bengaluru');
+    expect(blrResults.length).toBeGreaterThan(0);
+    expect(blrResults.some((r) => r.name.includes('Cubbon Park') || r.name.includes('Majestic'))).toBe(true);
+  });
 });

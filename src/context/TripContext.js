@@ -9,6 +9,11 @@ import {
 } from 'react';
 
 import { PLACES, EATERIES_DB, RESTAURANTS } from '../../app/data/bengaluruData';
+import {
+  getRestaurantsForCity,
+  getDishesForCity,
+  getEateriesDbForCity,
+} from '../../app/data/cityPlacesData';
 import { getDistanceBetween, POPULAR_DESTINATIONS } from '../../app/data/transitData';
 import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
 import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
@@ -44,6 +49,10 @@ export function TripProvider({ children }) {
     });
     if (cfg.popularDestinations && cfg.popularDestinations.length > 0) {
       setDestination(cfg.popularDestinations[0]);
+    }
+    const dishes = getDishesForCity(newCityId);
+    if (dishes && dishes.length > 0) {
+      setDish(dishes[0].id);
     }
   }, []);
 
@@ -428,16 +437,17 @@ export function TripProvider({ children }) {
   }, [selectedPlaceId]);
 
   const allRestaurants = useMemo(() => {
+    const baseRestaurants = getRestaurantsForCity(cityId);
     if (!liveOsmRestaurants || liveOsmRestaurants.length === 0) {
-      return RESTAURANTS;
+      return baseRestaurants;
     }
-    const existingIds = new Set(RESTAURANTS.map((r) => r.id));
-    const existingNames = new Set(RESTAURANTS.map((r) => r.name.toLowerCase().trim()));
+    const existingIds = new Set(baseRestaurants.map((r) => r.id));
+    const existingNames = new Set(baseRestaurants.map((r) => r.name.toLowerCase().trim()));
     const uniqueLive = liveOsmRestaurants.filter(
       (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
     );
-    return [...uniqueLive, ...RESTAURANTS];
-  }, [liveOsmRestaurants]);
+    return [...uniqueLive, ...baseRestaurants];
+  }, [liveOsmRestaurants, cityId]);
 
   const selectedRestaurant = useMemo(() => {
     return allRestaurants.find((r) => r.id === selectedRestaurantId) || null;
@@ -528,7 +538,8 @@ export function TripProvider({ children }) {
 
   // Filtered Eateries for Eat / Guide tab
   const filteredEateries = useMemo(() => {
-    const list = EATERIES_DB[dish] || [];
+    const cityEateriesDb = getEateriesDbForCity(cityId);
+    const list = cityEateriesDb[dish] || EATERIES_DB[dish] || [];
     if (diets.length === 0) return list;
 
     return list.filter((e) =>
@@ -541,7 +552,7 @@ export function TripProvider({ children }) {
         return true;
       }),
     );
-  }, [dish, diets]);
+  }, [dish, diets, cityId]);
 
   const value = useMemo(
     () => ({
@@ -623,6 +634,7 @@ export function TripProvider({ children }) {
       setApiKey,
       allRestaurants,
       restaurants: allRestaurants,
+      cityDishes: getDishesForCity(cityId),
     }),
     [
       tab,
