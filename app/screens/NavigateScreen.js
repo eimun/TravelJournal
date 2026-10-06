@@ -43,6 +43,8 @@ export default function NavigateScreen({ contentPadding }) {
     setActiveStepIndex,
     isLocating,
     refreshUserLocation,
+    currentCity,
+    openCitySwitcher,
   } = useTrip();
 
   const [mapMode, setMapMode] = useState(true);
@@ -319,7 +321,18 @@ export default function NavigateScreen({ contentPadding }) {
     <View style={styles.headerRow}>
       <View style={{ flex: 1 }}>
         <Text style={styles.kicker}>REAL-TIME ROUTE & TRANSIT</Text>
-        <Text style={styles.heading}>Bengaluru Guide</Text>
+        <Pressable
+          onPress={openCitySwitcher}
+          style={({ pressed }) => [
+            styles.cityHeadingRow,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          <Text style={styles.heading}>{currentCity?.name || 'Bengaluru'}</Text>
+          <View style={styles.cityPillBadge}>
+            <Text style={styles.cityPillBadgeText}>{currentCity?.shortName || 'CITY'} ▼</Text>
+          </View>
+        </Pressable>
       </View>
 
       <Pressable
@@ -595,6 +608,26 @@ const styles = StyleSheet.create({
     color: colors.neutral[900],
     marginTop: 3,
     lineHeight: 30,
+  },
+  cityHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cityPillBadge: {
+    backgroundColor: colors.accentRamp[100],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.accentRamp[300],
+    marginTop: 2,
+  },
+  cityPillBadgeText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[800],
+    letterSpacing: 0.5,
   },
   gpsChip: {
     flexDirection: 'row',

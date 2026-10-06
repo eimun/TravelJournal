@@ -18,6 +18,7 @@ import GuideScreen from './app/screens/GuideScreen';
 import RestaurantDetailSheet from './app/components/RestaurantDetailSheet';
 import SearchModalOverlay from './app/components/SearchModalOverlay';
 import FareReliabilityModal from './app/components/FareReliabilityModal';
+import CitySwitcherModal from './app/components/CitySwitcherModal';
 import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
 import { openDatabase } from './src/db';
@@ -46,6 +47,8 @@ function Shell() {
     toast,
     isFareReliabilityOpen,
     closeFareReliability,
+    isCitySwitcherOpen,
+    closeCitySwitcher,
   } = useTrip();
 
   const insets = useSafeAreaInsets();
@@ -95,6 +98,12 @@ function Shell() {
       <FareReliabilityModal
         visible={isFareReliabilityOpen}
         onClose={closeFareReliability}
+      />
+
+      {/* Multi-City Explorer Switcher Modal */}
+      <CitySwitcherModal
+        visible={isCitySwitcherOpen}
+        onClose={closeCitySwitcher}
       />
 
       {/* Popup Notification Toast */}

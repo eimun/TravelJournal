@@ -34,6 +34,8 @@ export default function GuideScreen({ contentPadding }) {
     packPct,
     startPackDownload,
     activeRoute,
+    currentCity,
+    openCitySwitcher,
   } = useTrip();
 
   const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'food' | 'offline'
@@ -51,8 +53,18 @@ export default function GuideScreen({ contentPadding }) {
       contentContainerStyle={[styles.container, contentPadding]}
     >
       {/* Header */}
-      <Text style={styles.kicker}>BENGALURU GUIDE</Text>
-      <Text style={styles.heading}>Survival & Local Tips</Text>
+      <View style={styles.headerTopRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.kicker}>{(currentCity?.name || 'BENGALURU').toUpperCase()} GUIDE</Text>
+          <Text style={styles.heading}>Survival & Local Tips</Text>
+        </View>
+        <Pressable
+          onPress={openCitySwitcher}
+          style={({ pressed }) => [styles.guideCityPill, pressed && { opacity: 0.8 }]}
+        >
+          <Text style={styles.guideCityPillText}>📍 {currentCity?.shortName || 'BLR'} ▼</Text>
+        </Pressable>
+      </View>
 
       {/* Segmented Sub-Tabs */}
       <View style={styles.subTabRow}>
@@ -305,6 +317,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 90,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 4,
+  },
+  guideCityPill: {
+    backgroundColor: colors.accentRamp[100],
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.accentRamp[300],
+    marginBottom: 2,
+  },
+  guideCityPillText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[800],
+    letterSpacing: 0.5,
   },
   kicker: {
     fontSize: 11,

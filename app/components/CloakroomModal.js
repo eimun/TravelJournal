@@ -11,19 +11,20 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
-import { BENGALURU_CLOAKROOMS, CLOAKROOM_CHECKLIST } from '../data/cloakroomData';
+import { BENGALURU_CLOAKROOMS, CLOAKROOM_CHECKLIST, getCloakroomsForCity } from '../data/cloakroomData';
 import { useTrip } from '../../src/context/TripContext';
 
 export default function CloakroomModal({ visible, onClose }) {
-  const { fireToast } = useTrip();
+  const { fireToast, currentCity } = useTrip();
   const [selectedHub, setSelectedHub] = useState('all'); // 'all' | 'railway' | 'airport'
 
   if (!visible) return null;
 
+  const cityCloakrooms = getCloakroomsForCity(currentCity?.id || 'bengaluru');
   const filteredCloakrooms =
     selectedHub === 'all'
-      ? BENGALURU_CLOAKROOMS
-      : BENGALURU_CLOAKROOMS.filter((c) => c.category === selectedHub);
+      ? cityCloakrooms
+      : cityCloakrooms.filter((c) => c.category === selectedHub);
 
   const handleCall = (phone) => {
     Linking.openURL(`tel:${phone.replace(/\s+/g, '')}`).catch(() => {

@@ -18,6 +18,7 @@ import {
   fetchFoursquarePlacesRestaurants,
   API_KEYS,
 } from '../../app/services/placesApiService';
+import { SUPPORTED_CITIES, getCityConfig } from '../../app/data/citiesRegistry';
 
 const TripContext = createContext(null);
 
@@ -27,6 +28,23 @@ export function TripProvider({ children }) {
   const [budget, setBudget] = useState(1200);
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [addedPlaces, setAddedPlaces] = useState([]);
+
+  // Multi-City Explorer state ('bengaluru' | 'delhi' | 'mumbai')
+  const [cityId, setCityId] = useState('bengaluru');
+  const [isCitySwitcherOpen, setIsCitySwitcherOpen] = useState(false);
+  const currentCity = useMemo(() => getCityConfig(cityId), [cityId]);
+
+  const switchCity = useCallback((newCityId) => {
+    const cfg = getCityConfig(newCityId);
+    setCityId(newCityId);
+    setUserLocation(cfg.center);
+    if (cfg.popularDestinations && cfg.popularDestinations.length > 0) {
+      setDestination(cfg.popularDestinations[0]);
+    }
+  }, []);
+
+  const openCitySwitcher = useCallback(() => setIsCitySwitcherOpen(true), []);
+  const closeCitySwitcher = useCallback(() => setIsCitySwitcherOpen(false), []);
 
   // Live Location & Routing state
   const [userLocation, setUserLocation] = useState(DEFAULT_BENGALURU_LOCATION);
@@ -561,7 +579,13 @@ export function TripProvider({ children }) {
       startPackDownload,
       toast,
       fireToast,
-      clearToast,
+      // Multi-City Explorer
+      currentCity,
+      cityId,
+      switchCity,
+      isCitySwitcherOpen,
+      openCitySwitcher,
+      closeCitySwitcher,
       // Search Modal
       isSearchOpen,
       searchTarget,
@@ -611,6 +635,12 @@ export function TripProvider({ children }) {
       seniorMode,
       toggleSeniorMode,
       recentSearches,
+      currentCity,
+      cityId,
+      switchCity,
+      isCitySwitcherOpen,
+      openCitySwitcher,
+      closeCitySwitcher,
       isSearchOpen,
       searchTarget,
       openSearch,
