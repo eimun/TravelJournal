@@ -37,7 +37,11 @@ export function TripProvider({ children }) {
   const switchCity = useCallback((newCityId) => {
     const cfg = getCityConfig(newCityId);
     setCityId(newCityId);
-    setUserLocation(cfg.center);
+    setUserLocation({
+      name: cfg.center?.name || `${cfg.name} Center`,
+      latitude: cfg.center.latitude,
+      longitude: cfg.center.longitude,
+    });
     if (cfg.popularDestinations && cfg.popularDestinations.length > 0) {
       setDestination(cfg.popularDestinations[0]);
     }
@@ -501,13 +505,13 @@ export function TripProvider({ children }) {
       const routeIds = new Set(routeEateries.map((re) => re.id));
       list = list.filter((r) => routeIds.has(r.id));
     } else if (dietFilter === 'veg') {
-      list = list.filter((r) => !r.tags.includes('nonveg'));
+      list = list.filter((r) => !(r.tags || []).includes('nonveg'));
     } else if (dietFilter === 'nonveg') {
-      list = list.filter((r) => r.tags.includes('nonveg'));
+      list = list.filter((r) => (r.tags || []).includes('nonveg'));
     } else if (dietFilter === 'halal') {
-      list = list.filter((r) => r.tags.includes('halal'));
+      list = list.filter((r) => (r.tags || []).includes('halal'));
     } else if (dietFilter === 'jain') {
-      list = list.filter((r) => r.tags.includes('nog') && !r.tags.includes('nonveg'));
+      list = list.filter((r) => (r.tags || []).includes('nog') && !(r.tags || []).includes('nonveg'));
     }
 
     // sort by distance if location known
@@ -529,10 +533,11 @@ export function TripProvider({ children }) {
 
     return list.filter((e) =>
       diets.every((d) => {
-        if (d === 'veg') return !e.tags.includes('nonveg');
-        if (d === 'halal') return e.tags.includes('halal') || !e.tags.includes('nonveg');
-        if (d === 'nog') return e.tags.includes('nog');
-        if (d === 'jain') return e.tags.includes('nog');
+        const tags = e.tags || [];
+        if (d === 'veg') return !tags.includes('nonveg');
+        if (d === 'halal') return tags.includes('halal') || !tags.includes('nonveg');
+        if (d === 'nog') return tags.includes('nog');
+        if (d === 'jain') return tags.includes('nog');
         return true;
       }),
     );

@@ -32,7 +32,19 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(bom.transitAgency).toContain('Suburban');
   });
 
-  test('returns iconic landmarks and local food legends for each city', () => {
+  test('returns iconic landmarks and local food legends for each city with complete name and area', () => {
+    const all = getAllCities();
+    for (const city of all) {
+      expect(city.quickChips.length).toBeGreaterThanOrEqual(4);
+      expect(city.popularHubs.length).toBeGreaterThanOrEqual(4);
+      for (const dest of city.popularDestinations) {
+        expect(dest.name).toBeDefined();
+        expect(dest.title).toBeDefined();
+        expect(dest.latitude).toBeGreaterThan(0);
+        expect(dest.longitude).toBeGreaterThan(0);
+      }
+    }
+
     const del = getCityConfig('delhi');
     expect(del.popularDestinations.length).toBeGreaterThanOrEqual(4);
     expect(del.popularDestinations.some((d) => d.title.includes('Connaught Place'))).toBe(true);

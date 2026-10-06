@@ -224,6 +224,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
   if (totalDirectDistance < 900) {
     const walkCoords = [originCoord, destCoord];
 
+    const destName = destination.name || destination.title || 'Destination';
     const milestones = [
       {
         id: 'm_start',
@@ -237,7 +238,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         id: 'm_dest',
         coordinate: destCoord,
         label: 'End',
-        title: destination.name,
+        title: destName,
         type: 'destination',
         stepIndex: 0,
       },
@@ -246,7 +247,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     const shortLeg = buildConnectingLeg({
       id: 's_short_direct',
       legType: 'first_mile',
-      locationName: destination.name,
+      locationName: destName,
       fromCoord: originCoord,
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
@@ -259,7 +260,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 
     return {
       type: 'walk_direct',
-      title: `Direct to ${destination.name}`,
+      title: `Direct to ${destName}`,
       totalDurationMinutes: shortLeg.durationMinutes,
       totalCost: shortLeg.cost,
       totalDistanceText: formatDistance(totalDirectDistance),
@@ -300,8 +301,10 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 
   // Case 2: Both near same station or metro not convenient -> direct commute
   const isSameStation = originStation && destStation && originStation.id === destStation.id;
+  const metroTooFar = walkToOriginStationMeters > 8000 || walkFromDestStationMeters > 8000;
 
-  if (isSameStation || !originStation || !destStation) {
+  if (isSameStation || metroTooFar || !originStation || !destStation) {
+    const destName = destination.name || destination.title || 'Destination';
     const distanceKm = Math.max(0.5, totalDirectDistance / 1000);
     const legitAutoMeter = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2) * 15));
     const streetQuote = Math.round(legitAutoMeter * 1.85);
@@ -321,7 +324,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         id: 'm_dest',
         coordinate: destCoord,
         label: 'End',
-        title: destination.name,
+        title: destName,
         type: 'destination',
         stepIndex: 0,
       },
@@ -330,7 +333,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     const directLeg = buildConnectingLeg({
       id: 's_direct_auto',
       legType: 'first_mile',
-      locationName: destination.name,
+      locationName: destName,
       fromCoord: originCoord,
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
@@ -343,7 +346,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 
     return {
       type: 'auto_bus',
-      title: `Direct to ${destination.name}`,
+      title: `Direct to ${destName}`,
       totalDurationMinutes: directLeg.durationMinutes,
       totalCost: directLeg.cost,
       totalDistanceText: formatDistance(totalDirectDistance),
@@ -652,11 +655,13 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     });
   }
 
+  const destName = destination.name || destination.title || 'Destination';
+
   // Step Last Mile: Multi-modal connection to Final Destination
   const lastMileStep = buildConnectingLeg({
     id: 'last_mile',
     legType: 'last_mile',
-    locationName: destination.name,
+    locationName: destName,
     fromCoord: destStationCoord,
     toCoord: destCoord,
     distanceMeters: walkFromDestStationMeters,
@@ -671,7 +676,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     id: 'm_dest',
     coordinate: destCoord,
     label: 'End',
-    title: destination.name,
+    title: destName,
     type: 'destination',
     stepIndex: steps.length - 1,
   });
