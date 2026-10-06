@@ -80,6 +80,8 @@ export default function ExploreScreen({ contentPadding }) {
     isFetchingOsm,
     fetchNearbyOsm,
     allRestaurants: totalRestaurants,
+    currentCity,
+    openCitySwitcher,
   } = useTrip();
 
   const mealCtx = getMealContext();
@@ -118,17 +120,16 @@ export default function ExploreScreen({ contentPadding }) {
       {/* ── Header ── */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.kicker}>BENGALURU · FOOD GUIDE</Text>
+          <Text style={styles.kicker}>{(currentCity?.name || 'BENGALURU').toUpperCase()} · FOOD GUIDE</Text>
           <Text style={styles.heading}>{mealCtx.emoji} {mealCtx.label}</Text>
           <Text style={styles.subHeading}>{mealCtx.sub}</Text>
         </View>
-        <View style={styles.locationChip}>
-          <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.accentRamp[700]} strokeWidth={2.5} strokeLinecap="round">
-            <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <Circle cx="12" cy="10" r="3" />
-          </Svg>
-          <Text style={styles.locationChipText}>Near you</Text>
-        </View>
+        <Pressable
+          onPress={openCitySwitcher}
+          style={({ pressed }) => [styles.exploreCityPill, pressed && { opacity: 0.8 }]}
+        >
+          <Text style={styles.exploreCityPillText}>📍 {currentCity?.shortName || 'BLR'} ▼</Text>
+        </Pressable>
       </View>
 
       {/* ── Live Source / Provider Quick Toggle ── */}
@@ -1325,5 +1326,18 @@ const styles = StyleSheet.create({
   },
   fsqFetchButton: {
     backgroundColor: '#7e22ce',
+  },
+  exploreCityPill: {
+    backgroundColor: colors.accentRamp[100],
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.accentRamp[300],
+  },
+  exploreCityPillText: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[800],
   },
 });

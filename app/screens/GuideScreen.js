@@ -36,6 +36,7 @@ export default function GuideScreen({ contentPadding }) {
     activeRoute,
     currentCity,
     openCitySwitcher,
+    cityDishes,
   } = useTrip();
 
   const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'food' | 'offline'
@@ -45,7 +46,8 @@ export default function GuideScreen({ contentPadding }) {
   const isDone = packStatus === 'done';
   const isBusy = packStatus === 'busy';
 
-  const selectedDishObj = DISHES.find((d) => d.id === dish);
+  const currentDishes = (cityDishes && cityDishes.length > 0) ? cityDishes : DISHES;
+  const selectedDishObj = currentDishes.find((d) => d.id === dish) || currentDishes[0];
 
   return (
     <ScrollView
@@ -208,8 +210,8 @@ export default function GuideScreen({ contentPadding }) {
 
           {/* Dish Picker Carousel */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dishCarousel}>
-            {DISHES.map((item) => {
-              const active = dish === item.id;
+            {currentDishes.map((item) => {
+              const active = (dish === item.id) || (!dish && item.id === currentDishes[0]?.id);
               return (
                 <Pressable
                   key={item.id}
@@ -226,7 +228,7 @@ export default function GuideScreen({ contentPadding }) {
 
           {/* Eateries List */}
           <Text style={styles.sectionHeading}>
-            Where to eat {selectedDishObj?.name}
+            Where to eat {selectedDishObj?.name || 'legendary food'}
           </Text>
 
           <View style={styles.eateryList}>
@@ -258,10 +260,10 @@ export default function GuideScreen({ contentPadding }) {
               />
               <View style={{ flex: 1 }}>
                 <Text style={styles.offlineTitle}>
-                  {isDone ? 'Bengaluru pack installed' : isBusy ? 'Downloading...' : 'Bengaluru pack · 63 MB'}
+                  {isDone ? `${currentCity?.name || 'City'} pack installed` : isBusy ? 'Downloading...' : `${currentCity?.name || 'City'} pack · 63 MB`}
                 </Text>
                 <Text style={styles.offlineSubtitle}>
-                  {isDone ? 'Works completely offline with SIM out' : 'Includes offline metro graph & places'}
+                  {isDone ? 'Works completely offline with SIM out' : `Includes offline transit graph & places for ${currentCity?.name || 'city'}`}
                 </Text>
               </View>
             </View>

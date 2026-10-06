@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow, space } from '../theme/tokens';
 import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
-import { searchBengaluruLocations } from '../services/searchService';
+import { searchCityLocations } from '../services/searchService';
 import { useTrip } from '../../src/context/TripContext';
 
 const POPULAR_HUBS = [
@@ -49,29 +49,29 @@ export default function SearchModalOverlay() {
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef(null);
 
-  // Focus input and preload default results when opened
+  // Focus input and preload default results for current city when opened
   useEffect(() => {
     if (isSearchOpen) {
       setQuery('');
-      searchBengaluruLocations('').then((data) => {
+      searchCityLocations('', currentCity?.id || 'bengaluru').then((data) => {
         if (Array.isArray(data)) setResults(data);
       });
       setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [isSearchOpen]);
+  }, [isSearchOpen, currentCity?.id]);
 
   // Live search as user types
   useEffect(() => {
     if (!isSearchOpen) return;
     setIsSearching(true);
     const timer = setTimeout(() => {
-      searchBengaluruLocations(query).then((data) => {
+      searchCityLocations(query, currentCity?.id || 'bengaluru').then((data) => {
         if (Array.isArray(data)) setResults(data);
         setIsSearching(false);
       });
     }, 120);
     return () => clearTimeout(timer);
-  }, [query, isSearchOpen]);
+  }, [query, isSearchOpen, currentCity?.id]);
 
   if (!isSearchOpen) return null;
 
@@ -143,7 +143,7 @@ export default function SearchModalOverlay() {
               ref={inputRef}
               value={query}
               onChangeText={setQuery}
-              placeholder={searchTarget === 'origin' ? 'Search starting point...' : 'Search street, mall, metro or area...'}
+              placeholder={searchTarget === 'origin' ? `Starting point in ${currentCity?.name || 'city'}...` : `Search any place in ${currentCity?.name || 'city'}...`}
               placeholderTextColor={colors.neutral[400]}
               style={[
                 styles.textInput,

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
-import { searchBengaluruLocations } from '../services/searchService';
+import { searchCityLocations } from '../services/searchService';
 import { useTrip } from '../../src/context/TripContext';
 
 export default function SearchBar({ onSelectDestination }) {
@@ -99,7 +99,7 @@ export default function SearchBar({ onSelectDestination }) {
                   onSelectDestination ? onSelectDestination(matched) : selectDestination(matched);
                   return;
                 }
-                searchBengaluruLocations(name).then((res) => {
+                searchCityLocations(name, currentCity?.id || 'bengaluru').then((res) => {
                   if (res && res.length > 0) {
                     onSelectDestination ? onSelectDestination(res[0]) : selectDestination(res[0]);
                   }
