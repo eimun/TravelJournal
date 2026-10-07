@@ -15,6 +15,7 @@ import {
   getEateriesDbForCity,
 } from '../../app/data/cityPlacesData';
 import { getDistanceBetween, POPULAR_DESTINATIONS } from '../../app/data/transitData';
+import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
 import {
   planTransitRoute,
   planMultimodalRoutes,
