@@ -125,4 +125,27 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(blrResults.length).toBeGreaterThan(0);
     expect(blrResults.some((r) => r.name.includes('Cubbon Park') || r.name.includes('Majestic'))).toBe(true);
   });
+
+  test('provides live environmental and local hazard advisories for all cities', () => {
+    const { getCityEnvironmentalAlert } = require('../../app/data/citiesRegistry');
+
+    const blrAlert = getCityEnvironmentalAlert('bengaluru');
+    expect(blrAlert.aqi).toBe(42);
+    expect(blrAlert.aqiLabel).toContain('Good');
+    expect(blrAlert.headline).toContain('Clean Garden Air');
+    expect(blrAlert.transitNotice).toContain('Purple & Green');
+
+    const delAlert = getCityEnvironmentalAlert('delhi');
+    expect(delAlert.aqi).toBe(268);
+    expect(delAlert.aqiLabel).toContain('Smog');
+    expect(delAlert.headline).toContain('High Smog Alert');
+    expect(delAlert.transitNotice).toContain('DMRC running 40 extra train trips');
+    expect(delAlert.badges).toContain('Wear N95 Mask');
+
+    const bomAlert = getCityEnvironmentalAlert('mumbai');
+    expect(bomAlert.aqi).toBe(64);
+    expect(bomAlert.headline).toContain('High Tide Alert');
+    expect(bomAlert.subtext).toContain('Suburban locals');
+    expect(bomAlert.badges).toContain('🌊 High Tide 4.2m');
+  });
 });

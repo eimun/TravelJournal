@@ -53,6 +53,9 @@ export default function NavigateScreen({ contentPadding }) {
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showBmtcModal, setShowBmtcModal] = useState(false);
   const [showCloakroom, setShowCloakroom] = useState(false);
+  const [alertExpanded, setAlertExpanded] = useState(false);
+
+  const envAlert = currentCity?.environmentalAlert;
 
   const mapRef = useRef(null);
   const scrollRef = useRef(null);
@@ -295,14 +298,48 @@ export default function NavigateScreen({ contentPadding }) {
 
           {/* Map legend footer */}
           <View style={styles.mapLegendBar}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: PURPLE_LINE }]} />
-              <Text style={styles.legendText}>Purple</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: GREEN_LINE }]} />
-              <Text style={styles.legendText}>Green</Text>
-            </View>
+            {currentCity?.id === 'delhi' ? (
+              <>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#eab308' }]} />
+                  <Text style={styles.legendText}>Yellow</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#2563eb' }]} />
+                  <Text style={styles.legendText}>Blue</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#ea580c' }]} />
+                  <Text style={styles.legendText}>Airport</Text>
+                </View>
+              </>
+            ) : currentCity?.id === 'mumbai' ? (
+              <>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#dc2626' }]} />
+                  <Text style={styles.legendText}>Western</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#991b1b' }]} />
+                  <Text style={styles.legendText}>Central</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#0284c7' }]} />
+                  <Text style={styles.legendText}>Metro 1</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: PURPLE_LINE }]} />
+                  <Text style={styles.legendText}>Purple</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: GREEN_LINE }]} />
+                  <Text style={styles.legendText}>Green</Text>
+                </View>
+              </>
+            )}
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#2563eb' }]} />
               <Text style={styles.legendText}>You</Text>
@@ -313,6 +350,70 @@ export default function NavigateScreen({ contentPadding }) {
             </View>
           </View>
         </View>
+      </View>
+    );
+  };
+
+  const renderEnvironmentalAlert = () => {
+    if (!envAlert) return null;
+
+    return (
+      <View style={styles.envAlertCard}>
+        <Pressable
+          onPress={() => setAlertExpanded((prev) => !prev)}
+          style={({ pressed }) => [
+            styles.envAlertHeaderRow,
+            pressed && { opacity: 0.9 },
+          ]}
+        >
+          <View style={styles.envAlertIconBadge}>
+            <Text style={styles.envAlertIcon}>{envAlert.weatherIcon}</Text>
+          </View>
+
+          <View style={{ flex: 1, paddingRight: 4 }}>
+            <View style={styles.envAlertTitleRow}>
+              <Text style={styles.envAlertHeadline} numberOfLines={1}>
+                {envAlert.headline}
+              </Text>
+              <View style={[styles.envAqiBadge, { backgroundColor: envAlert.aqiColor }]}>
+                <Text style={styles.envAqiBadgeText}>AQI {envAlert.aqi}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.envAlertSubtext} numberOfLines={alertExpanded ? undefined : 2}>
+              {envAlert.subtext}
+            </Text>
+          </View>
+
+          <Text style={styles.envAlertToggleArrow}>{alertExpanded ? '▲' : '▼'}</Text>
+        </Pressable>
+
+        {/* Dynamic Badge Strip */}
+        <View style={styles.envBadgesRow}>
+          {envAlert.badges?.map((badge, idx) => (
+            <View key={idx} style={styles.envBadgePill}>
+              <Text style={styles.envBadgePillText}>{badge}</Text>
+            </View>
+          ))}
+          <View style={styles.envTempPill}>
+            <Text style={styles.envTempPillText}>{envAlert.weatherCondition} · {envAlert.temperature}</Text>
+          </View>
+        </View>
+
+        {/* Expandable Notice & Local Commuter Tips */}
+        {alertExpanded && (
+          <View style={styles.envExpandedBox}>
+            <View style={styles.envTransitNoticeBox}>
+              <Text style={styles.envTransitNoticeText}>{envAlert.transitNotice}</Text>
+            </View>
+            {envAlert.tips?.map((tip, idx) => (
+              <View key={idx} style={styles.envTipItem}>
+                <Text style={styles.envTipBullet}>•</Text>
+                <Text style={styles.envTipText}>{tip}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   };
@@ -376,6 +477,7 @@ export default function NavigateScreen({ contentPadding }) {
         {/* Left Column: Fixed Navigation & Map Dashboard */}
         <View style={styles.wideLeftPane}>
           {headerView}
+          {renderEnvironmentalAlert()}
           <View style={styles.searchSection}>
             <SearchBar onSelectDestination={selectDestination} />
           </View>
@@ -386,8 +488,20 @@ export default function NavigateScreen({ contentPadding }) {
             >
               <Text style={styles.quickUtilityEmoji}>🏢</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
-                <Text style={styles.quickUtilitySub}>3D Concourse</Text>
+                <Text style={styles.quickUtilityTitle}>
+                  {currentCity?.id === 'delhi'
+                    ? 'Rajiv Chowk 3D'
+                    : currentCity?.id === 'mumbai'
+                      ? 'Dadar Junction 3D'
+                      : 'Majestic Blueprint'}
+                </Text>
+                <Text style={styles.quickUtilitySub}>
+                  {currentCity?.id === 'delhi'
+                    ? 'Concourse & Gates'
+                    : currentCity?.id === 'mumbai'
+                      ? 'Western ⇄ Central'
+                      : '3D Concourse'}
+                </Text>
               </View>
               <Text style={styles.quickUtilityArrow}>➔</Text>
             </Pressable>
@@ -397,8 +511,20 @@ export default function NavigateScreen({ contentPadding }) {
             >
               <Text style={styles.quickUtilityEmoji}>🚌</Text>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Routes</Text>
-                <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Timetables</Text>
+                <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
+                  {currentCity?.id === 'delhi'
+                    ? 'DMRC Routes'
+                    : currentCity?.id === 'mumbai'
+                      ? 'Local Trains'
+                      : 'BMTC Routes'}
+                </Text>
+                <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
+                  {currentCity?.id === 'delhi'
+                    ? 'Lines & Timings'
+                    : currentCity?.id === 'mumbai'
+                      ? 'Fast & Slow'
+                      : 'Timetables'}
+                </Text>
               </View>
               <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
             </Pressable>
@@ -449,6 +575,7 @@ export default function NavigateScreen({ contentPadding }) {
         scrollEventThrottle={16}
       >
         {headerView}
+        {renderEnvironmentalAlert()}
 
         <View style={styles.searchSection}>
           <SearchBar onSelectDestination={selectDestination} />
@@ -469,8 +596,20 @@ export default function NavigateScreen({ contentPadding }) {
           >
             <Text style={styles.quickUtilityEmoji}>🏢</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
-              <Text style={styles.quickUtilitySub}>3D Concourse & Gates</Text>
+              <Text style={styles.quickUtilityTitle}>
+                {currentCity?.id === 'delhi'
+                  ? 'Rajiv Chowk 3D'
+                  : currentCity?.id === 'mumbai'
+                    ? 'Dadar Junction 3D'
+                    : 'Majestic Blueprint'}
+              </Text>
+              <Text style={styles.quickUtilitySub}>
+                {currentCity?.id === 'delhi'
+                  ? 'Concourse & Gates'
+                  : currentCity?.id === 'mumbai'
+                    ? 'Western ⇄ Central'
+                    : '3D Concourse & Gates'}
+              </Text>
             </View>
             <Text style={styles.quickUtilityArrow}>➔</Text>
           </Pressable>
@@ -485,8 +624,20 @@ export default function NavigateScreen({ contentPadding }) {
           >
             <Text style={styles.quickUtilityEmoji}>🚌</Text>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Bus Routes</Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Feeders & Passes</Text>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
+                {currentCity?.id === 'delhi'
+                  ? 'DMRC Routes'
+                  : currentCity?.id === 'mumbai'
+                    ? 'Local Trains'
+                    : 'BMTC Bus Routes'}
+              </Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
+                {currentCity?.id === 'delhi'
+                  ? 'Lines & Timings'
+                  : currentCity?.id === 'mumbai'
+                    ? 'Fast & Slow'
+                    : 'Feeders & Passes'}
+              </Text>
             </View>
             <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
           </Pressable>
@@ -850,5 +1001,139 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
     color: colors.white,
+  },
+  envAlertCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    padding: 12,
+    marginTop: 10,
+    marginBottom: 4,
+    ...shadow.sm,
+  },
+  envAlertHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  envAlertIconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#f8fafc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  envAlertIcon: {
+    fontSize: 20,
+  },
+  envAlertTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 2,
+  },
+  envAlertHeadline: {
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+    flex: 1,
+  },
+  envAqiBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+  },
+  envAqiBadgeText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: 0.3,
+  },
+  envAlertSubtext: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.body,
+    color: '#475569',
+    lineHeight: 16,
+  },
+  envAlertToggleArrow: {
+    fontSize: 10,
+    color: '#94a3b8',
+    marginLeft: 2,
+  },
+  envBadgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  envBadgePill: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  envBadgePillText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#334155',
+  },
+  envTempPill: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+  },
+  envTempPillText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1d4ed8',
+  },
+  envExpandedBox: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    gap: 6,
+  },
+  envTransitNoticeBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.sm,
+    padding: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accentRamp[600],
+  },
+  envTransitNoticeText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1e293b',
+    lineHeight: 16,
+  },
+  envTipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    paddingLeft: 4,
+  },
+  envTipBullet: {
+    fontSize: 12,
+    color: colors.accentRamp[700],
+    marginTop: -1,
+  },
+  envTipText: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#475569',
+    lineHeight: 15,
   },
 });

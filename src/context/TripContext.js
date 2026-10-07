@@ -159,8 +159,8 @@ export function TripProvider({ children }) {
   // Compute baseline transit route whenever userLocation or destination changes
   const baseRoute = useMemo(() => {
     if (!userLocation || !destination) return null;
-    return planTransitRoute(userLocation, destination, new Date(), { seniorMode });
-  }, [userLocation, destination, seniorMode]);
+    return planTransitRoute(userLocation, destination, new Date(), { seniorMode, cityId });
+  }, [userLocation, destination, seniorMode, cityId]);
 
   // Asynchronously fetch real street road geometry and update route
   useEffect(() => {

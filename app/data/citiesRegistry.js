@@ -108,6 +108,22 @@ export const SUPPORTED_CITIES = {
     ],
     scamAlert: 'Never pay street quotes over ₹50 for under 2.5 km. Demand meter or book via Namma Yatri / Uber Auto.',
     cloakroomHighlight: 'KSR Majestic Railway Platform 1 (24/7 · ₹30/day)',
+    environmentalAlert: {
+      aqi: 42,
+      aqiLabel: 'Good (Garden City)',
+      aqiColor: '#16a34a',
+      temperature: '24°C',
+      weatherIcon: '🍃',
+      weatherCondition: 'Pleasant & Breezy',
+      headline: 'Clean Garden Air · AQI 42',
+      subtext: 'Silk Board & ORR peak bottlenecks · Namma Metro Purple Line saves ~65 mins to ITPL',
+      transitNotice: '🟢 Purple & Green lines running at 4-min peak frequency · Zero road jams',
+      badges: ['🍃 AQI 42 (Clean)', '24°C Pleasant', 'ORR Traffic Advisory'],
+      tips: [
+        'Cubbon Park & Lalbagh are ideal for morning and evening strolls.',
+        'Skip cab gridlock on Outer Ring Road by switching to Purple Line at KR Pura.',
+      ],
+    },
   },
 
   delhi: {
@@ -212,6 +228,22 @@ export const SUPPORTED_CITIES = {
     ],
     scamAlert: 'Paharganj & New Delhi station touts offer "hotel closed due to festival" scams. Ignore touts and take Delhi Metro direct.',
     cloakroomHighlight: 'New Delhi Railway Station (Platform 16 / Ajmeri Gate · 24/7 · ₹30/day)',
+    environmentalAlert: {
+      aqi: 268,
+      aqiLabel: 'Poor / Smog (GRAP-3)',
+      aqiColor: '#dc2626',
+      temperature: '28°C',
+      weatherIcon: '🌫️',
+      weatherCondition: 'Winter Haze & Smog',
+      headline: 'High Smog Alert · AQI 268',
+      subtext: 'Heavy particulate smog across NCR · Wear N95 outdoors · Prefer AC Delhi Metro over open autos',
+      transitNotice: '⚡ DMRC running 40 extra train trips today · Filtered air conditioning inside underground lines',
+      badges: ['🌫️ AQI 268 (Smog)', 'Wear N95 Mask', 'DMRC +40 Extra Trips'],
+      tips: [
+        'Stay inside underground DMRC stations to avoid roadside PM2.5 particulate matter.',
+        'Avoid open-air e-rickshaws on Ring Road & Mathura Road during evening rush hours.',
+      ],
+    },
   },
 
   mumbai: {
@@ -316,6 +348,22 @@ export const SUPPORTED_CITIES = {
     ],
     scamAlert: 'Unlike other cities, Mumbai autos/taxis strictly follow meter by law! Never agree to fixed quotes.',
     cloakroomHighlight: 'CSMT Station Platform 1 (24/7 · ₹30/day with padlock)',
+    environmentalAlert: {
+      aqi: 64,
+      aqiLabel: 'Satisfactory (Coastal)',
+      aqiColor: '#0284c7',
+      temperature: '31°C',
+      weatherIcon: '🌊',
+      weatherCondition: 'Coastal Humid & Breeze',
+      headline: 'High Tide Alert · 4.2m at 14:15',
+      subtext: 'Arabian Sea high tide expected afternoon · Suburban locals running on normal 3-4 min schedule',
+      transitNotice: '🚆 Western & Central locals running smoothly · Caution along Marine Drive tetrapods',
+      badges: ['🌊 High Tide 4.2m', 'AQI 64 (Good)', 'Locals On Time'],
+      tips: [
+        'Avoid low-lying seafront tetrapods during high tide swell at Marine Drive & Bandstand.',
+        'Prefer fast locals during peak hours between Churchgate/CSMT and Dadar.',
+      ],
+    },
   },
 };
 
@@ -334,4 +382,14 @@ export function getCityConfig(cityId = 'bengaluru') {
  */
 export function getAllCities() {
   return Object.values(SUPPORTED_CITIES);
+}
+
+/**
+ * Returns environmental & advisory alert for a given city.
+ * @param {string} cityId
+ * @returns {Object}
+ */
+export function getCityEnvironmentalAlert(cityId = 'bengaluru') {
+  const city = getCityConfig(cityId);
+  return city?.environmentalAlert || SUPPORTED_CITIES.bengaluru.environmentalAlert;
 }
