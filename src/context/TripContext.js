@@ -15,8 +15,11 @@ import {
   getEateriesDbForCity,
 } from '../../app/data/cityPlacesData';
 import { getDistanceBetween, POPULAR_DESTINATIONS } from '../../app/data/transitData';
-import { getCurrentUserLocation, DEFAULT_BENGALURU_LOCATION } from '../../app/services/locationService';
-import { planTransitRoute, enrichRouteWithRealRoads } from '../../app/services/directionsService';
+import {
+  planTransitRoute,
+  planMultimodalRoutes,
+  enrichRouteWithRealRoads,
+} from '../../app/services/directionsService';
 import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
 import {
   fetchGooglePlacesRestaurants,
@@ -162,11 +165,21 @@ export function TripProvider({ children }) {
     setSeniorMode((prev) => !prev);
   }, []);
 
-  // Compute baseline transit route whenever userLocation or destination changes
-  const baseRoute = useMemo(() => {
+  const [selectedRouteMode, setSelectedRouteMode] = useState(null);
+
+  // Compute multimodal options (Metro combo, Direct Auto, Direct Cab, Bus)
+  const multimodalPlan = useMemo(() => {
     if (!userLocation || !destination) return null;
-    return planTransitRoute(userLocation, destination, new Date(), { seniorMode, cityId });
+    return planMultimodalRoutes(userLocation, destination, new Date(), { seniorMode, cityId });
   }, [userLocation, destination, seniorMode, cityId]);
+
+  const activeMode = selectedRouteMode || multimodalPlan?.recommendedMode || 'metro';
+
+  // Compute baseline active route based on selected mode
+  const baseRoute = useMemo(() => {
+    if (!multimodalPlan) return null;
+    return multimodalPlan.routes?.[activeMode] || multimodalPlan.routes?.metro || null;
+  }, [multimodalPlan, activeMode]);
 
   // Asynchronously fetch real street road geometry and update route
   useEffect(() => {
@@ -197,6 +210,7 @@ export function TripProvider({ children }) {
 
   const selectDestination = useCallback((dest) => {
     setDestination(dest);
+    setSelectedRouteMode(null); // Reset mode for new destination so recommendation activates
     setRecentSearches((prev) => {
       const filtered = prev.filter((d) => d.id !== dest.id);
       return [dest, ...filtered].slice(0, 6);
@@ -606,6 +620,9 @@ export function TripProvider({ children }) {
       selectDestination,
       swapOriginDestination,
       activeRoute,
+      multimodalPlan,
+      selectedRouteMode: activeMode,
+      setRouteMode: setSelectedRouteMode,
       activeStepIndex,
       setActiveStepIndex,
       seniorMode,
@@ -687,6 +704,8 @@ export function TripProvider({ children }) {
       selectDestination,
       swapOriginDestination,
       activeRoute,
+      multimodalPlan,
+      activeMode,
       activeStepIndex,
       setActiveStepIndex,
       seniorMode,

@@ -7,7 +7,14 @@ import {
   getMajesticInterchangeGuide,
   getMetroPlatformAndGateInfo,
 } from '../../app/data/transitData';
-import { planTransitRoute, buildConnectingLeg } from '../../app/services/directionsService';
+import {
+  planTransitRoute,
+  planMultimodalRoutes,
+  planDirectAutoRoute,
+  planDirectCabRoute,
+  planDirectBusRoute,
+  buildConnectingLeg,
+} from '../../app/services/directionsService';
 import { formatDistance, estimateWalkMinutes } from '../../app/services/locationService';
 
 describe('transitData & Routing Service', () => {
@@ -280,5 +287,67 @@ describe('transitData & Routing Service', () => {
     if (firstMile && firstMile.distanceMeters > 250) {
       expect(firstMile.selectedMode).toBe('auto');
     }
+  });
+
+  describe('Multi-Modal Route Alternatives (Auto, Metro, Cab, Bus)', () => {
+    it('generates all 4 route options and recommends Direct Auto for short distance (< 4.5km)', () => {
+      // MG Road to Cubbon Park (~1.8 km)
+      const origin = { latitude: 12.9754, longitude: 77.6067, name: 'MG Road Metro' };
+      const destination = { latitude: 12.9779, longitude: 77.5952, name: 'Cubbon Park' };
+
+      const plan = planMultimodalRoutes(origin, destination, new Date(), { cityId: 'bengaluru' });
+      expect(plan).toBeDefined();
+      expect(plan.isShortDistance).toBe(true);
+      expect(plan.recommendedMode).toBe('auto');
+      expect(plan.routes.auto).toBeDefined();
+      expect(plan.routes.metro).toBeDefined();
+      expect(plan.routes.cab).toBeDefined();
+      expect(plan.routes.bus).toBeDefined();
+
+      expect(plan.options.length).toBe(4);
+      const autoOpt = plan.options.find((o) => o.id === 'auto');
+      expect(autoOpt).toBeDefined();
+      expect(autoOpt.tag).toContain('Fastest');
+
+      // Direct auto should take fewer minutes than navigating metro entry/exit for 1.8km
+      expect(plan.routes.auto.totalDurationMinutes).toBeLessThan(plan.routes.metro.totalDurationMinutes);
+    });
+
+    it('recommends Metro Combo for long distance trips (> 5km)', () => {
+      // Whitefield to Majestic (~18 km)
+      const origin = { latitude: 12.9698, longitude: 77.7499, name: 'Whitefield' };
+      const destination = { latitude: 12.9784, longitude: 77.5726, name: 'Majestic' };
+
+      const plan = planMultimodalRoutes(origin, destination, new Date(), { cityId: 'bengaluru' });
+      expect(plan).toBeDefined();
+      expect(plan.isShortDistance).toBe(false);
+      expect(plan.recommendedMode).toBe('metro');
+
+      const metroOpt = plan.options.find((o) => o.id === 'metro');
+      expect(metroOpt.tag).toContain('Traffic-Free');
+
+      // Metro should be significantly cheaper than direct cab
+      expect(plan.routes.metro.totalCost).toBeLessThan(plan.routes.cab.totalCost);
+    });
+
+    it('generates direct auto, cab, and bus routes with city-specific fares', () => {
+      const origin = { latitude: 28.6328, longitude: 77.2195, name: 'Rajiv Chowk' };
+      const destination = { latitude: 28.6129, longitude: 77.2295, name: 'India Gate' };
+      const distMeters = 2800;
+
+      const auto = planDirectAutoRoute(origin, destination, distMeters, 'delhi');
+      expect(auto.mode).toBe('auto');
+      expect(auto.totalCost).toBeGreaterThanOrEqual(30);
+      expect(auto.steps.length).toBe(2);
+
+      const cab = planDirectCabRoute(origin, destination, distMeters, 'delhi');
+      expect(cab.mode).toBe('cab');
+      expect(cab.totalCost).toBeGreaterThan(auto.totalCost);
+
+      const bus = planDirectBusRoute(origin, destination, distMeters, 'delhi');
+      expect(bus.mode).toBe('bus');
+      expect(bus.title).toContain('DTC Bus');
+      expect(bus.totalCost).toBeLessThanOrEqual(auto.totalCost);
+    });
   });
 });

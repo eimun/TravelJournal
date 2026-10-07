@@ -815,7 +815,401 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 }
 
 /**
- * Asynchronously enriches walking and auto steps with actual OSRM road geometry
+ * Direct Auto Rickshaw route (Door-to-door)
+ */
+export function planDirectAutoRoute(origin, destination, distanceMeters, cityId = 'bengaluru', opts = {}) {
+  const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
+  const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
+  const destName = destination.name || destination.title || 'Destination';
+  const distanceKm = Math.max(0.5, distanceMeters / 1000);
+
+  let legitMeterFare = 30;
+  if (cityId === 'delhi') {
+    legitMeterFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 1.5) * 11));
+  } else if (cityId === 'mumbai') {
+    legitMeterFare = Math.max(23, Math.round(23 + Math.max(0, distanceKm - 1.5) * 15.33));
+  } else {
+    // Bengaluru
+    legitMeterFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2.0) * 15));
+  }
+  const streetQuote = Math.round(legitMeterFare * 1.7);
+  const rideMin = Math.max(4, Math.round(distanceKm * 3.2));
+  const totalMin = rideMin + 3;
+
+  const steps = [
+    {
+      id: 'auto_hail',
+      type: 'walk',
+      title: 'Hail Auto / Namma Yatri',
+      meta: 'Pickup at doorstep · 2-3 min',
+      cost: 0,
+      durationMinutes: 3,
+      description: 'Hop into a street meter auto or book via Namma Yatri / Uber Auto.',
+      fromCoord: originCoord,
+      toCoord: originCoord,
+      coordinates: [originCoord, originCoord],
+    },
+    {
+      id: 'auto_ride',
+      type: 'auto',
+      title: `Auto to ${destName}`,
+      meta: `${formatDistance(distanceMeters)} · ~${rideMin} min · Meter ₹${legitMeterFare}`,
+      cost: legitMeterFare,
+      durationMinutes: rideMin,
+      description: 'Direct street ride via main roads without metro stairs or line transfers. Insist on meter or use app.',
+      fromCoord: originCoord,
+      toCoord: destCoord,
+      coordinates: [originCoord, destCoord],
+    },
+  ];
+
+  const milestones = [
+    {
+      id: 'm_auto_start',
+      coordinate: originCoord,
+      label: 'Start',
+      title: origin.name || 'Your Location',
+      type: 'origin',
+      stepIndex: 0,
+    },
+    {
+      id: 'm_auto_dest',
+      coordinate: destCoord,
+      label: 'End',
+      title: destName,
+      type: 'destination',
+      stepIndex: 1,
+    },
+  ];
+
+  return {
+    id: 'route_direct_auto',
+    mode: 'auto',
+    type: 'direct_auto',
+    title: `Direct Auto to ${destName}`,
+    totalDurationMinutes: totalMin,
+    totalCost: legitMeterFare,
+    totalDistanceText: formatDistance(distanceMeters),
+    routeCategory: 'Direct Auto (Door-to-Door)',
+    coordinates: [originCoord, destCoord],
+    milestones,
+    steps,
+    cityId,
+    autoAdvisory: {
+      fare: legitMeterFare,
+      streetQuote,
+      cabFare: Math.max(89, Math.round(80 + distanceKm * 22)),
+      tip: `Meter rate: ₹${legitMeterFare}. For short distances under 5 km, direct auto is much faster than multi-leg metro.`,
+      scamAlert: `If street auto asks for ₹${streetQuote}+, insist on meter or book Namma Yatri.`,
+    },
+  };
+}
+
+/**
+ * Direct AC Cab route (Uber / Ola / BluSmart)
+ */
+export function planDirectCabRoute(origin, destination, distanceMeters, cityId = 'bengaluru', opts = {}) {
+  const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
+  const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
+  const destName = destination.name || destination.title || 'Destination';
+  const distanceKm = Math.max(0.5, distanceMeters / 1000);
+
+  const cabFare = Math.max(89, Math.round(75 + distanceKm * 22));
+  const driveMin = Math.max(5, Math.round(distanceKm * 3.6));
+  const totalMin = driveMin + 5;
+
+  const steps = [
+    {
+      id: 'cab_pickup',
+      type: 'walk',
+      title: 'Book AC Cab (Uber / BluSmart)',
+      meta: 'Pickup at doorstep · 4-5 min wait',
+      cost: 0,
+      durationMinutes: 5,
+      description: 'Driver arrives directly at your exact GPS pickup pin.',
+      fromCoord: originCoord,
+      toCoord: originCoord,
+      coordinates: [originCoord, originCoord],
+    },
+    {
+      id: 'cab_drive',
+      type: 'cab',
+      title: `AC Cab to ${destName}`,
+      meta: `${formatDistance(distanceMeters)} · ~${driveMin} min · ~₹${cabFare}`,
+      cost: cabFare,
+      durationMinutes: driveMin,
+      description: 'Air-conditioned direct ride via main arterial roads & flyovers. Perfect for hot weather, rain or luggage.',
+      fromCoord: originCoord,
+      toCoord: destCoord,
+      coordinates: [originCoord, destCoord],
+    },
+  ];
+
+  const milestones = [
+    {
+      id: 'm_cab_start',
+      coordinate: originCoord,
+      label: 'Start',
+      title: origin.name || 'Your Location',
+      type: 'origin',
+      stepIndex: 0,
+    },
+    {
+      id: 'm_cab_dest',
+      coordinate: destCoord,
+      label: 'End',
+      title: destName,
+      type: 'destination',
+      stepIndex: 1,
+    },
+  ];
+
+  return {
+    id: 'route_direct_cab',
+    mode: 'cab',
+    type: 'direct_cab',
+    title: `Direct Cab to ${destName}`,
+    totalDurationMinutes: totalMin,
+    totalCost: cabFare,
+    totalDistanceText: formatDistance(distanceMeters),
+    routeCategory: 'Direct Cab (AC Comfort)',
+    coordinates: [originCoord, destCoord],
+    milestones,
+    steps,
+    cityId,
+    autoAdvisory: {
+      fare: cabFare,
+      streetQuote: cabFare,
+      cabFare,
+      tip: 'Comfortable AC ride door-to-door. Heavy luggage & bad weather friendly.',
+      scamAlert: 'Fixed app upfront pricing via Uber / BluSmart / Ola.',
+    },
+  };
+}
+
+/**
+ * Direct City Bus route (BMTC / DTC / BEST)
+ */
+export function planDirectBusRoute(origin, destination, distanceMeters, cityId = 'bengaluru', opts = {}) {
+  const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
+  const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
+  const destName = destination.name || destination.title || 'Destination';
+  const distanceKm = Math.max(0.5, distanceMeters / 1000);
+
+  let agencyName = 'BMTC Bus';
+  let busFare = 15;
+  if (cityId === 'delhi') {
+    agencyName = 'DTC Bus';
+    busFare = Math.min(25, Math.max(10, Math.round(10 + distanceKm * 1.5)));
+  } else if (cityId === 'mumbai') {
+    agencyName = 'BEST Bus';
+    busFare = Math.min(20, Math.max(6, Math.round(6 + distanceKm * 1.2)));
+  } else {
+    // Bengaluru
+    agencyName = 'BMTC Bus';
+    busFare = Math.min(30, Math.max(15, Math.round(15 + distanceKm * 1.8)));
+  }
+
+  const busRideMin = Math.max(6, Math.round(distanceKm * 4.4));
+  const totalMin = busRideMin + 8;
+
+  const steps = [
+    {
+      id: 'bus_walk_stop',
+      type: 'walk',
+      title: `Walk to ${agencyName} Stop`,
+      meta: '150-200m · ~4 min',
+      cost: 0,
+      durationMinutes: 4,
+      description: `Walk to the nearest ${agencyName} bus stop.`,
+      fromCoord: originCoord,
+      toCoord: originCoord,
+      coordinates: [originCoord, originCoord],
+    },
+    {
+      id: 'bus_ride',
+      type: 'bus',
+      title: `${agencyName} to ${destName}`,
+      meta: `${formatDistance(distanceMeters)} · ~${busRideMin} min · ₹${busFare}`,
+      cost: busFare,
+      durationMinutes: busRideMin,
+      description: 'Hop on city bus line. Buy ticket from conductor or tap digital card.',
+      fromCoord: originCoord,
+      toCoord: destCoord,
+      coordinates: [originCoord, destCoord],
+    },
+    {
+      id: 'bus_walk_dest',
+      type: 'walk',
+      title: `Walk to ${destName}`,
+      meta: '100m · ~4 min',
+      cost: 0,
+      durationMinutes: 4,
+      description: 'Alight at the bus stop and walk a short distance to destination.',
+      fromCoord: destCoord,
+      toCoord: destCoord,
+      coordinates: [destCoord, destCoord],
+    },
+  ];
+
+  const milestones = [
+    {
+      id: 'm_bus_start',
+      coordinate: originCoord,
+      label: 'Start',
+      title: origin.name || 'Your Location',
+      type: 'origin',
+      stepIndex: 0,
+    },
+    {
+      id: 'm_bus_board',
+      coordinate: originCoord,
+      label: 'Bus',
+      title: `${agencyName} Stop`,
+      type: 'station',
+      stepIndex: 1,
+    },
+    {
+      id: 'm_bus_dest',
+      coordinate: destCoord,
+      label: 'End',
+      title: destName,
+      type: 'destination',
+      stepIndex: 2,
+    },
+  ];
+
+  return {
+    id: 'route_direct_bus',
+    mode: 'bus',
+    type: 'direct_bus',
+    title: `${agencyName} to ${destName}`,
+    totalDurationMinutes: totalMin,
+    totalCost: busFare,
+    totalDistanceText: formatDistance(distanceMeters),
+    routeCategory: `City Bus (${agencyName})`,
+    coordinates: [originCoord, destCoord],
+    milestones,
+    steps,
+    cityId,
+    autoAdvisory: {
+      fare: busFare,
+      streetQuote: busFare,
+      cabFare: Math.max(89, Math.round(80 + distanceKm * 22)),
+      tip: `Cheapest way to travel across ${cityId}. Pass holders travel free.`,
+      scamAlert: `Official ticket is strictly ₹${busFare}. Collect physical ticket from conductor.`,
+    },
+  };
+}
+
+/**
+ * Plans complete multi-modal route alternatives:
+ * 1. Metro Combo (Auto + Metro + Auto)
+ * 2. Direct Auto (Door-to-door, fastest for < 4.5km)
+ * 3. Direct Cab (AC comfort, luggage)
+ * 4. City Bus (Most economical)
+ */
+export function planMultimodalRoutes(origin, destination, departureTime = new Date(), opts = {}) {
+  if (!origin || !destination) return null;
+
+  const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
+  const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
+  const totalDirectDistance = getDistanceBetween(
+    originCoord.latitude,
+    originCoord.longitude,
+    destCoord.latitude,
+    destCoord.longitude,
+  );
+  const distanceKm = Math.max(0.5, totalDirectDistance / 1000);
+  const cityId = opts.cityId || detectCityFromCoord(origin.latitude, origin.longitude) || detectCityFromCoord(destination.latitude, destination.longitude) || 'bengaluru';
+
+  const metroRoute = planTransitRoute(origin, destination, departureTime, opts);
+  if (metroRoute) {
+    metroRoute.mode = 'metro';
+  }
+
+  const autoRoute = planDirectAutoRoute(origin, destination, totalDirectDistance, cityId, opts);
+  const cabRoute = planDirectCabRoute(origin, destination, totalDirectDistance, cityId, opts);
+  const busRoute = planDirectBusRoute(origin, destination, totalDirectDistance, cityId, opts);
+
+  // Short trip (< 4.5km): Direct Auto is fastest
+  const isShortDistance = totalDirectDistance < 4500;
+  const recommendedMode = isShortDistance ? 'auto' : 'metro';
+  const busName = cityId === 'delhi' ? 'DTC Bus' : cityId === 'mumbai' ? 'BEST Bus' : 'BMTC Bus';
+
+  const options = [
+    {
+      id: 'metro',
+      mode: 'metro',
+      title: 'Metro Combo',
+      icon: '🚇',
+      tag: isShortDistance ? 'Rail Combo' : '🛡️ Traffic-Free',
+      durationMinutes: metroRoute.totalDurationMinutes,
+      cost: metroRoute.totalCost,
+      isFastest: metroRoute.totalDurationMinutes < autoRoute.totalDurationMinutes,
+      isCheapest: false,
+      route: metroRoute,
+    },
+    {
+      id: 'auto',
+      mode: 'auto',
+      title: 'Direct Auto',
+      icon: '🛺',
+      tag: isShortDistance ? '⚡ Fastest' : 'Door-to-Door',
+      durationMinutes: autoRoute.totalDurationMinutes,
+      cost: autoRoute.totalCost,
+      isFastest: autoRoute.totalDurationMinutes <= metroRoute.totalDurationMinutes,
+      isCheapest: false,
+      route: autoRoute,
+    },
+    {
+      id: 'cab',
+      mode: 'cab',
+      title: 'Direct Cab',
+      icon: '🚕',
+      tag: '❄️ AC Comfort',
+      durationMinutes: cabRoute.totalDurationMinutes,
+      cost: cabRoute.totalCost,
+      isFastest: false,
+      isCheapest: false,
+      route: cabRoute,
+    },
+    {
+      id: 'bus',
+      mode: 'bus',
+      title: busName,
+      icon: '🚌',
+      tag: '💰 Best Fare',
+      durationMinutes: busRoute.totalDurationMinutes,
+      cost: busRoute.totalCost,
+      isFastest: false,
+      isCheapest: true,
+      route: busRoute,
+    },
+  ];
+
+  return {
+    origin,
+    destination,
+    distanceMeters: totalDirectDistance,
+    distanceKm: parseFloat(distanceKm.toFixed(1)),
+    isShortDistance,
+    recommendedMode,
+    recommendationReason: isShortDistance
+      ? `Short trip (${formatDistance(totalDirectDistance)}): Direct auto takes ~${autoRoute.totalDurationMinutes} min, avoiding metro stairs and transfer delays.`
+      : `Long trip (${formatDistance(totalDirectDistance)}): Metro rail avoids road traffic jams and saves money vs cab.`,
+    routes: {
+      metro: metroRoute,
+      auto: autoRoute,
+      cab: cabRoute,
+      bus: busRoute,
+    },
+    options,
+  };
+}
+
+/**
+ * Asynchronously enriches walking and driving steps with actual OSRM road geometry
  * so that polyline wraps real street curves instead of straight lines.
  */
 export async function enrichRouteWithRealRoads(baseRoute) {
@@ -826,9 +1220,17 @@ export async function enrichRouteWithRealRoads(baseRoute) {
 
   for (let i = 0; i < enrichedSteps.length; i++) {
     const step = enrichedSteps[i];
-    const isConnect = step.type === 'connecting_leg' || step.type === 'walk' || step.type === 'auto';
+    const isConnect =
+      step.type === 'connecting_leg' ||
+      step.type === 'walk' ||
+      step.type === 'auto' ||
+      step.type === 'cab' ||
+      step.type === 'bus' ||
+      step.type === 'direct_auto' ||
+      step.type === 'direct_cab' ||
+      step.type === 'direct_bus';
     if (isConnect && step.fromCoord && step.toCoord) {
-      const mode = step.selectedMode === 'walk' ? 'walking' : 'driving';
+      const mode = (step.selectedMode === 'walk' || step.type === 'walk') ? 'walking' : 'driving';
       const roadCoords = await fetchRoadPolyline(step.fromCoord, step.toCoord, mode);
       if (roadCoords && roadCoords.length > 2) {
         enrichedSteps[i] = {
