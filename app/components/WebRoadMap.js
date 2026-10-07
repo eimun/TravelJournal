@@ -173,7 +173,9 @@ export default function WebRoadMap({
       if (!step.coordinates || step.coordinates.length < 2) return;
       const isSelected = activeStepIdx === step.index;
       const isMetro = step.type === 'metro';
-      const isAuto = step.type === 'auto' || step.selectedMode === 'auto';
+      const isAuto = step.type === 'auto' || step.selectedMode === 'auto' || step.type === 'direct_auto';
+      const isCab = step.type === 'cab' || step.selectedMode === 'cab' || step.type === 'direct_cab';
+      const isBus = step.type === 'bus' || step.selectedMode === 'bus' || step.type === 'direct_bus';
       const isBike = step.selectedMode === 'bike';
       
       let strokeColor = '#d97706'; // default connecting walk
@@ -188,6 +190,10 @@ export default function WebRoadMap({
         else strokeColor = '#7c3aed';
       } else if (isAuto) {
         strokeColor = '#0284c7';
+      } else if (isCab) {
+        strokeColor = '#0f172a';
+      } else if (isBus) {
+        strokeColor = '#16a34a';
       } else if (isBike) {
         strokeColor = '#d97706';
       }
@@ -208,7 +214,7 @@ export default function WebRoadMap({
         color: strokeColor,
         weight: isMetro ? 5 : 4,
         opacity: 0.95,
-        dashArray: (!isMetro && !isAuto && !isBike) ? '6, 6' : undefined,
+        dashArray: (!isMetro && !isAuto && !isCab && !isBus && !isBike) ? '6, 6' : undefined,
         lineCap: 'round',
         lineJoin: 'round'
       }).addTo(map);

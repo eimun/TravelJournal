@@ -14,6 +14,7 @@ import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import SearchBar from '../components/SearchBar';
 import RouteDetailSheet from '../components/RouteDetailSheet';
+import RouteModeSelector from '../components/RouteModeSelector';
 import MilestoneRibbon from '../components/MilestoneRibbon';
 import WebRoadMap from '../components/WebRoadMap';
 import StationBlueprintModal from '../components/StationBlueprintModal';
@@ -121,10 +122,12 @@ export default function NavigateScreen({ contentPadding }) {
           if (!step.coordinates || step.coordinates.length < 2) return null;
           const isSelected = activeStepIndex === idx;
           const isMetro = step.type === 'metro';
-          const isAuto = step.type === 'auto' || step.selectedMode === 'auto';
+          const isAuto = step.type === 'auto' || step.selectedMode === 'auto' || step.type === 'direct_auto';
+          const isCab = step.type === 'cab' || step.selectedMode === 'cab' || step.type === 'direct_cab';
+          const isBus = step.type === 'bus' || step.selectedMode === 'bus' || step.type === 'direct_bus';
           const baseColor = isMetro
             ? step.line === 'green' ? GREEN_LINE : PURPLE_LINE
-            : isAuto ? '#0284c7' : '#d97706';
+            : isAuto ? '#0284c7' : isCab ? '#0f172a' : isBus ? '#16a34a' : '#d97706';
 
           return (
             <React.Fragment key={step.id || idx}>
@@ -132,7 +135,7 @@ export default function NavigateScreen({ contentPadding }) {
                 coordinates={step.coordinates}
                 strokeColor={baseColor}
                 strokeWidth={isMetro ? 4.5 : 3.5}
-                lineDashPattern={!isMetro ? [5, 4] : undefined}
+                lineDashPattern={(!isMetro && !isAuto && !isCab && !isBus) ? [5, 4] : undefined}
                 zIndex={isSelected ? 5 : 2}
               />
 
@@ -678,6 +681,7 @@ export default function NavigateScreen({ contentPadding }) {
             <SearchBar onSelectDestination={selectDestination} />
           </View>
           {renderQuickUtilities()}
+          <RouteModeSelector />
           {renderMapBlock(380)}
           <MilestoneRibbon
             milestones={activeRoute?.milestones}
@@ -748,6 +752,9 @@ export default function NavigateScreen({ contentPadding }) {
 
         {/* Transit Quick Utilities Row */}
         {renderQuickUtilities()}
+
+        {/* Multimodal Alternative Mode Selector */}
+        <RouteModeSelector />
 
         {renderMapBlock()}
 

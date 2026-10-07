@@ -197,8 +197,12 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
             <View style={styles.transitCol}>
               <View style={styles.colHeaderRow}>
-                <Text style={styles.colEmoji}>🚇</Text>
-                <Text style={styles.colTitle}>Metro + Auto</Text>
+                <Text style={styles.colEmoji}>
+                  {route.mode === 'auto' ? '🛺' : route.mode === 'cab' ? '🚕' : route.mode === 'bus' ? '🚌' : '🚇'}
+                </Text>
+                <Text style={styles.colTitle}>
+                  {route.mode === 'auto' ? 'Direct Auto' : route.mode === 'cab' ? 'Direct Cab' : route.mode === 'bus' ? 'City Bus' : 'Metro + Auto'}
+                </Text>
               </View>
               <Text style={styles.colSub}>Step-by-step route</Text>
               <Text style={styles.transitFareText}>₹{dynamicTotalCost}</Text>
@@ -246,6 +250,8 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
           const isMetro = step.type === 'metro';
           const isTransfer = step.type === 'transfer';
           const isAuto = step.type === 'auto' || step.selectedMode === 'auto';
+          const isCab = step.type === 'cab' || step.selectedMode === 'cab';
+          const isBus = step.type === 'bus' || step.selectedMode === 'bus';
           const isSelected = activeStepIndex === idx;
           const stepLineColor = getLineColor(step.line);
 
@@ -266,8 +272,10 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                     styles.stepBadgeCircle,
                     isMetro && { backgroundColor: stepLineColor },
                     isTransfer && { backgroundColor: colors.accentRamp[700] },
-                    isAuto && { backgroundColor: colors.neutral[800] },
-                    !isMetro && !isTransfer && !isAuto && { backgroundColor: colors.neutral[400] },
+                    isAuto && { backgroundColor: '#f59e0b' },
+                    isCab && { backgroundColor: '#0f172a' },
+                    isBus && { backgroundColor: '#16a34a' },
+                    !isMetro && !isTransfer && !isAuto && !isCab && !isBus && { backgroundColor: colors.neutral[400] },
                     isSelected && styles.stepBadgeCircleActive,
                   ]}
                 >
