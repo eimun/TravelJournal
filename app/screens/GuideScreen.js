@@ -84,7 +84,7 @@ export default function GuideScreen({ contentPadding }) {
           style={[styles.subTabBtn, guideSubTab === 'food' && styles.subTabBtnActive]}
         >
           <Text style={[styles.subTabBtnText, guideSubTab === 'food' && styles.subTabBtnTextActive]}>
-            Food & Darshinis
+            {currentCity?.id === 'bengaluru' ? 'Food & Darshinis' : 'Food & Legends'}
           </Text>
         </Pressable>
 

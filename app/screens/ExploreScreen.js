@@ -384,9 +384,13 @@ export default function ExploreScreen({ contentPadding }) {
       {/* ── Insider Tip Banner ── */}
       <View style={styles.tipBanner}>
         <View style={styles.tipDecorCircle} />
-        <Text style={styles.tipBannerLabel}>💡 LOCAL PRICE GUIDE</Text>
+        <Text style={styles.tipBannerLabel}>💡 LOCAL PRICE GUIDE · {currentCity?.shortName || 'BLR'}</Text>
         <Text style={styles.tipBannerText}>
-          A darshini breakfast is ₹30–₹90. Filter coffee is ₹15–₹40. Near tourist spots, walk 2 streets inland — same dish, local price. Most of the best ones are cash only and shut before noon.
+          {currentCity?.id === 'delhi'
+            ? 'Iconic chole bhature or parathas cost ₹60–₹90. Street dahi bhalle ₹50–₹70. In Chandni Chowk & Paharganj, head into inner galis for authentic 100-year-old shops at local rates.'
+            : currentCity?.id === 'mumbai'
+            ? 'A crispy vada pav is ₹20–₹35. Cutting chai is ₹12–₹20, and buttery pav bhaji ₹90–₹150. Near CSMT or Marine Drive, skip tourist traps and pick bustling commuter stalls with hot frying pans.'
+            : 'A darshini breakfast is ₹30–₹90. Filter coffee is ₹15–₹40. Near tourist spots, walk 2 streets inland — same dish, local price. Most of the best ones are cash only and shut before noon.'}
         </Text>
       </View>
 
@@ -397,7 +401,7 @@ export default function ExploreScreen({ contentPadding }) {
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <Text style={styles.osmTitle}>Live Foursquare & Transit Radar</Text>
+            <Text style={styles.osmTitle}>Live Places Radar · {currentCity?.name || 'City'}</Text>
             <View style={styles.fsqLivePillBadge}>
               <View style={styles.osmLivePulseDot} />
               <Text style={styles.fsqLivePillBadgeText}>
@@ -407,8 +411,8 @@ export default function ExploreScreen({ contentPadding }) {
           </View>
           <Text style={styles.osmSubtitle}>
             {fsqCount > 0
-              ? `${fsqCount} live Bengaluru venues loaded via Foursquare Places API. Verified open timings & metro links.`
-              : 'Connecting to Foursquare Places API for real-time live restaurants & cafes.'}
+              ? `${fsqCount} live ${currentCity?.name || 'Bengaluru'} venues loaded via Foursquare Places API. Verified open timings & transit links.`
+              : `Connecting to Foursquare & OpenStreetMap Places API for real-time live restaurants & cafes in ${currentCity?.name || 'Bengaluru'}.`}
           </Text>
         </View>
         <Pressable

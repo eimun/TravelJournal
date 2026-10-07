@@ -24,6 +24,7 @@ import {
   API_KEYS,
 } from '../../app/services/placesApiService';
 import { SUPPORTED_CITIES, getCityConfig } from '../../app/data/citiesRegistry';
+import { CITY_BOUNDS } from '../../app/services/searchService';
 
 const TripContext = createContext(null);
 
@@ -54,6 +55,11 @@ export function TripProvider({ children }) {
     if (dishes && dishes.length > 0) {
       setDish(dishes[0].id);
     }
+    // Clear restaurant state & filters when changing city
+    setSelectedRestaurantId(null);
+    setCuisineFilter('all');
+    setDietFilter('all');
+    setSourceFilter('all');
   }, []);
 
   const openCitySwitcher = useCallback(() => setIsCitySwitcherOpen(true), []);
@@ -265,9 +271,11 @@ export function TripProvider({ children }) {
   }, []);
 
   const fetchNearbyLive = useCallback(
-    async (customLat, customLon, areaName, preferredProvider = 'auto') => {
-      const lat = customLat || userLocation?.latitude || 12.9716;
-      const lon = customLon || userLocation?.longitude || 77.5946;
+    async (customLat, customLon, areaName, preferredProvider = 'auto', targetCityId) => {
+      const activeCity = targetCityId || cityId;
+      const cfg = getCityConfig(activeCity);
+      const lat = customLat || userLocation?.latitude || cfg.center.latitude;
+      const lon = customLon || userLocation?.longitude || cfg.center.longitude;
 
       setIsFetchingOsm(true);
       try {
@@ -315,15 +323,19 @@ export function TripProvider({ children }) {
         }
 
         if (results && results.length > 0) {
+          const tagged = results.map((r) => ({
+            ...r,
+            cityId: activeCity,
+          }));
           setLiveOsmRestaurants((prev) => {
+            const others = prev.filter((r) => r.cityId && r.cityId !== activeCity);
             const map = new Map();
-            prev.forEach((r) => map.set(r.id, r));
-            results.forEach((r) => map.set(r.id, r));
-            return Array.from(map.values());
+            tagged.forEach((r) => map.set(r.id, r));
+            return [...others, ...Array.from(map.values())];
           });
           const locationLabel = areaName ? ` near ${areaName}` : '';
           fireToast(`🌐 Discovered ${results.length} live spots via ${sourceUsed}${locationLabel}!`);
-          return results;
+          return tagged;
         } else {
           fireToast('No extra eateries found in immediate radius; showing offline spots.');
           return [];
@@ -336,24 +348,25 @@ export function TripProvider({ children }) {
         setIsFetchingOsm(false);
       }
     },
-    [userLocation, apiKeys, fireToast],
+    [userLocation, apiKeys, fireToast, cityId, cuisineFilter],
   );
 
   const fetchNearbyOsm = fetchNearbyLive;
 
-  // Automatically fetch live Foursquare / OSM restaurants on startup
-  const autoFetchedLiveRef = useRef(false);
+  // Automatically fetch live Foursquare / OSM restaurants on startup or city switch
+  const lastFetchedCityRef = useRef(null);
   useEffect(() => {
-    if (userLocation && !autoFetchedLiveRef.current) {
-      autoFetchedLiveRef.current = true;
+    if (userLocation && lastFetchedCityRef.current !== cityId) {
+      lastFetchedCityRef.current = cityId;
       fetchNearbyLive(
         userLocation.latitude,
         userLocation.longitude,
-        userLocation.name || 'Central Bengaluru',
+        userLocation.name || `${currentCity.name} Center`,
         'auto',
+        cityId,
       );
     }
-  }, [userLocation, fetchNearbyLive]);
+  }, [cityId, userLocation, fetchNearbyLive, currentCity]);
 
   const togglePlaceInDay = useCallback(
     (placeId) => {
@@ -441,9 +454,31 @@ export function TripProvider({ children }) {
     if (!liveOsmRestaurants || liveOsmRestaurants.length === 0) {
       return baseRestaurants;
     }
+    const bounds = CITY_BOUNDS[cityId];
+    const cityLive = liveOsmRestaurants.filter((r) => {
+      // Strictly isolate by cityId tag
+      if (r.cityId) {
+        return r.cityId === cityId;
+      }
+      // Or strictly isolate by geographic coordinates bounding box
+      if (bounds) {
+        return (
+          r.latitude >= bounds.minLat &&
+          r.latitude <= bounds.maxLat &&
+          r.longitude >= bounds.minLon &&
+          r.longitude <= bounds.maxLon
+        );
+      }
+      return false;
+    });
+
+    if (cityLive.length === 0) {
+      return baseRestaurants;
+    }
+
     const existingIds = new Set(baseRestaurants.map((r) => r.id));
     const existingNames = new Set(baseRestaurants.map((r) => r.name.toLowerCase().trim()));
-    const uniqueLive = liveOsmRestaurants.filter(
+    const uniqueLive = cityLive.filter(
       (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
     );
     return [...uniqueLive, ...baseRestaurants];
@@ -505,9 +540,14 @@ export function TripProvider({ children }) {
       list = list.filter((r) => !r.isLive && r.source !== 'foursquare');
     }
 
-    // cuisine filter
+    // cuisine filter (supporting dessert/desserts aliases)
     if (cuisineFilter !== 'all') {
-      list = list.filter((r) => r.cuisine === cuisineFilter);
+      list = list.filter((r) => {
+        if (r.cuisine === cuisineFilter) return true;
+        if (cuisineFilter === 'desserts' && r.cuisine === 'dessert') return true;
+        if (cuisineFilter === 'dessert' && r.cuisine === 'desserts') return true;
+        return false;
+      });
     }
 
     // diet filter
