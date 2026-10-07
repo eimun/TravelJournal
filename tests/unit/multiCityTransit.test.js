@@ -144,4 +144,49 @@ describe('Multi-City Metro & Suburban Transit Systems', () => {
       expect(getLineDisplayName('mumbai_western')).toContain('Western Line');
     });
   });
+
+  describe('Majestic Interchange City Isolation', () => {
+    test('strictly excludes Majestic references from Delhi interchange routes', () => {
+      // Hauz Khas to Connaught Place via Yellow & Blue interchange
+      const origin = { latitude: 28.5432, longitude: 77.2065, name: 'IIT Delhi' };
+      const destination = { latitude: 28.6289, longitude: 77.2065, name: 'Barakhamba Road' };
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'delhi' });
+
+      expect(route).toBeDefined();
+      expect(route.title.toLowerCase()).not.toContain('majestic');
+      route.steps.forEach((step) => {
+        expect(step.title.toLowerCase()).not.toContain('majestic');
+        if (step.description) {
+          expect(step.description.toLowerCase()).not.toContain('majestic');
+        }
+      });
+    });
+
+    test('strictly excludes Majestic references from Mumbai interchange routes', () => {
+      const origin = { latitude: 18.9400, longitude: 72.8353, name: 'CSMT Station' };
+      const destination = { latitude: 19.0544, longitude: 72.8402, name: 'Bandra Bandstand' };
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'mumbai' });
+
+      expect(route).toBeDefined();
+      expect(route.title.toLowerCase()).not.toContain('majestic');
+      route.steps.forEach((step) => {
+        expect(step.title.toLowerCase()).not.toContain('majestic');
+        if (step.description) {
+          expect(step.description.toLowerCase()).not.toContain('majestic');
+        }
+      });
+    });
+
+    test('preserves Majestic interchange for Bengaluru multi-line trips', () => {
+      const origin = { latitude: 12.9784, longitude: 77.6408, name: 'Indiranagar' };
+      const destination = { latitude: 12.9352, longitude: 77.5828, name: 'Jayanagar' };
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'bengaluru' });
+
+      expect(route).toBeDefined();
+      expect(route.isSameLine).toBe(false);
+      expect(route.title.toLowerCase()).toContain('majestic');
+      const transferStep = route.steps.find((s) => s.type === 'transfer');
+      expect(transferStep.title.toLowerCase()).toContain('majestic');
+    });
+  });
 });

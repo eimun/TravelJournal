@@ -19,6 +19,7 @@ import WebRoadMap from '../components/WebRoadMap';
 import StationBlueprintModal from '../components/StationBlueprintModal';
 import BmtcBusScheduleModal from '../components/BmtcBusScheduleModal';
 import CloakroomModal from '../components/CloakroomModal';
+import SafetyPingModal from '../components/SafetyPingModal';
 
 let MapView, Marker, Polyline;
 try {
@@ -45,6 +46,7 @@ export default function NavigateScreen({ contentPadding }) {
     refreshUserLocation,
     currentCity,
     openCitySwitcher,
+    openFareReliability,
   } = useTrip();
 
   const [mapMode, setMapMode] = useState(true);
@@ -53,6 +55,7 @@ export default function NavigateScreen({ contentPadding }) {
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showBmtcModal, setShowBmtcModal] = useState(false);
   const [showCloakroom, setShowCloakroom] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
   const [alertExpanded, setAlertExpanded] = useState(false);
 
   const envAlert = currentCity?.environmentalAlert;
@@ -418,6 +421,198 @@ export default function NavigateScreen({ contentPadding }) {
     );
   };
 
+  const renderQuickUtilities = () => {
+    if (currentCity?.id === 'delhi') {
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickUtilityScroll}
+        >
+          <Pressable
+            onPress={() => openFareReliability && openFareReliability()}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnDel,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#e0e7ff' }]}>
+              <Text style={styles.quickUtilityEmoji}>⚡</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#3730a3' }]}>DMRC Metro</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#6366f1' }]}>12 Lines & Fares</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: '#4f46e5' }]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowCloakroom(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnCloakroom,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
+              <Text style={styles.quickUtilityEmoji}>🧳</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>NDLS Cloakroom</Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>Platform 16 · ₹30</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowSafetyModal(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnSafety,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
+              <Text style={styles.quickUtilityEmoji}>🛡️</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: '#16a34a' }]}>➔</Text>
+          </Pressable>
+        </ScrollView>
+      );
+    }
+
+    if (currentCity?.id === 'mumbai') {
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickUtilityScroll}
+        >
+          <Pressable
+            onPress={() => openFareReliability && openFareReliability()}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnBom,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#e0f2fe' }]}>
+              <Text style={styles.quickUtilityEmoji}>🚆</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#075985' }]}>Mumbai Local</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#0284c7' }]}>Fast & Slow Lines</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: '#0284c7' }]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowCloakroom(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnCloakroom,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
+              <Text style={styles.quickUtilityEmoji}>🧳</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>CSMT Cloakroom</Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>Platform 1 · ₹30</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowSafetyModal(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnSafety,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
+              <Text style={styles.quickUtilityEmoji}>🛡️</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: '#16a34a' }]}>➔</Text>
+          </Pressable>
+        </ScrollView>
+      );
+    }
+
+    // Default: Bengaluru
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.quickUtilityScroll}
+      >
+        <Pressable
+          onPress={() => setShowBlueprint(true)}
+          style={({ pressed }) => [
+            styles.quickUtilityBtn,
+            pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <View style={[styles.utilityIconCircle, { backgroundColor: '#f1f5f9' }]}>
+            <Text style={styles.quickUtilityEmoji}>🏢</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
+            <Text style={styles.quickUtilitySub}>3D Concourse & Gates</Text>
+          </View>
+          <Text style={styles.quickUtilityArrow}>➔</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowBmtcModal(true)}
+          style={({ pressed }) => [
+            styles.quickUtilityBtn,
+            styles.quickUtilityBtnBus,
+            pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
+            <Text style={styles.quickUtilityEmoji}>🚌</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Bus Routes</Text>
+            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Feeders & Passes</Text>
+          </View>
+          <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowCloakroom(true)}
+          style={({ pressed }) => [
+            styles.quickUtilityBtn,
+            styles.quickUtilityBtnCloakroom,
+            pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
+            <Text style={styles.quickUtilityEmoji}>🧳</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>Station Cloakrooms</Text>
+            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>KSR & YPR · ₹30</Text>
+          </View>
+          <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  };
+
   const headerView = (
     <View style={styles.headerRow}>
       <View style={{ flex: 1 }}>
@@ -426,11 +621,12 @@ export default function NavigateScreen({ contentPadding }) {
           onPress={openCitySwitcher}
           style={({ pressed }) => [
             styles.cityHeadingRow,
-            pressed && { opacity: 0.75 },
+            pressed && { opacity: 0.75, transform: [{ scale: 0.98 }] },
           ]}
         >
           <Text style={styles.heading}>{currentCity?.name || 'Bengaluru'}</Text>
           <View style={styles.cityPillBadge}>
+            <View style={styles.cityDotPulse} />
             <Text style={styles.cityPillBadgeText}>{currentCity?.shortName || 'CITY'} ▼</Text>
           </View>
         </Pressable>
@@ -481,54 +677,7 @@ export default function NavigateScreen({ contentPadding }) {
           <View style={styles.searchSection}>
             <SearchBar onSelectDestination={selectDestination} />
           </View>
-          <View style={styles.quickUtilityRow}>
-            <Pressable
-              onPress={() => setShowBlueprint(true)}
-              style={styles.quickUtilityBtn}
-            >
-              <Text style={styles.quickUtilityEmoji}>🏢</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.quickUtilityTitle}>
-                  {currentCity?.id === 'delhi'
-                    ? 'Rajiv Chowk 3D'
-                    : currentCity?.id === 'mumbai'
-                      ? 'Dadar Junction 3D'
-                      : 'Majestic Blueprint'}
-                </Text>
-                <Text style={styles.quickUtilitySub}>
-                  {currentCity?.id === 'delhi'
-                    ? 'Concourse & Gates'
-                    : currentCity?.id === 'mumbai'
-                      ? 'Western ⇄ Central'
-                      : '3D Concourse'}
-                </Text>
-              </View>
-              <Text style={styles.quickUtilityArrow}>➔</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setShowBmtcModal(true)}
-              style={[styles.quickUtilityBtn, styles.quickUtilityBtnBus]}
-            >
-              <Text style={styles.quickUtilityEmoji}>🚌</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
-                  {currentCity?.id === 'delhi'
-                    ? 'DMRC Routes'
-                    : currentCity?.id === 'mumbai'
-                      ? 'Local Trains'
-                      : 'BMTC Routes'}
-                </Text>
-                <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
-                  {currentCity?.id === 'delhi'
-                    ? 'Lines & Timings'
-                    : currentCity?.id === 'mumbai'
-                      ? 'Fast & Slow'
-                      : 'Timetables'}
-                </Text>
-              </View>
-              <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
-            </Pressable>
-          </View>
+          {renderQuickUtilities()}
           {renderMapBlock(380)}
           <MilestoneRibbon
             milestones={activeRoute?.milestones}
@@ -549,16 +698,32 @@ export default function NavigateScreen({ contentPadding }) {
           />
         </ScrollView>
 
-        {/* Station Blueprint Modal (Wide Screen) */}
-        <StationBlueprintModal
-          visible={showBlueprint}
-          onClose={() => setShowBlueprint(false)}
+        {/* Station Blueprint Modal (Wide Screen - Bengaluru only) */}
+        {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
+          <StationBlueprintModal
+            visible={showBlueprint}
+            onClose={() => setShowBlueprint(false)}
+          />
+        )}
+
+        {/* BMTC Bus Timetable Modal (Wide Screen - Bengaluru only) */}
+        {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
+          <BmtcBusScheduleModal
+            visible={showBmtcModal}
+            onClose={() => setShowBmtcModal(false)}
+          />
+        )}
+
+        {/* Station Cloakroom Directory Modal (Wide Screen) */}
+        <CloakroomModal
+          visible={showCloakroom}
+          onClose={() => setShowCloakroom(false)}
         />
 
-        {/* BMTC Bus Timetable Modal (Wide Screen) */}
-        <BmtcBusScheduleModal
-          visible={showBmtcModal}
-          onClose={() => setShowBmtcModal(false)}
+        {/* Safety Ping Modal (Wide Screen) */}
+        <SafetyPingModal
+          visible={showSafetyModal}
+          onClose={() => setShowSafetyModal(false)}
         />
       </View>
     );
@@ -582,82 +747,7 @@ export default function NavigateScreen({ contentPadding }) {
         </View>
 
         {/* Transit Quick Utilities Row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickUtilityScroll}
-        >
-          <Pressable
-            onPress={() => setShowBlueprint(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <Text style={styles.quickUtilityEmoji}>🏢</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.quickUtilityTitle}>
-                {currentCity?.id === 'delhi'
-                  ? 'Rajiv Chowk 3D'
-                  : currentCity?.id === 'mumbai'
-                    ? 'Dadar Junction 3D'
-                    : 'Majestic Blueprint'}
-              </Text>
-              <Text style={styles.quickUtilitySub}>
-                {currentCity?.id === 'delhi'
-                  ? 'Concourse & Gates'
-                  : currentCity?.id === 'mumbai'
-                    ? 'Western ⇄ Central'
-                    : '3D Concourse & Gates'}
-              </Text>
-            </View>
-            <Text style={styles.quickUtilityArrow}>➔</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setShowBmtcModal(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnBus,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <Text style={styles.quickUtilityEmoji}>🚌</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
-                {currentCity?.id === 'delhi'
-                  ? 'DMRC Routes'
-                  : currentCity?.id === 'mumbai'
-                    ? 'Local Trains'
-                    : 'BMTC Bus Routes'}
-              </Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
-                {currentCity?.id === 'delhi'
-                  ? 'Lines & Timings'
-                  : currentCity?.id === 'mumbai'
-                    ? 'Fast & Slow'
-                    : 'Feeders & Passes'}
-              </Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setShowCloakroom(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnCloakroom,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <Text style={styles.quickUtilityEmoji}>🧳</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>Station Cloakrooms</Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>₹30/day · 24/7 Drops</Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
-          </Pressable>
-        </ScrollView>
+        {renderQuickUtilities()}
 
         {renderMapBlock()}
 
@@ -691,22 +781,32 @@ export default function NavigateScreen({ contentPadding }) {
         </Pressable>
       )}
 
-      {/* Station Blueprint Modal (Mobile Screen) */}
-      <StationBlueprintModal
-        visible={showBlueprint}
-        onClose={() => setShowBlueprint(false)}
-      />
+      {/* Station Blueprint Modal (Mobile Screen - Bengaluru only) */}
+      {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
+        <StationBlueprintModal
+          visible={showBlueprint}
+          onClose={() => setShowBlueprint(false)}
+        />
+      )}
 
-      {/* BMTC Bus Timetable Modal (Mobile Screen) */}
-      <BmtcBusScheduleModal
-        visible={showBmtcModal}
-        onClose={() => setShowBmtcModal(false)}
-      />
+      {/* BMTC Bus Timetable Modal (Mobile Screen - Bengaluru only) */}
+      {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
+        <BmtcBusScheduleModal
+          visible={showBmtcModal}
+          onClose={() => setShowBmtcModal(false)}
+        />
+      )}
 
       {/* Station Cloakroom Directory Modal (Mobile Screen) */}
       <CloakroomModal
         visible={showCloakroom}
         onClose={() => setShowCloakroom(false)}
+      />
+
+      {/* Safety Ping Modal (Mobile Screen) */}
+      <SafetyPingModal
+        visible={showSafetyModal}
+        onClose={() => setShowSafetyModal(false)}
       />
     </View>
   );
@@ -766,6 +866,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cityPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: colors.accentRamp[100],
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -773,6 +876,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.accentRamp[300],
     marginTop: 2,
+  },
+  cityDotPulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentRamp[600],
   },
   cityPillBadgeText: {
     fontSize: 10,
@@ -871,6 +980,25 @@ const styles = StyleSheet.create({
   quickUtilityBtnCloakroom: {
     borderColor: '#fed7aa',
     backgroundColor: '#fff7ed',
+  },
+  quickUtilityBtnDel: {
+    borderColor: '#c7d2fe',
+    backgroundColor: '#eef2ff',
+  },
+  quickUtilityBtnBom: {
+    borderColor: '#bae6fd',
+    backgroundColor: '#f0f9ff',
+  },
+  quickUtilityBtnSafety: {
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
+  },
+  utilityIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   quickUtilityEmoji: {
     fontSize: 18,
