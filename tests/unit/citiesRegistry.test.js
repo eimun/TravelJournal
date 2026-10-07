@@ -148,4 +148,68 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(bomAlert.subtext).toContain('Suburban locals');
     expect(bomAlert.badges).toContain('🌊 High Tide 4.2m');
   });
+
+  test('strictly isolates restaurants so Bengaluru eateries never pollute Delhi or Mumbai', () => {
+    const { getRestaurantsForCity } = require('../../app/data/cityPlacesData');
+    const { CITY_BOUNDS } = require('../../app/services/searchService');
+
+    // 1. Delhi restaurants
+    const delRestaurants = getRestaurantsForCity('delhi');
+    const delBounds = CITY_BOUNDS.delhi;
+    expect(delRestaurants.length).toBeGreaterThanOrEqual(10);
+
+    delRestaurants.forEach((r) => {
+      // Must NOT be in Bengaluru coordinates
+      expect(r.latitude).toBeGreaterThan(25);
+      expect(r.longitude).toBeGreaterThan(70);
+      // Must be within Delhi NCR bounds
+      expect(r.latitude).toBeGreaterThanOrEqual(delBounds.minLat);
+      expect(r.latitude).toBeLessThanOrEqual(delBounds.maxLat);
+      expect(r.longitude).toBeGreaterThanOrEqual(delBounds.minLon);
+      expect(r.longitude).toBeLessThanOrEqual(delBounds.maxLon);
+      // No Bengaluru keywords
+      expect(r.area.toLowerCase()).not.toContain('bengaluru');
+      expect(r.area.toLowerCase()).not.toContain('bangalore');
+    });
+
+    // 2. Mumbai restaurants
+    const bomRestaurants = getRestaurantsForCity('mumbai');
+    const bomBounds = CITY_BOUNDS.mumbai;
+    expect(bomRestaurants.length).toBeGreaterThanOrEqual(10);
+
+    bomRestaurants.forEach((r) => {
+      // Must NOT be in Bengaluru coordinates
+      expect(r.latitude).toBeGreaterThan(18);
+      expect(r.longitude).toBeLessThan(75);
+      // Must be within Mumbai bounds
+      expect(r.latitude).toBeGreaterThanOrEqual(bomBounds.minLat);
+      expect(r.latitude).toBeLessThanOrEqual(bomBounds.maxLat);
+      expect(r.longitude).toBeGreaterThanOrEqual(bomBounds.minLon);
+      expect(r.longitude).toBeLessThanOrEqual(bomBounds.maxLon);
+      // No Bengaluru keywords
+      expect(r.area.toLowerCase()).not.toContain('bengaluru');
+      expect(r.area.toLowerCase()).not.toContain('bangalore');
+    });
+
+    // 3. Simulated live filter correctly rejects Bengaluru venues for Delhi and Mumbai
+    const mockBengaluruLiveVenue = {
+      id: 'live_blr_123',
+      name: 'Nagarjuna Andhra Meals',
+      latitude: 12.9716,
+      longitude: 77.5946,
+      cityId: 'bengaluru',
+    };
+
+    const isWithinDelhi =
+      mockBengaluruLiveVenue.cityId === 'delhi' ||
+      (mockBengaluruLiveVenue.latitude >= delBounds.minLat &&
+        mockBengaluruLiveVenue.latitude <= delBounds.maxLat);
+    expect(isWithinDelhi).toBe(false);
+
+    const isWithinMumbai =
+      mockBengaluruLiveVenue.cityId === 'mumbai' ||
+      (mockBengaluruLiveVenue.latitude >= bomBounds.minLat &&
+        mockBengaluruLiveVenue.latitude <= bomBounds.maxLat);
+    expect(isWithinMumbai).toBe(false);
+  });
 });

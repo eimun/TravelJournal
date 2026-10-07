@@ -8,7 +8,7 @@ import {
 import { getSearchHubsForCity, BENGALURU_SEARCH_HUBS } from '../data/cityPlacesData';
 import { getCityConfig } from '../data/citiesRegistry';
 
-const CITY_BOUNDS = {
+export const CITY_BOUNDS = {
   bengaluru: {
     lat: 12.9716,
     lon: 77.5946,
