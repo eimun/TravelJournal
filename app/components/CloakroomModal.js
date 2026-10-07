@@ -62,7 +62,11 @@ export default function CloakroomModal({ visible, onClose }) {
             </View>
             <Text style={styles.title}>Station Cloakroom Guide</Text>
             <Text style={styles.subtitle}>
-              Hands-free exploration · KSR Majestic, Yesvantpur & Airport
+              {currentCity?.id === 'delhi'
+                ? 'Hands-free exploration · New Delhi, Old Delhi & Nizamuddin'
+                : currentCity?.id === 'mumbai'
+                ? 'Hands-free exploration · CSMT, Dadar & Mumbai Central'
+                : 'Hands-free exploration · KSR Majestic, Yesvantpur & Airport'}
             </Text>
           </View>
 
@@ -82,7 +86,15 @@ export default function CloakroomModal({ visible, onClose }) {
           {[
             { id: 'all', label: 'All Cloakrooms' },
             { id: 'railway', label: '🚆 Railway Stations (₹30)' },
-            { id: 'airport', label: '✈️ Airport (KIA)' },
+            {
+              id: 'airport',
+              label:
+                currentCity?.id === 'delhi'
+                  ? '✈️ IGI Airport (T3)'
+                  : currentCity?.id === 'mumbai'
+                  ? '✈️ Mumbai Airport (T2)'
+                  : '✈️ Airport (KIA)',
+            },
           ].map((tab) => {
             const active = selectedHub === tab.id;
             return (

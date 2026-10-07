@@ -15,7 +15,7 @@ import StationBlueprintModal from './StationBlueprintModal';
 import SafetyPingModal from './SafetyPingModal';
 
 export default function RouteDetailSheet({ route, onFocusMap }) {
-  const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode } = useTrip();
+  const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode, currentCity } = useTrip();
   const [expandedStationStep, setExpandedStationStep] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedModes, setSelectedModes] = useState({});
@@ -411,35 +411,53 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                       </View>
                     )}
 
-                    {/* Direct Blueprint Trigger for Station */}
-                    <Pressable
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        setBlueprintPathId(
-                          step.type === 'transfer'
-                            ? 'purple_to_green_transfer'
-                            : 'ksr_to_purple',
-                        );
-                        setShowBlueprintModal(true);
-                      }}
-                      style={({ pressed }) => [
-                        styles.blueprintActionBtn,
-                        pressed && { opacity: 0.8 },
-                      ]}
-                    >
-                      <Text style={styles.blueprintActionBtnIcon}>🏢</Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.blueprintActionBtnTitle}>
-                          Majestic Station Concourse Blueprint
-                        </Text>
-                        <Text style={styles.blueprintActionBtnSub}>
-                          {step.type === 'transfer'
-                            ? 'See 1-min transfer route between Purple & Green lines'
-                            : 'See gate-to-platform route & step-free elevators'}
-                        </Text>
+                    {/* Direct Blueprint Trigger for Station - Bengaluru Only */}
+                    {(route?.cityId || currentCity?.id || 'bengaluru') === 'bengaluru' ? (
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setBlueprintPathId(
+                            step.type === 'transfer'
+                              ? 'purple_to_green_transfer'
+                              : 'ksr_to_purple',
+                          );
+                          setShowBlueprintModal(true);
+                        }}
+                        style={({ pressed }) => [
+                          styles.blueprintActionBtn,
+                          pressed && { opacity: 0.8 },
+                        ]}
+                      >
+                        <Text style={styles.blueprintActionBtnIcon}>🏢</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.blueprintActionBtnTitle}>
+                            Majestic Station Concourse Blueprint
+                          </Text>
+                          <Text style={styles.blueprintActionBtnSub}>
+                            {step.type === 'transfer'
+                              ? 'See 1-min transfer route between Purple & Green lines'
+                              : 'See gate-to-platform route & step-free elevators'}
+                          </Text>
+                        </View>
+                        <Text style={styles.blueprintActionBtnArrow}>➔</Text>
+                      </Pressable>
+                    ) : step.type === 'transfer' ? (
+                      <View style={styles.cityTransferTipCard}>
+                        <Text style={styles.cityTransferTipIcon}>🔄</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.cityTransferTipTitle}>
+                            {currentCity?.id === 'delhi'
+                              ? 'Line Interchange Guide'
+                              : 'Suburban Platform Interchange'}
+                          </Text>
+                          <Text style={styles.cityTransferTipSub}>
+                            {currentCity?.id === 'delhi'
+                              ? 'Follow overhead colored line signage on the concourse without tapping out.'
+                              : 'Use dedicated Foot Overbridge (FOB) to change between Western & Central platforms.'}
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={styles.blueprintActionBtnArrow}>➔</Text>
-                    </Pressable>
+                    ) : null}
                   </View>
                 )}
 
@@ -501,12 +519,14 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         })}
       </View>
 
-      {/* Majestic Concourse Blueprint Modal */}
-      <StationBlueprintModal
-        visible={showBlueprintModal}
-        onClose={() => setShowBlueprintModal(false)}
-        initialPathId={blueprintPathId}
-      />
+      {/* Majestic Concourse Blueprint Modal (Bengaluru Only) */}
+      {(route?.cityId || currentCity?.id || 'bengaluru') === 'bengaluru' && (
+        <StationBlueprintModal
+          visible={showBlueprintModal}
+          onClose={() => setShowBlueprintModal(false)}
+          initialPathId={blueprintPathId}
+        />
+      )}
 
       {/* 1-Tap Family Safety Ping Modal */}
       <SafetyPingModal
@@ -1420,5 +1440,30 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     color: '#64748b',
     marginTop: 2,
+  },
+  cityTransferTipCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    borderRadius: radius.md,
+    padding: 10,
+    marginTop: 10,
+    gap: 10,
+  },
+  cityTransferTipIcon: {
+    fontSize: 18,
+  },
+  cityTransferTipTitle: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0369a1',
+  },
+  cityTransferTipSub: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: '#0284c7',
+    marginTop: 1,
   },
 });
