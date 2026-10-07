@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
-import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
+import { PURPLE_LINE, GREEN_LINE, getLineColor } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import ConnectingLegSelector from './ConnectingLegSelector';
 import StationBlueprintModal from './StationBlueprintModal';
@@ -247,7 +247,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
           const isTransfer = step.type === 'transfer';
           const isAuto = step.type === 'auto' || step.selectedMode === 'auto';
           const isSelected = activeStepIndex === idx;
-          const stepLineColor = step.line === 'green' ? GREEN_LINE : PURPLE_LINE;
+          const stepLineColor = getLineColor(step.line);
 
           return (
             <Pressable

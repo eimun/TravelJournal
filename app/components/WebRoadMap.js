@@ -98,6 +98,36 @@ export default function WebRoadMap({
       border-color: #ffffff;
       color: #ffffff;
     }
+    .marker-yellow {
+      background: #eab308;
+      border-color: #ffffff;
+      color: #1c1917;
+    }
+    .marker-blue {
+      background: #2563eb;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+    .marker-airport {
+      background: #ea580c;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+    .marker-western {
+      background: #dc2626;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+    .marker-central {
+      background: #991b1b;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
+    .marker-metro1 {
+      background: #0284c7;
+      border-color: #ffffff;
+      color: #ffffff;
+    }
     .marker-user {
       width: 14px;
       height: 14px;
@@ -148,7 +178,14 @@ export default function WebRoadMap({
       
       let strokeColor = '#d97706'; // default connecting walk
       if (isMetro) {
-        strokeColor = step.line === 'green' ? '#16a34a' : '#7c3aed';
+        if (step.line === 'green') strokeColor = '#16a34a';
+        else if (step.line === 'dmrc_yellow') strokeColor = '#eab308';
+        else if (step.line === 'dmrc_blue') strokeColor = '#2563eb';
+        else if (step.line === 'dmrc_airport') strokeColor = '#ea580c';
+        else if (step.line === 'mumbai_western') strokeColor = '#dc2626';
+        else if (step.line === 'mumbai_central') strokeColor = '#991b1b';
+        else if (step.line === 'mumbai_metro1') strokeColor = '#0284c7';
+        else strokeColor = '#7c3aed';
       } else if (isAuto) {
         strokeColor = '#0284c7';
       } else if (isBike) {
@@ -189,6 +226,12 @@ export default function WebRoadMap({
       else if (m.type === 'destination') badgeClass += ' marker-dest';
       else if (m.line === 'green') badgeClass += ' marker-green';
       else if (m.line === 'purple') badgeClass += ' marker-purple';
+      else if (m.line === 'dmrc_yellow') badgeClass += ' marker-yellow';
+      else if (m.line === 'dmrc_blue') badgeClass += ' marker-blue';
+      else if (m.line === 'dmrc_airport') badgeClass += ' marker-airport';
+      else if (m.line === 'mumbai_western') badgeClass += ' marker-western';
+      else if (m.line === 'mumbai_central') badgeClass += ' marker-central';
+      else if (m.line === 'mumbai_metro1') badgeClass += ' marker-metro1';
 
       const icon = L.divIcon({
         className: 'leaflet-div-custom',

@@ -1,12 +1,25 @@
 import {
   PURPLE_STATIONS,
   GREEN_STATIONS,
+  DMRC_YELLOW_STATIONS,
+  DMRC_BLUE_STATIONS,
+  DMRC_AIRPORT_STATIONS,
+  MUMBAI_WESTERN_STATIONS,
+  MUMBAI_CENTRAL_STATIONS,
+  MUMBAI_METRO1_STATIONS,
   findNearestMetroStation,
   getNextMetroDeparture,
   calculateMetroFare,
   getDistanceBetween,
   getMajesticInterchangeGuide,
+  getRajivChowkInterchangeGuide,
+  getDadarInterchangeGuide,
+  getInterchangeGuide,
   getMetroPlatformAndGateInfo,
+  getLineColor,
+  getLineDisplayName,
+  getStationListForLine,
+  detectCityFromCoord,
 } from '../data/transitData';
 import { formatDistance, estimateWalkMinutes } from './locationService';
 import { calculateDynamicFareMatrix } from '../../src/domain/dynamicFare';
@@ -287,9 +300,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     };
   }
 
+  // Detect city context
+  const cityId = opts.cityId || detectCityFromCoord(origin.latitude, origin.longitude) || detectCityFromCoord(destination.latitude, destination.longitude) || 'bengaluru';
+
   // Find nearest metro stations
-  const originStation = findNearestMetroStation(origin.latitude, origin.longitude);
-  const destStation = findNearestMetroStation(destination.latitude, destination.longitude);
+  const originStation = findNearestMetroStation(origin.latitude, origin.longitude, cityId);
+  const destStation = findNearestMetroStation(destination.latitude, destination.longitude, cityId);
 
   const walkToOriginStationMeters = originStation
     ? getDistanceBetween(origin.latitude, origin.longitude, originStation.latitude, originStation.longitude)
@@ -341,8 +357,29 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     });
 
     const savings = Math.max(0, directCab - directLeg.cost);
-    const dosaCount = Math.floor(savings / 85);
-    const coffeeCount = Math.max(1, Math.floor((savings % 85) / 20));
+    let foodEquivalent = '';
+    let scamAlert = '';
+    let tip = '';
+
+    if (cityId === 'delhi') {
+      const choleCount = Math.floor(savings / 90);
+      const chaiCount = Math.max(1, Math.floor((savings % 90) / 15));
+      foodEquivalent = choleCount > 0 ? `${choleCount} Chole Bhature + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
+      scamAlert = `Paharganj / New Delhi station auto drivers quote ₹${streetQuote}+ without meter. Insist on meter or use Delhi Metro.`;
+      tip = `Fair CNG auto meter is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. Delhi Metro connects key hubs fastest.`;
+    } else if (cityId === 'mumbai') {
+      const vadaCount = Math.floor(savings / 25);
+      const chaiCount = Math.max(1, Math.floor((savings % 25) / 15));
+      foodEquivalent = vadaCount > 0 ? `${vadaCount} Ashok Vada Pavs + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
+      scamAlert = `Mumbai taxis and autos strictly run by meter by law! Never agree to fixed street quotes.`;
+      tip = `Fair meter rate is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. Suburban local train costs just ₹5–₹10.`;
+    } else {
+      const dosaCount = Math.floor(savings / 85);
+      const coffeeCount = Math.max(1, Math.floor((savings % 85) / 20));
+      foodEquivalent = dosaCount > 0 ? `${dosaCount} Benne Dosas + ${coffeeCount} Filter Coffees` : `${coffeeCount} Filter Coffees`;
+      scamAlert = `Drivers at major spots quote ₹${streetQuote}+ without meter. Always ask for meter.`;
+      tip = `Fair meter fare is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. If street auto asks more than ₹${streetQuote}, insist on meter or book via Namma Yatri.`;
+    }
 
     return {
       type: 'auto_bus',
@@ -364,18 +401,16 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         transitDurationMinutes: directLeg.durationMinutes,
         moneySaved: savings,
         timeSaved: 5,
-        dosaCount,
-        coffeeCount,
-        foodEquivalent: dosaCount > 0 ? `${dosaCount} Benne Dosas + ${coffeeCount} Filter Coffees` : `${coffeeCount} Filter Coffees`,
-        tip: `Fair meter fare is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. If street auto asks more than ₹${streetQuote}, insist on meter or book via Namma Yatri.`,
-        scamAlert: `Drivers at major spots quote ₹${streetQuote}+ without meter. Always ask for meter.`,
+        foodEquivalent,
+        tip,
+        scamAlert,
       },
     };
   }
 
   // Determine line paths
-  const originLineList = originStation.line === 'purple' ? PURPLE_STATIONS : GREEN_STATIONS;
-  const destLineList = destStation.line === 'purple' ? PURPLE_STATIONS : GREEN_STATIONS;
+  const originLineList = getStationListForLine(originStation.line);
+  const destLineList = getStationListForLine(destStation.line);
 
   const originIdx = originLineList.findIndex((s) => s.id === originStation.id);
   const destIdx = destLineList.findIndex((s) => s.id === destStation.id);
@@ -404,7 +439,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
   const firstMileStep = buildConnectingLeg({
     id: 'first_mile',
     legType: 'first_mile',
-    locationName: `${originStation.name.split('(')[0]} Metro`,
+    locationName: `${originStation.name.split('(')[0]} Station`,
     fromCoord: originCoord,
     toCoord: originStationCoord,
     distanceMeters: walkToOriginStationMeters,
@@ -419,14 +454,16 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     id: 'm_board',
     coordinate: originStationCoord,
     label: 'Board',
-    title: `${originStation.name.split('(')[0]} (${originStation.line === 'purple' ? 'Purple Line' : 'Green Line'})`,
+    title: `${originStation.name.split('(')[0]} (${getLineDisplayName(originStation.line)})`,
     line: originStation.line,
     type: 'station',
     stepIndex: 1,
   });
 
+  let interchangeName = 'Interchange';
+
   if (isSameLine) {
-    // Single line travel (e.g. Purple -> Purple or Green -> Green)
+    // Single line travel (e.g. Purple -> Purple or Yellow -> Yellow)
     const stationsSlice =
       originIdx < destIdx
         ? originLineList.slice(originIdx, destIdx + 1)
@@ -436,10 +473,10 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     const metroRideMinutes = stopCount * 2.2;
     totalTime += metroRideMinutes;
 
-    const metroFare = calculateMetroFare(stopCount);
+    const metroFare = calculateMetroFare(stopCount, cityId);
     totalFare += metroFare;
 
-    const departureInfo = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj);
+    const departureInfo = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj, cityId);
 
     const originGatePlatform = getMetroPlatformAndGateInfo({
       stationId: originStation.id,
@@ -463,7 +500,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       id: 'metro_ride',
       type: 'metro',
       line: originStation.line,
-      title: `${originStation.line === 'purple' ? 'Purple Line' : 'Green Line'} · ${stopCount} stops`,
+      title: `${getLineDisplayName(originStation.line)} · ${stopCount} stops`,
       meta: `${originStation.name.split('(')[0]} → ${destStation.name.split('(')[0]} · ₹${metroFare} · ${Math.round(metroRideMinutes)} min`,
       details: `Board from ${originGatePlatform.platform} (${originGatePlatform.towards}). Enter via ${originGatePlatform.entryGate}.`,
       nextDeparture: departureInfo,
@@ -496,34 +533,53 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       stepIndex: 1,
     });
   } else {
-    // Line interchange needed at Majestic!
-    const originMajesticIdx = originLineList.findIndex((s) => s.isInterchange);
-    const destMajesticIdx = destLineList.findIndex((s) => s.isInterchange);
+    // Multi-line travel: Interchange needed
+    let commonOriginIdx = -1;
+    let commonDestIdx = -1;
 
-    const majesticStation = originLineList[originMajesticIdx];
-    const majesticCoord = { latitude: majesticStation.latitude, longitude: majesticStation.longitude };
+    for (let i = 0; i < originLineList.length; i++) {
+      const os = originLineList[i];
+      if (!os.isInterchange) continue;
+      const osBase = os.name.split('(')[0].trim().toLowerCase();
+      const matchIdx = destLineList.findIndex((ds) => {
+        if (!ds.isInterchange) return false;
+        const dsBase = ds.name.split('(')[0].trim().toLowerCase();
+        return osBase.includes(dsBase) || dsBase.includes(osBase);
+      });
+      if (matchIdx !== -1) {
+        commonOriginIdx = i;
+        commonDestIdx = matchIdx;
+        break;
+      }
+    }
 
-    // Leg 1: Origin Station -> Majestic
+    const originInterchangeIdx = commonOriginIdx !== -1 ? commonOriginIdx : originLineList.findIndex((s) => s.isInterchange);
+    const destInterchangeIdx = commonDestIdx !== -1 ? commonDestIdx : destLineList.findIndex((s) => s.isInterchange);
+
+    const safeOriginInterchangeIdx = originInterchangeIdx !== -1 ? originInterchangeIdx : 0;
+    const safeDestInterchangeIdx = destInterchangeIdx !== -1 ? destInterchangeIdx : 0;
+
+    const interchangeStation = originLineList[safeOriginInterchangeIdx];
+    const interchangeCoord = { latitude: interchangeStation.latitude, longitude: interchangeStation.longitude };
+    interchangeName = interchangeStation.name.split('(')[0].trim();
+
+    // Leg 1: Origin Station -> Interchange
     const leg1Slice =
-      originIdx < originMajesticIdx
-        ? originLineList.slice(originIdx, originMajesticIdx + 1)
-        : originLineList.slice(originMajesticIdx, originIdx + 1).reverse();
+      originIdx < safeOriginInterchangeIdx
+        ? originLineList.slice(originIdx, safeOriginInterchangeIdx + 1)
+        : originLineList.slice(safeOriginInterchangeIdx, originIdx + 1).reverse();
 
-    const leg1Stops = Math.abs(originMajesticIdx - originIdx);
+    const leg1Stops = Math.abs(safeOriginInterchangeIdx - originIdx);
     const leg1Minutes = Math.max(2, leg1Stops * 2.2);
     totalTime += leg1Minutes;
 
-    const departureLeg1 = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj);
-    const leg1Direction =
-      originIdx < originMajesticIdx
-        ? originLineList[originLineList.length - 1].name.split('(')[0].trim()
-        : originLineList[0].name.split('(')[0].trim();
+    const departureLeg1 = getNextMetroDeparture(originStation.id, originStation.line, travelDateObj, cityId);
 
     const leg1GatePlatform = getMetroPlatformAndGateInfo({
       stationId: originStation.id,
       line: originStation.line,
       fromIdx: originIdx,
-      toIdx: originMajesticIdx,
+      toIdx: safeOriginInterchangeIdx,
     });
 
     const leg1Coords = leg1Slice.map((st) => ({
@@ -535,8 +591,8 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       id: 'metro_leg1',
       type: 'metro',
       line: originStation.line,
-      title: `${originStation.line === 'purple' ? 'Purple Line' : 'Green Line'} to Majestic (${leg1Stops} stops)`,
-      meta: `${originStation.name.split('(')[0]} → Majestic · ${Math.round(leg1Minutes)} min`,
+      title: `${getLineDisplayName(originStation.line)} to ${interchangeName} (${leg1Stops} stops)`,
+      meta: `${originStation.name.split('(')[0]} → ${interchangeName} · ${Math.round(leg1Minutes)} min`,
       details: `Board from ${leg1GatePlatform.platform} (${leg1GatePlatform.towards}). Enter via ${leg1GatePlatform.entryGate}.`,
       nextDeparture: departureLeg1,
       intermediateStations: leg1Slice.map((s) => s.name.split('(')[0].trim()),
@@ -552,67 +608,64 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         exitGate: 'Concourse Transfer Level',
         gates: leg1GatePlatform.gates,
         originStationName: originStation.name.split('(')[0].trim(),
-        destStationName: 'Kempegowda Majestic',
+        destStationName: interchangeName,
       },
     });
 
-    // Milestone 3: Majestic Interchange
+    // Milestone 3: Interchange
     milestones.push({
       id: 'm_interchange',
-      coordinate: majesticCoord,
+      coordinate: interchangeCoord,
       label: 'Transfer',
-      title: 'Change Line at Majestic Station',
+      title: `Change Line at ${interchangeName} Station`,
       type: 'transfer',
       stepIndex: 2,
     });
 
-    // Step: Majestic Transfer
-    const transferGuide = getMajesticInterchangeGuide(originStation.line, destStation.line);
+    // Step: Interchange Transfer
+    const transferGuide = getInterchangeGuide(cityId, originStation.line, destStation.line);
     totalTime += 4;
+    const isMajestic = interchangeName.toLowerCase().includes('kempegowda') || interchangeName.toLowerCase().includes('majestic');
     steps.push({
-      id: 'majestic_transfer',
+      id: isMajestic ? 'majestic_transfer' : 'transit_transfer',
       type: 'transfer',
-      title: 'Change Line at Nadaprabhu Kempegowda (Majestic)',
+      title: isMajestic ? 'Change Line at Nadaprabhu Kempegowda (Majestic)' : `Change Line at ${interchangeName}`,
       meta: 'Transfer concourse · ~3-4 min walk · Free interchange',
       details: transferGuide.steps.join(' → '),
       tip: transferGuide.tip,
       icon: 'swap',
       cost: 0,
       durationMinutes: 4,
-      coordinates: [majesticCoord, majesticCoord],
+      coordinates: [interchangeCoord, interchangeCoord],
     });
 
-    // Leg 2: Majestic -> Destination Station
+    // Leg 2: Interchange -> Destination Station
     const leg2Slice =
-      destMajesticIdx < destIdx
-        ? destLineList.slice(destMajesticIdx, destIdx + 1)
-        : destLineList.slice(destIdx, destMajesticIdx + 1).reverse();
+      safeDestInterchangeIdx < destIdx
+        ? destLineList.slice(safeDestInterchangeIdx, destIdx + 1)
+        : destLineList.slice(destIdx, safeDestInterchangeIdx + 1).reverse();
 
-    const leg2Stops = Math.abs(destIdx - destMajesticIdx);
+    const leg2Stops = Math.abs(destIdx - safeDestInterchangeIdx);
     const leg2Minutes = Math.max(2, leg2Stops * 2.2);
     totalTime += leg2Minutes;
 
     const totalMetroStops = leg1Stops + leg2Stops;
-    const combinedMetroFare = calculateMetroFare(totalMetroStops);
+    const combinedMetroFare = calculateMetroFare(totalMetroStops, cityId);
     totalFare += combinedMetroFare;
 
     const departureLeg2 = getNextMetroDeparture(
-      'majestic',
+      destLineList[safeDestInterchangeIdx]?.id || 'interchange',
       destStation.line,
       new Date(travelDateObj.getTime() + (firstMileStep.durationMinutes + leg1Minutes + 4) * 60 * 1000),
+      cityId,
     );
 
     const leg2GatePlatform = getMetroPlatformAndGateInfo({
       stationId: destStation.id,
       line: destStation.line,
-      fromIdx: destMajesticIdx,
+      fromIdx: safeDestInterchangeIdx,
       toIdx: destIdx,
     });
-
-    // At Majestic: Platform 1/2 for Purple, Platform 3/4 for Green
-    const majesticBoardPlatform = destStation.line === 'green'
-      ? (destIdx > destMajesticIdx ? 'Platform 4 (Towards Silk Institute)' : 'Platform 3 (Towards Madavara)')
-      : (destIdx > destMajesticIdx ? 'Platform 2 (Towards Challaghatta)' : 'Platform 1 (Towards Whitefield)');
 
     const leg2Coords = leg2Slice.map((st) => ({
       latitude: st.latitude,
@@ -623,9 +676,9 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       id: 'metro_leg2',
       type: 'metro',
       line: destStation.line,
-      title: `${destStation.line === 'purple' ? 'Purple Line' : 'Green Line'} to destination (${leg2Stops} stops)`,
-      meta: `Majestic → ${destStation.name.split('(')[0]} · Combined ₹${combinedMetroFare} · ${Math.round(leg2Minutes)} min`,
-      details: `Board from ${majesticBoardPlatform}.`,
+      title: `${getLineDisplayName(destStation.line)} to destination (${leg2Stops} stops)`,
+      meta: `${interchangeName} → ${destStation.name.split('(')[0]} · Combined ₹${combinedMetroFare} · ${Math.round(leg2Minutes)} min`,
+      details: `Board from ${leg2GatePlatform.platform} (${leg2GatePlatform.towards}).`,
       nextDeparture: departureLeg2,
       intermediateStations: leg2Slice.map((s) => s.name.split('(')[0].trim()),
       icon: 'train',
@@ -633,12 +686,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       durationMinutes: Math.round(leg2Minutes),
       coordinates: leg2Coords,
       platformInfo: {
-        platform: majesticBoardPlatform,
+        platform: leg2GatePlatform.platform,
         towards: leg2GatePlatform.towards,
-        entryGate: 'Level 1/2 Paid Transfer',
+        entryGate: `${interchangeName} Transfer Concourse`,
         exitGate: leg2GatePlatform.exitGate,
         destGates: leg2GatePlatform.gates,
-        originStationName: 'Majestic',
+        originStationName: interchangeName,
         destStationName: destStation.name.split('(')[0].trim(),
       },
     });
@@ -700,19 +753,39 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
   const moneySaved = Math.max(0, fullCabFare - transitCost);
   const timeSaved = Math.max(0, cabTrafficMinutes - transitMinutes);
 
-  const dosaCount = Math.floor(moneySaved / 85);
-  const coffeeCount = Math.max(1, Math.floor((moneySaved % 85) / 20));
-  const foodEquivalent = dosaCount > 0
-    ? `${dosaCount} Benne Masala Dosas + ${coffeeCount} Filter Coffees`
-    : `${coffeeCount} Filter Coffees`;
+  let foodEquivalent = '';
+  let agencyName = 'Namma Metro';
+  if (cityId === 'delhi') {
+    agencyName = 'Delhi Metro (DMRC)';
+    const choleCount = Math.floor(moneySaved / 90);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 90) / 15));
+    foodEquivalent = choleCount > 0 ? `${choleCount} Chole Bhature + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
+  } else if (cityId === 'mumbai') {
+    agencyName = 'Mumbai Suburban Local & Metro';
+    const vadaCount = Math.floor(moneySaved / 25);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 25) / 15));
+    foodEquivalent = vadaCount > 0 ? `${vadaCount} Ashok Vada Pavs + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
+  } else {
+    const dosaCount = Math.floor(moneySaved / 85);
+    const coffeeCount = Math.max(1, Math.floor((moneySaved % 85) / 20));
+    foodEquivalent = dosaCount > 0
+      ? `${dosaCount} Benne Masala Dosas + ${coffeeCount} Filter Coffees`
+      : `${coffeeCount} Filter Coffees`;
+  }
+
+  const routeTitle = cityId === 'delhi'
+    ? `Via Delhi Metro (${isSameLine ? 'Direct' : `1 Interchange at ${interchangeName}`})`
+    : cityId === 'mumbai'
+      ? `Via Mumbai Local (${isSameLine ? 'Direct' : `1 Interchange at ${interchangeName}`})`
+      : `Via Namma Metro (${isSameLine ? 'Direct' : '1 Interchange at Majestic'})`;
 
   return {
     type: 'transit_metro',
-    title: `Via Namma Metro (${isSameLine ? 'Direct' : '1 Interchange at Majestic'})`,
+    title: routeTitle,
     totalDurationMinutes: Math.round(totalTime),
     totalCost: totalFare,
     totalDistanceText: formatDistance(totalDirectDistance),
-    routeCategory: isSameLine ? 'Direct Metro' : 'Metro with Interchange',
+    routeCategory: isSameLine ? 'Direct Transit' : 'Transit with Interchange',
     coordinates: fullCoordinates,
     milestones,
     originStation,
@@ -720,6 +793,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     isSameLine,
     steps,
     seniorMode,
+    cityId,
     autoAdvisory: {
       fare: legitAutoFare,
       streetQuote: streetAutoQuote,
@@ -729,11 +803,13 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       transitDurationMinutes: transitMinutes,
       moneySaved,
       timeSaved,
-      dosaCount,
-      coffeeCount,
       foodEquivalent,
-      tip: `Direct cab would cost ~₹${fullCabFare} and get stuck in city traffic (${cabTrafficMinutes} min). Metro costs only ₹${transitCost} and takes ${transitMinutes} min!`,
-      scamAlert: `Never pay street auto quotes of ₹${streetAutoQuote}+. Insist on meter (fair rate: ~₹${legitAutoFare}) or take the metro.`,
+      tip: `Direct cab would cost ~₹${fullCabFare} and get stuck in city traffic (${cabTrafficMinutes} min). ${agencyName} costs only ₹${transitCost} and takes ${transitMinutes} min!`,
+      scamAlert: cityId === 'mumbai'
+        ? `Mumbai taxis strictly follow meter by law. Meter rate: ~₹${legitAutoFare}. Suburban local train is fastest.`
+        : cityId === 'delhi'
+          ? `Never pay street quotes of ₹${streetAutoQuote}+ at railway stations. Use Delhi Metro or insist on meter (~₹${legitAutoFare}).`
+          : `Never pay street auto quotes of ₹${streetAutoQuote}+. Insist on meter (fair rate: ~₹${legitAutoFare}) or take the metro.`,
     },
   };
 }

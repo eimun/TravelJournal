@@ -10,6 +10,12 @@
 export const PURPLE_LINE = '#6c4d8f';
 export const GREEN_LINE = '#7a8a5e';
 export const BUS_LINE = '#c67139';
+export const DMRC_YELLOW = '#eab308';
+export const DMRC_BLUE = '#2563eb';
+export const DMRC_AIRPORT = '#ea580c';
+export const MUMBAI_WESTERN = '#dc2626';
+export const MUMBAI_CENTRAL = '#991b1b';
+export const MUMBAI_METRO1 = '#0284c7';
 
 // Namma Metro Purple Line (Challaghatta <-> Whitefield)
 export const PURPLE_STATIONS = [
@@ -82,6 +88,148 @@ export const GREEN_STATIONS = [
   { id: 'g27', name: 'Vajarahalli', latitude: 12.8661, longitude: 77.5469 },
   { id: 'g28', name: 'Talaghattapura', latitude: 12.8576, longitude: 77.5381 },
   { id: 'g29', name: 'Silk Institute (Kanakapura Road)', latitude: 12.8465, longitude: 77.5284 },
+];
+
+// DMRC Yellow Line (Samaypur Badli <-> Millennium City Centre Gurugram)
+export const DMRC_YELLOW_STATIONS = [
+  { id: 'del_y1', name: 'Samaypur Badli', latitude: 28.7460, longitude: 77.1350 },
+  { id: 'del_y2', name: 'Vishwavidyalaya (Delhi University)', latitude: 28.6946, longitude: 77.2137 },
+  { id: 'del_y3', name: 'Kashmere Gate (Interchange)', latitude: 28.6675, longitude: 77.2285, isInterchange: true },
+  { id: 'del_y4', name: 'Chandni Chowk (Old Delhi)', latitude: 28.6578, longitude: 77.2304 },
+  { id: 'del_y5', name: 'Chawri Bazar (Jama Masjid)', latitude: 28.6496, longitude: 77.2263 },
+  { id: 'del_y6', name: 'New Delhi (Railway & Airport Express)', latitude: 28.6429, longitude: 77.2217, isInterchange: true },
+  { id: 'del_y7', name: 'Rajiv Chowk (Connaught Place)', latitude: 28.6328, longitude: 77.2195, isInterchange: true },
+  { id: 'del_y8', name: 'Patel Chowk', latitude: 28.6232, longitude: 77.2133 },
+  { id: 'del_y9', name: 'Central Secretariat (Kartavya Path)', latitude: 28.6146, longitude: 77.2119, isInterchange: true },
+  { id: 'del_y10', name: 'Udyog Bhawan', latitude: 28.6115, longitude: 77.2120 },
+  { id: 'del_y11', name: 'Lok Kalyan Marg', latitude: 28.5998, longitude: 77.2098 },
+  { id: 'del_y12', name: 'Jor Bagh (Lodhi Gardens)', latitude: 28.5878, longitude: 77.2126 },
+  { id: 'del_y13', name: 'Dilli Haat - INA', latitude: 28.5744, longitude: 77.2097, isInterchange: true },
+  { id: 'del_y14', name: 'AIIMS (Ansari Nagar)', latitude: 28.5684, longitude: 77.2078 },
+  { id: 'del_y15', name: 'Green Park', latitude: 28.5588, longitude: 77.2057 },
+  { id: 'del_y16', name: 'Hauz Khas (Deer Park / Village)', latitude: 28.5432, longitude: 77.2064, isInterchange: true },
+  { id: 'del_y17', name: 'Malviya Nagar', latitude: 28.5284, longitude: 77.2067 },
+  { id: 'del_y18', name: 'Saket (Select Citywalk)', latitude: 28.5204, longitude: 77.2017 },
+  { id: 'del_y19', name: 'Qutab Minar', latitude: 28.5134, longitude: 77.1859 },
+  { id: 'del_y20', name: 'Chhatarpur (Temple)', latitude: 28.5065, longitude: 77.1748 },
+  { id: 'del_y21', name: 'Sultanpur', latitude: 28.4988, longitude: 77.1616 },
+  { id: 'del_y22', name: 'Ghitorni', latitude: 28.4939, longitude: 77.1492 },
+  { id: 'del_y23', name: 'Arjan Garh', latitude: 28.4808, longitude: 77.1257 },
+  { id: 'del_y24', name: 'Guru Dronacharya', latitude: 28.4819, longitude: 77.1027 },
+  { id: 'del_y25', name: 'Sikanderpur (Cyber City)', latitude: 28.4818, longitude: 77.0929, isInterchange: true },
+  { id: 'del_y26', name: 'MG Road Gurugram', latitude: 28.4797, longitude: 77.0801 },
+  { id: 'del_y27', name: 'IFFCO Chowk', latitude: 28.4721, longitude: 77.0725 },
+  { id: 'del_y28', name: 'Millennium City Centre Gurugram', latitude: 28.4593, longitude: 77.0726 },
+];
+
+// DMRC Blue Line (Dwarka Sector 21 <-> Noida Electronic City)
+export const DMRC_BLUE_STATIONS = [
+  { id: 'del_b1', name: 'Dwarka Sector 21', latitude: 28.5523, longitude: 77.0583, isInterchange: true },
+  { id: 'del_b2', name: 'Dwarka Mor', latitude: 28.6192, longitude: 77.0326 },
+  { id: 'del_b3', name: 'Uttam Nagar East', latitude: 28.6247, longitude: 77.0652 },
+  { id: 'del_b4', name: 'Janakpuri West', latitude: 28.6294, longitude: 77.0777, isInterchange: true },
+  { id: 'del_b5', name: 'Tilak Nagar', latitude: 28.6366, longitude: 77.0963 },
+  { id: 'del_b6', name: 'Subhash Nagar', latitude: 28.6398, longitude: 77.1042 },
+  { id: 'del_b7', name: 'Tagore Garden', latitude: 28.6438, longitude: 77.1132 },
+  { id: 'del_b8', name: 'Rajouri Garden', latitude: 28.6492, longitude: 77.1226, isInterchange: true },
+  { id: 'del_b9', name: 'Ramesh Nagar', latitude: 28.6517, longitude: 77.1308 },
+  { id: 'del_b10', name: 'Moti Nagar', latitude: 28.6578, longitude: 77.1425 },
+  { id: 'del_b11', name: 'Kirti Nagar', latitude: 28.6558, longitude: 77.1517, isInterchange: true },
+  { id: 'del_b12', name: 'Shadipur', latitude: 28.6519, longitude: 77.1583 },
+  { id: 'del_b13', name: 'Patel Nagar', latitude: 28.6496, longitude: 77.1687 },
+  { id: 'del_b14', name: 'Rajendra Place', latitude: 28.6425, longitude: 77.1782 },
+  { id: 'del_b15', name: 'Karol Bagh (Ghaffar Market)', latitude: 28.6441, longitude: 77.1906 },
+  { id: 'del_b16', name: 'Jhandewalan', latitude: 28.6443, longitude: 77.1999 },
+  { id: 'del_b17', name: 'RK Ashram Marg', latitude: 28.6393, longitude: 77.2091 },
+  { id: 'del_b18', name: 'Rajiv Chowk (Connaught Place)', latitude: 28.6328, longitude: 77.2195, isInterchange: true },
+  { id: 'del_b19', name: 'Barakhamba Road', latitude: 28.6298, longitude: 77.2281 },
+  { id: 'del_b20', name: 'Mandi House', latitude: 28.6258, longitude: 77.2344, isInterchange: true },
+  { id: 'del_b21', name: 'Supreme Court (Pragati Maidan)', latitude: 28.6209, longitude: 77.2435 },
+  { id: 'del_b22', name: 'Indraprastha', latitude: 28.6186, longitude: 77.2520 },
+  { id: 'del_b23', name: 'Yamuna Bank', latitude: 28.6231, longitude: 77.2687, isInterchange: true },
+  { id: 'del_b24', name: 'Akshardham (Temple)', latitude: 28.6179, longitude: 77.2798 },
+  { id: 'del_b25', name: 'Mayur Vihar Phase-1', latitude: 28.6053, longitude: 77.2941, isInterchange: true },
+  { id: 'del_b26', name: 'Mayur Vihar Extension', latitude: 28.5937, longitude: 77.2995 },
+  { id: 'del_b27', name: 'New Ashok Nagar', latitude: 28.5888, longitude: 77.3069 },
+  { id: 'del_b28', name: 'Noida Sector 15', latitude: 28.5852, longitude: 77.3113 },
+  { id: 'del_b29', name: 'Noida Sector 16', latitude: 28.5786, longitude: 77.3179 },
+  { id: 'del_b30', name: 'Noida Sector 18 (Atta Market)', latitude: 28.5708, longitude: 77.3261 },
+  { id: 'del_b31', name: 'Botanical Garden', latitude: 28.5644, longitude: 77.3344, isInterchange: true },
+  { id: 'del_b32', name: 'Golf Course', latitude: 28.5672, longitude: 77.3460 },
+  { id: 'del_b33', name: 'Noida City Centre', latitude: 28.5747, longitude: 77.3560 },
+  { id: 'del_b34', name: 'Noida Electronic City', latitude: 28.6277, longitude: 77.3725 },
+];
+
+// DMRC Airport Express Line (New Delhi <-> IGI Airport T3 <-> Yashobhoomi)
+export const DMRC_AIRPORT_STATIONS = [
+  { id: 'del_a1', name: 'New Delhi (Airport Express & Railway)', latitude: 28.6429, longitude: 77.2217, isInterchange: true },
+  { id: 'del_a2', name: 'Shivaji Stadium (Connaught Place)', latitude: 28.6288, longitude: 77.2118 },
+  { id: 'del_a3', name: 'Dhaula Kuan', latitude: 28.5925, longitude: 77.1627 },
+  { id: 'del_a4', name: 'Delhi Aerocity', latitude: 28.5501, longitude: 77.1206 },
+  { id: 'del_a5', name: 'IGI Airport T3', latitude: 28.5562, longitude: 77.0999 },
+  { id: 'del_a6', name: 'Yashobhoomi Dwarka Sector 25', latitude: 28.5469, longitude: 77.0436 },
+];
+
+// Mumbai Western Suburban Line (Churchgate <-> Dadar <-> Borivali)
+export const MUMBAI_WESTERN_STATIONS = [
+  { id: 'mum_w1', name: 'Churchgate (Terminal)', latitude: 18.9322, longitude: 72.8264 },
+  { id: 'mum_w2', name: 'Marine Lines', latitude: 18.9432, longitude: 72.8230 },
+  { id: 'mum_w3', name: 'Charni Road (Girgaon Chowpatty)', latitude: 18.9519, longitude: 72.8189 },
+  { id: 'mum_w4', name: 'Grant Road', latitude: 18.9632, longitude: 72.8159 },
+  { id: 'mum_w5', name: 'Mumbai Central', latitude: 18.9696, longitude: 72.8193, isInterchange: true },
+  { id: 'mum_w6', name: 'Mahalaxmi (Race Course / Dhobi Ghat)', latitude: 18.9827, longitude: 72.8239 },
+  { id: 'mum_w7', name: 'Lower Parel (High Street Phoenix)', latitude: 18.9953, longitude: 72.8302 },
+  { id: 'mum_w8', name: 'Prabhadevi', latitude: 19.0069, longitude: 72.8348 },
+  { id: 'mum_w9', name: 'Dadar Western (Interchange)', latitude: 19.0178, longitude: 72.8431, isInterchange: true },
+  { id: 'mum_w10', name: 'Matunga Road', latitude: 19.0286, longitude: 72.8464 },
+  { id: 'mum_w11', name: 'Mahim Junction', latitude: 19.0409, longitude: 72.8437 },
+  { id: 'mum_w12', name: 'Bandra (Hill Road & Bandstand)', latitude: 19.0544, longitude: 72.8402 },
+  { id: 'mum_w13', name: 'Khar Road', latitude: 19.0694, longitude: 72.8379 },
+  { id: 'mum_w14', name: 'Santacruz', latitude: 19.0818, longitude: 72.8385 },
+  { id: 'mum_w15', name: 'Vile Parle (Domestic Airport)', latitude: 19.0988, longitude: 72.8439 },
+  { id: 'mum_w16', name: 'Andheri Western (Metro 1 Interchange)', latitude: 19.1197, longitude: 72.8464, isInterchange: true },
+  { id: 'mum_w17', name: 'Jogeshwari', latitude: 19.1360, longitude: 72.8488 },
+  { id: 'mum_w18', name: 'Goregaon', latitude: 19.1528, longitude: 72.8492 },
+  { id: 'mum_w19', name: 'Malad', latitude: 19.1860, longitude: 72.8485 },
+  { id: 'mum_w20', name: 'Kandivali', latitude: 19.2045, longitude: 72.8522 },
+  { id: 'mum_w21', name: 'Borivali (Terminal)', latitude: 19.2290, longitude: 72.8573 },
+];
+
+// Mumbai Central Suburban Line (CSMT <-> Dadar <-> Thane)
+export const MUMBAI_CENTRAL_STATIONS = [
+  { id: 'mum_c1', name: 'CSMT (Chhatrapati Shivaji Maharaj Terminus)', latitude: 18.9400, longitude: 72.8353 },
+  { id: 'mum_c2', name: 'Masjid Bunder', latitude: 18.9519, longitude: 72.8379 },
+  { id: 'mum_c3', name: 'Sandhurst Road', latitude: 18.9610, longitude: 72.8398 },
+  { id: 'mum_c4', name: 'Byculla (Zoo)', latitude: 18.9772, longitude: 72.8335 },
+  { id: 'mum_c5', name: 'Chinchpokli', latitude: 18.9915, longitude: 72.8329 },
+  { id: 'mum_c6', name: 'Currey Road', latitude: 18.9982, longitude: 72.8335 },
+  { id: 'mum_c7', name: 'Parel', latitude: 19.0089, longitude: 72.8389 },
+  { id: 'mum_c8', name: 'Dadar Central (Interchange)', latitude: 19.0178, longitude: 72.8478, isInterchange: true },
+  { id: 'mum_c9', name: 'Matunga', latitude: 19.0270, longitude: 72.8548 },
+  { id: 'mum_c10', name: 'Sion', latitude: 19.0444, longitude: 72.8617 },
+  { id: 'mum_c11', name: 'Kurla (Harbour Interchange)', latitude: 19.0664, longitude: 72.8790, isInterchange: true },
+  { id: 'mum_c12', name: 'Ghatkopar Central (Metro 1 Interchange)', latitude: 19.0863, longitude: 72.9081, isInterchange: true },
+  { id: 'mum_c13', name: 'Vikhroli', latitude: 19.1118, longitude: 72.9288 },
+  { id: 'mum_c14', name: 'Kanjurmarg', latitude: 19.1302, longitude: 72.9351 },
+  { id: 'mum_c15', name: 'Bhandup', latitude: 19.1444, longitude: 72.9372 },
+  { id: 'mum_c16', name: 'Mulund', latitude: 19.1726, longitude: 72.9563 },
+  { id: 'mum_c17', name: 'Thane (Terminal)', latitude: 19.1860, longitude: 72.9759 },
+];
+
+// Mumbai Metro Line 1 (Versova <-> Andheri <-> Ghatkopar)
+export const MUMBAI_METRO1_STATIONS = [
+  { id: 'mum_m1', name: 'Versova', latitude: 19.1308, longitude: 72.8214 },
+  { id: 'mum_m2', name: 'DN Nagar', latitude: 19.1272, longitude: 72.8306 },
+  { id: 'mum_m3', name: 'Azad Nagar', latitude: 19.1251, longitude: 72.8387 },
+  { id: 'mum_m4', name: 'Andheri Metro (Western Interchange)', latitude: 19.1205, longitude: 72.8465, isInterchange: true },
+  { id: 'mum_m5', name: 'Western Express Highway (WEH)', latitude: 19.1158, longitude: 72.8569 },
+  { id: 'mum_m6', name: 'Chakala (JB Nagar)', latitude: 19.1119, longitude: 72.8660 },
+  { id: 'mum_m7', name: 'Airport Road', latitude: 19.1086, longitude: 72.8744 },
+  { id: 'mum_m8', name: 'Marol Naka', latitude: 19.1065, longitude: 72.8828 },
+  { id: 'mum_m9', name: 'Saki Naka', latitude: 19.0988, longitude: 72.8887 },
+  { id: 'mum_m10', name: 'Asalpha', latitude: 19.0934, longitude: 72.8953 },
+  { id: 'mum_m11', name: 'Jagruti Nagar', latitude: 19.0898, longitude: 72.9015 },
+  { id: 'mum_m12', name: 'Ghatkopar Metro (Central Interchange)', latitude: 19.0863, longitude: 72.9081, isInterchange: true },
 ];
 
 // Curated Popular Destinations across Bengaluru for instant offline search & quick picks
@@ -243,44 +391,148 @@ export const POPULAR_DESTINATIONS = [
 ];
 
 /**
+ * Returns line display color
+ */
+export function getLineColor(line) {
+  switch (line) {
+    case 'purple': return PURPLE_LINE;
+    case 'green': return GREEN_LINE;
+    case 'dmrc_yellow': return DMRC_YELLOW;
+    case 'dmrc_blue': return DMRC_BLUE;
+    case 'dmrc_airport': return DMRC_AIRPORT;
+    case 'mumbai_western': return MUMBAI_WESTERN;
+    case 'mumbai_central': return MUMBAI_CENTRAL;
+    case 'mumbai_metro1': return MUMBAI_METRO1;
+    default: return PURPLE_LINE;
+  }
+}
+
+/**
+ * Returns line display name
+ */
+export function getLineDisplayName(line) {
+  switch (line) {
+    case 'purple': return 'Purple Line';
+    case 'green': return 'Green Line';
+    case 'dmrc_yellow': return 'Yellow Line (DMRC)';
+    case 'dmrc_blue': return 'Blue Line (DMRC)';
+    case 'dmrc_airport': return 'Airport Express (DMRC)';
+    case 'mumbai_western': return 'Western Line (Local)';
+    case 'mumbai_central': return 'Central Line (Local)';
+    case 'mumbai_metro1': return 'Metro Line 1 (Versova-Ghatkopar)';
+    default: return 'Transit Line';
+  }
+}
+
+/**
+ * Returns station array for given line
+ */
+export function getStationListForLine(line) {
+  switch (line) {
+    case 'purple': return PURPLE_STATIONS;
+    case 'green': return GREEN_STATIONS;
+    case 'dmrc_yellow': return DMRC_YELLOW_STATIONS;
+    case 'dmrc_blue': return DMRC_BLUE_STATIONS;
+    case 'dmrc_airport': return DMRC_AIRPORT_STATIONS;
+    case 'mumbai_western': return MUMBAI_WESTERN_STATIONS;
+    case 'mumbai_central': return MUMBAI_CENTRAL_STATIONS;
+    case 'mumbai_metro1': return MUMBAI_METRO1_STATIONS;
+    default: return PURPLE_STATIONS;
+  }
+}
+
+/**
+ * Detects city from coordinate latitude and longitude
+ */
+export function detectCityFromCoord(lat, lon) {
+  if (lat > 26) return 'delhi';
+  if (lat > 18 && lon < 74) return 'mumbai';
+  return 'bengaluru';
+}
+
+/**
  * Calculates real-time next train departure details from any station
  * based on current hour & day, including today's upcoming trains schedule.
  */
-export function getNextMetroDeparture(stationId, line = 'purple', targetDate = new Date()) {
+export function getNextMetroDeparture(stationId, line = 'purple', targetDate = new Date(), cityId = null) {
   const hour = targetDate.getHours();
   const minute = targetDate.getMinutes();
 
-  // Namma Metro operating hours: 05:00 to 23:15
-  const isOperating = (hour > 5 || (hour === 5 && minute >= 0)) && (hour < 23 || (hour === 23 && minute <= 15));
+  const isDelhi = cityId === 'delhi' || line.startsWith('dmrc');
+  const isMumbai = cityId === 'mumbai' || line.startsWith('mumbai');
+
+  let isOperating = false;
+  let opensAt = '05:00 AM';
+  let closesAt = '23:15 PM';
+
+  if (isDelhi) {
+    // Delhi Metro: 05:30 AM to 23:30 PM (Airport Express opens 04:45 AM)
+    opensAt = line === 'dmrc_airport' ? '04:45 AM' : '05:30 AM';
+    closesAt = '23:30 PM';
+    const startHour = line === 'dmrc_airport' ? 4 : 5;
+    const startMin = line === 'dmrc_airport' ? 45 : 30;
+    isOperating = (hour > startHour || (hour === startHour && minute >= startMin)) && (hour < 23 || (hour === 23 && minute <= 30));
+  } else if (isMumbai) {
+    // Mumbai Locals run almost around the clock: 04:00 AM to 01:30 AM
+    opensAt = '04:00 AM';
+    closesAt = '01:30 AM';
+    isOperating = hour >= 4 || hour === 0 || (hour === 1 && minute <= 30);
+  } else {
+    // Bengaluru Namma Metro: 05:00 to 23:15
+    opensAt = '05:00 AM';
+    closesAt = '23:15 PM';
+    isOperating = (hour > 5 || (hour === 5 && minute >= 0)) && (hour < 23 || (hour === 23 && minute <= 15));
+  }
 
   if (!isOperating) {
     return {
       status: 'closed',
       isOperating: false,
       nextInMinutes: null,
-      scheduledTime: 'Opens 05:00 AM',
+      scheduledTime: `Opens ${opensAt}`,
       departures: [],
       frequencyMinutes: 15,
-      frequencyLabel: 'Closed (Resumes 05:00 AM)',
-      operatingHours: '05:00 AM – 23:15 PM',
-      note: 'Metro service closed for the night. Resumes at 5:00 AM.',
+      frequencyLabel: `Closed (Resumes ${opensAt})`,
+      operatingHours: `${opensAt} – ${closesAt}`,
+      note: `Service closed for the night. Resumes at ${opensAt}.`,
     };
   }
 
-  // Peak hours: 08:00 - 11:00 & 17:00 - 20:30 (interval ~4-5 mins)
-  // Normal hours: 11:00 - 17:00 (interval ~7-8 mins)
-  // Early morning / Late night: 05:00 - 08:00 & 20:30 - 23:15 (interval ~10-12 mins)
   let frequency = 8;
   let frequencyLabel = 'Regular frequency: every 8 mins';
-  if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
-    frequency = 5;
-    frequencyLabel = 'Peak rush: every 4–5 mins';
-  } else if (hour < 8 || hour >= 21) {
-    frequency = 12;
-    frequencyLabel = 'Late evening: every 12 mins';
+
+  if (isDelhi) {
+    if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
+      frequency = 3;
+      frequencyLabel = 'Peak rush: every 3 mins (DMRC Express)';
+    } else if (hour < 7 || hour >= 22) {
+      frequency = 8;
+      frequencyLabel = 'Late evening: every 8 mins';
+    } else {
+      frequency = 5;
+      frequencyLabel = 'Regular frequency: every 5 mins';
+    }
+  } else if (isMumbai) {
+    if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
+      frequency = 4;
+      frequencyLabel = 'Super-fast rush: every 3–4 mins';
+    } else if (hour < 6 || hour >= 23) {
+      frequency = 12;
+      frequencyLabel = 'Night local: every 12 mins';
+    } else {
+      frequency = 6;
+      frequencyLabel = 'Regular frequency: every 6 mins';
+    }
+  } else {
+    if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
+      frequency = 5;
+      frequencyLabel = 'Peak rush: every 4–5 mins';
+    } else if (hour < 8 || hour >= 21) {
+      frequency = 12;
+      frequencyLabel = 'Late evening: every 12 mins';
+    }
   }
 
-  // Calculate simulated countdown based on current minutes modulo frequency
   const remainder = minute % frequency;
   const minutesUntilNext = remainder === 0 ? frequency : frequency - remainder;
 
@@ -306,9 +558,9 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
     departures,
     frequencyMinutes: frequency,
     frequencyLabel,
-    operatingHours: '05:00 AM – 23:15 PM',
-    lineColor: line === 'green' ? GREEN_LINE : PURPLE_LINE,
-    lineName: line === 'green' ? 'Green Line' : 'Purple Line',
+    operatingHours: `${opensAt} – ${closesAt}`,
+    lineColor: getLineColor(line),
+    lineName: getLineDisplayName(line),
     note: `Runs every ${frequency} min during this hour`,
   };
 }
@@ -316,7 +568,22 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
 /**
  * Calculates fare in Indian Rupees between two station indices
  */
-export function calculateMetroFare(stopCount) {
+export function calculateMetroFare(stopCount, cityId = 'bengaluru') {
+  if (cityId === 'mumbai') {
+    if (stopCount <= 3) return 5;
+    if (stopCount <= 8) return 10;
+    if (stopCount <= 15) return 15;
+    return 20;
+  }
+  if (cityId === 'delhi') {
+    if (stopCount <= 2) return 10;
+    if (stopCount <= 5) return 20;
+    if (stopCount <= 12) return 30;
+    if (stopCount <= 21) return 40;
+    if (stopCount <= 32) return 50;
+    return 60;
+  }
+  // Bengaluru default
   if (stopCount <= 1) return 10;
   if (stopCount <= 3) return 15;
   if (stopCount <= 6) return 25;
@@ -347,23 +614,70 @@ export function getDistanceBetween(lat1, lon1, lat2, lon2) {
 /**
  * Finds the nearest metro station to any coordinate
  */
-export function findNearestMetroStation(lat, lon) {
+export function findNearestMetroStation(lat, lon, cityId = null) {
+  const city = cityId || detectCityFromCoord(lat, lon);
   let best = null;
   let minDistance = Infinity;
 
-  for (const st of PURPLE_STATIONS) {
-    const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
-    if (d < minDistance) {
-      minDistance = d;
-      best = { ...st, line: 'purple', distanceMeters: Math.round(d) };
+  if (city === 'delhi') {
+    for (const st of DMRC_YELLOW_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'dmrc_yellow', city: 'delhi', distanceMeters: Math.round(d) };
+      }
     }
-  }
-
-  for (const st of GREEN_STATIONS) {
-    const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
-    if (d < minDistance) {
-      minDistance = d;
-      best = { ...st, line: 'green', distanceMeters: Math.round(d) };
+    for (const st of DMRC_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'dmrc_blue', city: 'delhi', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of DMRC_AIRPORT_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'dmrc_airport', city: 'delhi', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'mumbai') {
+    for (const st of MUMBAI_WESTERN_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'mumbai_western', city: 'mumbai', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of MUMBAI_CENTRAL_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'mumbai_central', city: 'mumbai', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of MUMBAI_METRO1_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'mumbai_metro1', city: 'mumbai', distanceMeters: Math.round(d) };
+      }
+    }
+  } else {
+    // Default to Bengaluru
+    for (const st of PURPLE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'purple', city: 'bengaluru', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of GREEN_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'green', city: 'bengaluru', distanceMeters: Math.round(d) };
+      }
     }
   }
 
@@ -371,7 +685,7 @@ export function findNearestMetroStation(lat, lon) {
 }
 
 /**
- * Returns exact transfer instructions at Majestic Interchange
+ * Returns exact transfer instructions at Majestic Interchange (Bengaluru)
  */
 export function getMajesticInterchangeGuide(fromLine, toLine) {
   if (fromLine === toLine) return null;
@@ -400,6 +714,89 @@ export function getMajesticInterchangeGuide(fromLine, toLine) {
     ],
     tip: 'Transfers are completely free inside the paid concourse.',
   };
+}
+
+/**
+ * Returns exact transfer instructions at Rajiv Chowk Interchange (Delhi)
+ */
+export function getRajivChowkInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'dmrc_yellow' && toLine === 'dmrc_blue') {
+    return {
+      title: 'Interchange at Rajiv Chowk (Yellow ⇄ Blue)',
+      steps: [
+        'Step off Yellow Line at Upper Concourse level',
+        'Look for BLUE Line directional signs and follow floor markers',
+        'Take central escalators down to Level -2 concourse',
+        'Platform 3 heads East to Noida / Vaishali; Platform 4 heads West to Dwarka Sector 21',
+        'Allow 3 to 4 minutes walking time inside the station',
+      ],
+      tip: 'Stay inside the paid concourse; transfers are free without re-tapping your smart token or card!',
+    };
+  }
+  if (fromLine === 'dmrc_blue' && toLine === 'dmrc_yellow') {
+    return {
+      title: 'Interchange at Rajiv Chowk (Blue ⇄ Yellow)',
+      steps: [
+        'Step off Blue Line train at Platform 3/4 (Level -2)',
+        'Take escalators up following YELLOW signage to Upper Concourse',
+        'Platform 1 heads South to Millennium City Centre Gurugram; Platform 2 heads North to Samaypur Badli',
+        'Allow 3 to 4 minutes transfer time',
+      ],
+      tip: 'Keep your QR ticket active for exit at your final destination.',
+    };
+  }
+  return {
+    title: 'Interchange at Rajiv Chowk',
+    steps: [
+      'Follow overhead color-coded wayfinding signs to your connecting platform',
+      'Transfers are fully seamless within the paid area',
+    ],
+    tip: 'Follow floor arrows for the fastest escalator path.',
+  };
+}
+
+/**
+ * Returns exact transfer instructions at Dadar Junction Interchange (Mumbai)
+ */
+export function getDadarInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'mumbai_western' && toLine === 'mumbai_central') {
+    return {
+      title: 'Interchange at Dadar Junction (Western ⇄ Central)',
+      steps: [
+        'Step off Western local at Platforms 1–6 (West side)',
+        'Ascend the wide Foot Overbridge (FOB) across the station',
+        'Walk toward East side to Platforms 7–14 for Central Line locals',
+        'Check indicator boards for Fast (F) vs Slow (S) trains to Thane / Kalyan',
+        'Allow 3 to 4 minutes walking time across the FOB',
+      ],
+      tip: 'Hold handrails on stairs during rush hour. Daily UTS suburban tickets are valid across both lines.',
+    };
+  }
+  return {
+    title: 'Interchange at Dadar Junction (Central ⇄ Western)',
+    steps: [
+      'Step off Central local at Platforms 7–14 (East side)',
+      'Cross via mid-station Foot Overbridge (FOB) heading West',
+      'Descend to Platforms 1–6 for Western Line locals toward Churchgate or Borivali',
+      'Check headsign indicators for Churchgate Fast locals',
+    ],
+    tip: 'Fast locals skip small stations between Dadar and Churchgate; choose slow local if stopping at Charni Road or Marine Lines.',
+  };
+}
+
+/**
+ * General multi-city interchange guide router
+ */
+export function getInterchangeGuide(cityId, fromLine, toLine) {
+  if (cityId === 'delhi' || fromLine?.startsWith('dmrc') || toLine?.startsWith('dmrc')) {
+    return getRajivChowkInterchangeGuide(fromLine, toLine);
+  }
+  if (cityId === 'mumbai' || fromLine?.startsWith('mumbai') || toLine?.startsWith('mumbai')) {
+    return getDadarInterchangeGuide(fromLine, toLine);
+  }
+  return getMajesticInterchangeGuide(fromLine, toLine);
 }
 
 /**
@@ -519,21 +916,99 @@ export const STATION_GATES = {
     ],
     defaultExit: 'Gate 1',
   },
+  // Delhi Key Stations
+  del_y7: {
+    stationName: 'Rajiv Chowk (Connaught Place)',
+    gates: [
+      { id: 'Gate 7', name: 'CP Inner Circle (B-Block)', exitFor: 'Connaught Place B & C Block, Palika Underground Market' },
+      { id: 'Gate 8', name: 'Radial Road 2', exitFor: 'Radial Road, Janpath link, Central Park' },
+      { id: 'Gate 1', name: 'Radial Road 1 / F-Block', exitFor: 'Odeon Cinema, F-Block restaurants, Kasturba Gandhi Marg' },
+    ],
+    defaultExit: 'Gate 7',
+  },
+  del_y6: {
+    stationName: 'New Delhi',
+    gates: [
+      { id: 'Gate 1', name: 'Ajmeri Gate / Railway Station', exitFor: 'Direct footbridge into New Delhi Railway Platform 16' },
+      { id: 'Gate 2', name: 'Airport Express Link', exitFor: 'Dedicated corridor to Airport Express Line concourse' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  del_y4: {
+    stationName: 'Chandni Chowk',
+    gates: [
+      { id: 'Gate 1', name: 'Chandni Chowk Main Road', exitFor: 'Paranthe Wali Gali, Gurudwara Sis Ganj, Red Fort' },
+      { id: 'Gate 3', name: 'Old Delhi Railway Station', exitFor: 'Direct underground walkway to Delhi Junction Railway' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  del_b18: {
+    stationName: 'Rajiv Chowk (Blue Line)',
+    gates: [
+      { id: 'Gate 7', name: 'CP Inner Circle', exitFor: 'Connaught Place shopping arcade' },
+      { id: 'Gate 8', name: 'Radial Road 2', exitFor: 'Palika Bazaar, Outer Circle Janpath' },
+    ],
+    defaultExit: 'Gate 7',
+  },
+  del_b15: {
+    stationName: 'Karol Bagh',
+    gates: [
+      { id: 'Gate 1', name: 'Pusa Road (Ajmal Khan Rd)', exitFor: 'Ajmal Khan Road shopping street & clothing boutiques' },
+      { id: 'Gate 2', name: 'Arya Samaj Road', exitFor: 'Ghaffar Market electronics & mobile hub' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  del_a5: {
+    stationName: 'IGI Airport T3',
+    gates: [
+      { id: 'Gate 1', name: 'Terminal 3 Arrivals', exitFor: 'Direct covered air-conditioned concourse into T3' },
+      { id: 'Gate 2', name: 'Terminal 3 Departures', exitFor: 'Escalator link to Departure Check-in Desks' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  // Mumbai Key Stations
+  mum_w1: {
+    stationName: 'Churchgate',
+    gates: [
+      { id: 'Gate 1', name: 'Veer Nariman Road', exitFor: 'Marine Drive Queens Necklace promenade, Brabourne Stadium' },
+      { id: 'Gate 2', name: 'Maharshi Karve Road', exitFor: 'Oval Maidan, High Court, Eros Cinema' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  mum_w9: {
+    stationName: 'Dadar Western',
+    gates: [
+      { id: 'Gate 1', name: 'Ranade Road (West)', exitFor: 'Dadar West Flower Market, Kirti College, Shivaji Park' },
+      { id: 'Gate 2', name: 'Mid-Station FOB', exitFor: 'Transfer to Central Line Platforms 7–14' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  mum_c1: {
+    stationName: 'CSMT',
+    gates: [
+      { id: 'Gate 1', name: 'Subway to Fort / D.N. Road', exitFor: 'Subway to Flora Fountain, Kala Ghoda, Asiatic Library' },
+      { id: 'Gate 2', name: 'Platform 1 Concourse', exitFor: 'Main heritage booking hall & long-distance trains' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  mum_c8: {
+    stationName: 'Dadar Central',
+    gates: [
+      { id: 'Gate 1', name: 'Swami Gyan Jivandas Marg (East)', exitFor: 'Dadar East, Dr. Ambedkar Road, TT Circle' },
+      { id: 'Gate 2', name: 'Mid-Station FOB', exitFor: 'Transfer to Western Line Platforms 1–6' },
+    ],
+    defaultExit: 'Gate 1',
+  },
 };
 
 /**
  * Returns platform direction and gate details for a station on a journey
  */
 export function getMetroPlatformAndGateInfo({ stationId, line, fromIdx = 0, toIdx = 1 }) {
-  const isEastboundOrSouthbound = toIdx > fromIdx;
   let platformNum = 1;
   let towardsHeadsign = '';
 
   if (line === 'purple') {
-    // Eastbound (index 0 to 35): Whitefield is index 0 in list, Challaghatta is index 35
-    // Notice PURPLE_STATIONS: index 0 is Whitefield, index 35 is Challaghatta
-    // If going from index 0 -> 35, going Towards Challaghatta (Westbound)
-    // If going from index 35 -> 0, going Towards Whitefield (Eastbound)
     if (toIdx > fromIdx) {
       platformNum = 2;
       towardsHeadsign = 'Towards Challaghatta (Westbound)';
@@ -541,14 +1016,61 @@ export function getMetroPlatformAndGateInfo({ stationId, line, fromIdx = 0, toId
       platformNum = 1;
       towardsHeadsign = 'Towards Whitefield / ITPL (Eastbound)';
     }
-  } else {
-    // Green Line: index 0 is Madavara (North), index 28 is Silk Institute (South)
+  } else if (line === 'green') {
     if (toIdx > fromIdx) {
       platformNum = 1;
       towardsHeadsign = 'Towards Silk Institute (Southbound)';
     } else {
       platformNum = 2;
       towardsHeadsign = 'Towards Madavara / Nagasandra (Northbound)';
+    }
+  } else if (line === 'dmrc_yellow') {
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Millennium City Centre Gurugram (Southbound)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Samaypur Badli (Northbound)';
+    }
+  } else if (line === 'dmrc_blue') {
+    if (toIdx > fromIdx) {
+      platformNum = 3;
+      towardsHeadsign = 'Towards Noida Electronic City / Vaishali (Eastbound)';
+    } else {
+      platformNum = 4;
+      towardsHeadsign = 'Towards Dwarka Sector 21 (Westbound)';
+    }
+  } else if (line === 'dmrc_airport') {
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards IGI Airport T3 / Yashobhoomi (Southbound)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards New Delhi Railway Station (Northbound)';
+    }
+  } else if (line === 'mumbai_western') {
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Borivali / Dahanu (Northbound / Up Local)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Churchgate (Southbound / Down Local)';
+    }
+  } else if (line === 'mumbai_central') {
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Thane / Kalyan (Northbound / Up Local)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards CSMT Terminus (Southbound / Down Local)';
+    }
+  } else if (line === 'mumbai_metro1') {
+    if (toIdx > fromIdx) {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Ghatkopar (Eastbound Metro)';
+    } else {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Versova (Westbound Metro)';
     }
   }
 
