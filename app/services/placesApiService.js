@@ -199,7 +199,7 @@ export async function fetchFoursquarePlacesRestaurants({
   if (!apiKey || !latitude || !longitude) return [];
 
   const encodedQuery = encodeURIComponent(query);
-  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&query=${encodedQuery}&limit=${limit}`;
+  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&query=${encodedQuery}&limit=${limit}&fields=fsq_id,name,location,categories,rating,stats,price,photos`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5000);

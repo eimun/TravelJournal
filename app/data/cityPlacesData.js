@@ -458,6 +458,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_sitaram',
     name: 'Sita Ram Diwan Chand',
+    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80',
     area: 'Paharganj, New Delhi',
     cuisine: 'northindian',
     rating: 4.8,
@@ -479,6 +480,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_karim',
     name: "Karim's Hotel",
+    image: 'https://images.unsplash.com/photo-1545247181-516773cae754?auto=format&fit=crop&w=800&q=80',
     area: 'Gali Kababian, Jama Masjid',
     cuisine: 'northindian',
     rating: 4.7,
@@ -502,6 +504,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_motimahal',
     name: 'Moti Mahal Delux (Original)',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
     area: 'Daryaganj, Old Delhi',
     cuisine: 'northindian',
     rating: 4.6,
@@ -524,6 +527,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_gulati',
     name: 'Gulati Restaurant',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'Pandara Road Market',
     cuisine: 'northindian',
     rating: 4.8,
@@ -546,6 +550,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_natraj',
     name: 'Natraj Dahi Bhalla Corner',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Chandni Chowk Main Road',
     cuisine: 'streetfood',
     rating: 4.8,
@@ -567,6 +572,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_kuremal',
     name: 'Kuremal Mohan Lal Kulfi',
+    image: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80',
     area: 'Sitaram Bazar, Chawri Bazar',
     cuisine: 'desserts',
     rating: 4.8,
@@ -589,6 +595,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_paranthe',
     name: 'Pandit Gaya Prasad Shiv Charan',
+    image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
     area: 'Paranthe Wali Gali, Chandni Chowk',
     cuisine: 'northindian',
     rating: 4.5,
@@ -611,6 +618,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_saravana',
     name: 'Saravana Bhavan',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Atul Grove Road, Janpath / CP',
     cuisine: 'southindian',
     rating: 4.6,
@@ -633,6 +641,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_aslam',
     name: 'Aslam Chicken',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'Matia Mahal, Jama Masjid',
     cuisine: 'northindian',
     rating: 4.7,
@@ -655,6 +664,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_wengers',
     name: "Wenger's Deli & Confectionery",
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
     area: 'A-16 Inner Circle, Connaught Place',
     cuisine: 'cafe',
     rating: 4.7,
@@ -677,6 +687,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_aljawahar',
     name: 'Al Jawahar Restaurant',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     area: 'Opp. Jama Masjid Gate 1, Old Delhi',
     cuisine: 'biryani',
     rating: 4.6,
@@ -702,6 +713,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_ashok',
     name: 'Ashok Vada Pav',
+    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
     area: 'Kashinath Dhuru Marg, Dadar West',
     cuisine: 'streetfood',
     rating: 4.9,
@@ -723,6 +735,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_sardar',
     name: 'Sardar Refreshments',
+    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
     area: 'Tardeo Road, Mumbai Central',
     cuisine: 'streetfood',
     rating: 4.7,
@@ -745,6 +758,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_kyani',
     name: 'Kyani & Co. Irani Cafe',
+    image: 'https://images.unsplash.com/photo-1561047029-3000c68339ca?auto=format&fit=crop&w=800&q=80',
     area: 'Opp. Metro Cinema, Marine Lines',
     cuisine: 'cafe',
     rating: 4.8,
@@ -768,6 +782,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_britannia',
     name: 'Britannia & Co. Restaurant',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     area: 'Wakefield House, Ballard Estate',
     cuisine: 'northindian',
     rating: 4.6,
@@ -790,6 +805,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_aram',
     name: 'Aram Milk Bar & Vada Pav',
+    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
     area: 'Capitol Cinema Bldg, Opp. CSMT',
     cuisine: 'streetfood',
     rating: 4.7,
@@ -812,6 +828,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_bademiya',
     name: 'Bademiya',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'Tulloch Road, Behind Taj Hotel, Colaba',
     cuisine: 'northindian',
     rating: 4.5,
@@ -834,6 +851,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_mahesh',
     name: 'Mahesh Lunch Home',
+    image: 'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=800&q=80',
     area: 'Cawasji Patel Street, Fort',
     cuisine: 'northindian',
     rating: 4.7,
@@ -856,6 +874,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_bachelorr',
     name: "Bachelorr's",
+    image: 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80',
     area: 'Opp. Girgaon Chowpatty Seaface',
     cuisine: 'desserts',
     rating: 4.6,
@@ -878,6 +897,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_cannon',
     name: 'Cannon Pav Bhaji',
+    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
     area: 'Opp. CSMT Railway Station, Fort',
     cuisine: 'streetfood',
     rating: 4.6,
@@ -900,6 +920,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_cafemadras',
     name: 'Café Madras',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Kamachya Chambers, Kings Circle, Matunga',
     cuisine: 'southindian',
     rating: 4.8,
@@ -922,6 +943,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_noor',
     name: 'Noor Mohammadi Hotel',
+    image: 'https://images.unsplash.com/photo-1545247181-516773cae754?auto=format&fit=crop&w=800&q=80',
     area: 'Bhendi Bazaar, Mohammad Ali Road',
     cuisine: 'biryani',
     rating: 4.7,
@@ -944,6 +966,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_mondegar',
     name: 'Café Mondegar (Mondy’s)',
+    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80',
     area: 'Metro House, Colaba Causeway',
     cuisine: 'cafe',
     rating: 4.6,

@@ -343,6 +343,7 @@ export const RESTAURANTS = [
   {
     id: 'r_vidyarthi',
     name: 'Vidyarthi Bhavan',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Gandhi Bazaar, Basavanagudi',
     cuisine: 'southindian',
     rating: 4.7,
@@ -365,6 +366,7 @@ export const RESTAURANTS = [
   {
     id: 'r_mtr',
     name: 'MTR — Mavalli Tiffin Rooms',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'Lalbagh Road, Mavalli',
     cuisine: 'southindian',
     rating: 4.6,
@@ -387,6 +389,7 @@ export const RESTAURANTS = [
   {
     id: 'r_ctr',
     name: 'CTR / Shri Sagar',
+    image: 'https://images.unsplash.com/photo-1630383249896-424e482df921?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, 7th Cross',
     cuisine: 'southindian',
     rating: 4.5,
@@ -409,6 +412,7 @@ export const RESTAURANTS = [
   {
     id: 'r_brahmin',
     name: "Brahmin's Coffee Bar",
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'Shankarapuram, Basavanagudi',
     cuisine: 'southindian',
     rating: 4.5,
@@ -430,6 +434,7 @@ export const RESTAURANTS = [
   {
     id: 'r_airlines',
     name: 'Airlines Hotel',
+    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80',
     area: 'Lavelle Road, MG Road area',
     cuisine: 'cafe',
     rating: 4.3,
@@ -452,6 +457,7 @@ export const RESTAURANTS = [
   {
     id: 'r_shivaji',
     name: 'Shivaji Military Hotel',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     area: 'Jayanagar 4th Block',
     cuisine: 'biryani',
     rating: 4.4,
@@ -474,6 +480,7 @@ export const RESTAURANTS = [
   {
     id: 'r_empire',
     name: 'Hotel Empire',
+    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=800&q=80',
     area: 'Church Street, MG Road',
     cuisine: 'biryani',
     rating: 4.1,
@@ -496,6 +503,7 @@ export const RESTAURANTS = [
   {
     id: 'r_vvpuram',
     name: 'VV Puram Food Street',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Thindi Beedi, Basavanagudi',
     cuisine: 'streetfood',
     rating: 4.6,
@@ -519,6 +527,7 @@ export const RESTAURANTS = [
   {
     id: 'r_koshy',
     name: "Koshy's",
+    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80',
     area: 'St. Marks Road',
     cuisine: 'cafe',
     rating: 4.4,
@@ -542,6 +551,7 @@ export const RESTAURANTS = [
   {
     id: 'r_taazathindi',
     name: 'Taaza Thindi',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Jayanagar 4th T Block',
     cuisine: 'southindian',
     rating: 4.3,
@@ -564,6 +574,7 @@ export const RESTAURANTS = [
   {
     id: 'r_veena',
     name: 'Veena Stores',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, 15th Cross',
     cuisine: 'southindian',
     rating: 4.4,
@@ -586,6 +597,7 @@ export const RESTAURANTS = [
   {
     id: 'r_thirdwave',
     name: 'Third Wave Coffee',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 100 Feet Road',
     cuisine: 'cafe',
     rating: 4.3,
@@ -609,6 +621,7 @@ export const RESTAURANTS = [
   {
     id: 'r_meghana',
     name: 'Meghana Foods',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     area: 'Residency Road, Central',
     cuisine: 'biryani',
     rating: 4.5,
@@ -631,6 +644,7 @@ export const RESTAURANTS = [
   {
     id: 'r_sukhniwas',
     name: 'Sukh Sagar',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
     area: 'Chowdaiah Road, Sadashivanagar',
     cuisine: 'northindian',
     rating: 4.2,
@@ -653,6 +667,7 @@ export const RESTAURANTS = [
   {
     id: 'r_truffles',
     name: 'Truffles',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
     area: 'Koramangala, 7th Block',
     cuisine: 'cafe',
     rating: 4.4,
@@ -675,6 +690,7 @@ export const RESTAURANTS = [
   {
     id: 'r_asha_sweets',
     name: 'Asha Sweets',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'JP Nagar, 5th Phase',
     cuisine: 'desserts',
     rating: 4.3,
@@ -698,6 +714,7 @@ export const RESTAURANTS = [
   {
     id: 'r_alco',
     name: 'Al\'s Cafe',
+    image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=800&q=80',
     area: 'Commercial Street',
     cuisine: 'streetfood',
     rating: 4.2,
@@ -720,6 +737,7 @@ export const RESTAURANTS = [
   {
     id: 'r_toit',
     name: 'Toit Brewpub',
+    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 100 Feet Road',
     cuisine: 'cafe',
     rating: 4.5,
@@ -742,6 +760,7 @@ export const RESTAURANTS = [
   {
     id: 'r_rameshwaram',
     name: 'Rameshwaram Cafe',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 1st Stage',
     cuisine: 'southindian',
     rating: 4.6,
@@ -764,6 +783,7 @@ export const RESTAURANTS = [
   {
     id: 'r_ammemane',
     name: 'Ammemane',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
     area: 'Saraswathipuram, Mysore Road area',
     cuisine: 'southindian',
     rating: 4.5,
@@ -786,6 +806,7 @@ export const RESTAURANTS = [
   {
     id: 'r_nagarjuna_residency',
     name: 'Nagarjuna',
+    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80',
     area: 'Residency Road, Central',
     cuisine: 'southindian',
     rating: 4.6,
@@ -808,6 +829,7 @@ export const RESTAURANTS = [
   {
     id: 'r_hole_in_the_wall',
     name: 'The Hole in the Wall Cafe',
+    image: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=800&q=80',
     area: 'Koramangala, 4th Block',
     cuisine: 'cafe',
     rating: 4.5,
@@ -830,6 +852,7 @@ export const RESTAURANTS = [
   {
     id: 'r_glen_bakehouse',
     name: 'Glen\'s Bakehouse',
+    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 12th Main',
     cuisine: 'cafe',
     rating: 4.5,
@@ -852,6 +875,7 @@ export const RESTAURANTS = [
   {
     id: 'r_iyer_mess',
     name: 'Iyer Mess',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, 8th Cross',
     cuisine: 'southindian',
     rating: 4.6,
@@ -874,6 +898,7 @@ export const RESTAURANTS = [
   {
     id: 'r_new_krishna_bhavan',
     name: 'New Krishna Bhavan',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, Opp. Sampige Theatre',
     cuisine: 'southindian',
     rating: 4.4,
@@ -896,6 +921,7 @@ export const RESTAURANTS = [
   {
     id: 'r_halli_mane',
     name: 'Halli Mane',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, 3rd Cross',
     cuisine: 'southindian',
     rating: 4.4,
@@ -918,6 +944,7 @@ export const RESTAURANTS = [
   {
     id: 'r_janatha',
     name: 'Janatha Hotel',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Malleswaram, 8th Cross',
     cuisine: 'southindian',
     rating: 4.3,
@@ -940,6 +967,7 @@ export const RESTAURANTS = [
   {
     id: 'r_corner_house_residency',
     name: 'Corner House Ice Cream',
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80',
     area: 'Residency Road, Central',
     cuisine: 'desserts',
     rating: 4.8,
@@ -962,6 +990,7 @@ export const RESTAURANTS = [
   {
     id: 'r_social_church_st',
     name: 'Church Street Social',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
     area: 'Church Street, Off Brigade Road',
     cuisine: 'cafe',
     rating: 4.4,
@@ -984,6 +1013,7 @@ export const RESTAURANTS = [
   {
     id: 'r_matteo_coffea',
     name: 'Matteo Coffea',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
     area: 'Church Street, Central',
     cuisine: 'cafe',
     rating: 4.3,
@@ -1006,6 +1036,7 @@ export const RESTAURANTS = [
   {
     id: 'r_bobs_bar_indiranagar',
     name: 'Bob\'s Bar',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 100 Feet Road',
     cuisine: 'southindian',
     rating: 4.5,
@@ -1028,6 +1059,7 @@ export const RESTAURANTS = [
   {
     id: 'r_chinita',
     name: 'Chinita Real Mexican Food',
+    image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80',
     area: 'Indiranagar, 100 Feet Road',
     cuisine: 'cafe',
     rating: 4.4,
@@ -1050,6 +1082,7 @@ export const RESTAURANTS = [
   {
     id: 'r_kota_kachori',
     name: 'Kota Kachori',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Koramangala, 5th Block',
     cuisine: 'streetfood',
     rating: 4.3,
@@ -1072,6 +1105,7 @@ export const RESTAURANTS = [
   {
     id: 'r_hari_sandwich',
     name: 'Hari Super Sandwich',
+    image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=800&q=80',
     area: 'Jayanagar, 3rd Block',
     cuisine: 'streetfood',
     rating: 4.5,
@@ -1094,6 +1128,7 @@ export const RESTAURANTS = [
   {
     id: 'r_mahalakshmi_tiffin',
     name: 'Mahalakshmi Tiffin Room (MLTR)',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Gandhi Bazaar, Basavanagudi',
     cuisine: 'southindian',
     rating: 4.4,
@@ -1116,6 +1151,7 @@ export const RESTAURANTS = [
   {
     id: 'r_vb_bakery',
     name: 'V.B. Bakery',
+    image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
     area: 'Sajjan Rao Circle, VV Puram',
     cuisine: 'desserts',
     rating: 4.6,
@@ -1138,6 +1174,7 @@ export const RESTAURANTS = [
   {
     id: 'r_albert_bakery',
     name: 'Albert Bakery',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Mosque Road, Frazer Town',
     cuisine: 'streetfood',
     rating: 4.6,
@@ -1160,6 +1197,7 @@ export const RESTAURANTS = [
   {
     id: 'r_rahhams',
     name: 'Rahhams',
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80',
     area: 'MM Road, Frazer Town',
     cuisine: 'biryani',
     rating: 4.4,
@@ -1182,6 +1220,7 @@ export const RESTAURANTS = [
   {
     id: 'r_karama',
     name: 'Karama Restaurant',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
     area: 'Mosque Road, Frazer Town',
     cuisine: 'biryani',
     rating: 4.5,
@@ -1204,6 +1243,7 @@ export const RESTAURANTS = [
   {
     id: 'r_fanoos',
     name: 'Fanoos',
+    image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=800&q=80',
     area: 'Johnson Market, Richmond Town',
     cuisine: 'streetfood',
     rating: 4.3,
@@ -1226,6 +1266,7 @@ export const RESTAURANTS = [
   {
     id: 'r_anand_sweets_commercial',
     name: 'Anand Sweets & Purani Dilli',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Commercial Street, Central',
     cuisine: 'streetfood',
     rating: 4.4,
@@ -1248,6 +1289,7 @@ export const RESTAURANTS = [
   {
     id: 'r_windmills_whitefield',
     name: 'Windmills Craftworks',
+    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80',
     area: 'EPIP Zone, Whitefield',
     cuisine: 'cafe',
     rating: 4.7,
@@ -1270,6 +1312,7 @@ export const RESTAURANTS = [
   {
     id: 'r_udupi_park_whitefield',
     name: 'Udupi Park',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
     area: 'ITPL Main Road, Whitefield',
     cuisine: 'southindian',
     rating: 4.2,
@@ -1292,6 +1335,7 @@ export const RESTAURANTS = [
   {
     id: 'r_maiyas_jayanagar',
     name: 'Maiyas',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
     area: 'Jayanagar, 4th Block',
     cuisine: 'southindian',
     rating: 4.5,
@@ -1314,6 +1358,7 @@ export const RESTAURANTS = [
   {
     id: 'r_chikkanna_tiffin',
     name: 'Chikkanna Tiffin Room',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'Cottonpet, City Market area',
     cuisine: 'southindian',
     rating: 4.5,
@@ -1336,6 +1381,7 @@ export const RESTAURANTS = [
   {
     id: 'r_shanti_sagar_rtnagar',
     name: 'Shanti Sagar',
+    image: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?auto=format&fit=crop&w=800&q=80',
     area: 'RT Nagar Main Road',
     cuisine: 'southindian',
     rating: 4.2,
@@ -1358,6 +1404,7 @@ export const RESTAURANTS = [
   {
     id: 'r_blossom_cafe',
     name: 'Blossom Book Cafe',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
     area: 'Church Street, Central',
     cuisine: 'cafe',
     rating: 4.4,
@@ -1380,6 +1427,7 @@ export const RESTAURANTS = [
   {
     id: 'r_empire_shivajinagar',
     name: 'Hotel Empire — Shivaji Nagar',
+    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&w=800&q=80',
     area: 'Russell Market, Shivaji Nagar',
     cuisine: 'biryani',
     rating: 4.3,
@@ -1402,6 +1450,7 @@ export const RESTAURANTS = [
   {
     id: 'r_subbamma_stores',
     name: 'Subbamma Stores',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'Gandhi Bazaar, Basavanagudi',
     cuisine: 'streetfood',
     rating: 4.7,
@@ -1424,6 +1473,7 @@ export const RESTAURANTS = [
   {
     id: 'r_cool_joint_jayanagar',
     name: 'Cool Joint',
+    image: 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80',
     area: 'Jayanagar, 4th Block Shopping Complex',
     cuisine: 'desserts',
     rating: 4.4,
