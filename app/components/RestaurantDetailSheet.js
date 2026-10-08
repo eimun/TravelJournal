@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
+  Image,
   Modal,
   Platform,
   Pressable,
@@ -179,6 +180,21 @@ export default function RestaurantDetailSheet() {
         </Pressable>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          {/* Hero Image Banner */}
+          {r.image ? (
+            <View style={styles.heroImageContainer}>
+              <Image source={{ uri: r.image }} style={styles.heroImage} resizeMode="cover" />
+              <View style={styles.heroOverlayGradient} />
+              {r.mustTry?.dish && (
+                <View style={styles.heroMustTryBadge}>
+                  <Text style={styles.heroMustTryBadgeText} numberOfLines={1}>
+                    ⭐ Must Try: {r.mustTry.dish}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ) : null}
+
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
@@ -358,8 +374,48 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 14,
     right: 18,
-    zIndex: 10,
-    padding: 4,
+    zIndex: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow.sm,
+  },
+  heroImageContainer: {
+    width: '100%',
+    height: 180,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    marginTop: 4,
+    marginBottom: 14,
+    backgroundColor: colors.neutral[200],
+    position: 'relative',
+    ...shadow.sm,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroOverlayGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+  },
+  heroMustTryBadge: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    backgroundColor: 'rgba(23, 23, 23, 0.85)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    maxWidth: '90%',
+  },
+  heroMustTryBadgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
   },
   content: {
     paddingHorizontal: 20,

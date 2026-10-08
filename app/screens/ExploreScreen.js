@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -279,6 +280,11 @@ export default function ExploreScreen({ contentPadding }) {
                     pressed && { transform: [{ scale: 0.97 }] },
                   ]}
                 >
+                  {r.image ? (
+                    <View style={styles.routeCardImageContainer}>
+                      <Image source={{ uri: r.image }} style={styles.routeCardImage} resizeMode="cover" />
+                    </View>
+                  ) : null}
                   <View style={styles.routeCardTopRow}>
                     <View style={styles.routeDistanceBadge}>
                       <Text style={styles.routeDistanceBadgeText} numberOfLines={1}>
@@ -355,10 +361,21 @@ export default function ExploreScreen({ contentPadding }) {
                     pressed && { transform: [{ scale: 0.97 }] },
                   ]}
                 >
-                  {isVisited && (
-                    <View style={styles.visitedBadge}>
-                      <Text style={styles.visitedBadgeText}>✓ Been here</Text>
+                  {r.image ? (
+                    <View style={styles.hotCardImageContainer}>
+                      <Image source={{ uri: r.image }} style={styles.hotCardImage} resizeMode="cover" />
+                      {isVisited && (
+                        <View style={styles.visitedBadge}>
+                          <Text style={styles.visitedBadgeText}>✓</Text>
+                        </View>
+                      )}
                     </View>
+                  ) : (
+                    isVisited && (
+                      <View style={styles.visitedBadge}>
+                        <Text style={styles.visitedBadgeText}>✓ Been here</Text>
+                      </View>
+                    )
                   )}
                   <View style={styles.hotCardCuisineTag}>
                     <Text style={styles.hotCardCuisineText}>
@@ -475,6 +492,10 @@ export default function ExploreScreen({ contentPadding }) {
                   styles.cardAccentBar,
                   { backgroundColor: open ? '#4caf50' : colors.neutral[300] }
                 ]} />
+
+                {r.image ? (
+                  <Image source={{ uri: r.image }} style={styles.cardThumbnail} resizeMode="cover" />
+                ) : null}
 
                 <View style={styles.cardBody}>
                   {/* Top row */}
@@ -699,6 +720,18 @@ const styles = StyleSheet.create({
     ...shadow.md,
     position: 'relative',
   },
+  hotCardImageContainer: {
+    height: 96,
+    borderRadius: radius.md,
+    marginBottom: 8,
+    overflow: 'hidden',
+    backgroundColor: colors.neutral[200],
+    position: 'relative',
+  },
+  hotCardImage: {
+    width: '100%',
+    height: '100%',
+  },
   visitedBadge: {
     position: 'absolute',
     top: 10,
@@ -826,6 +859,14 @@ const styles = StyleSheet.create({
   cardAccentBar: {
     width: 4,
     borderRadius: 2,
+  },
+  cardThumbnail: {
+    width: 76,
+    height: 76,
+    borderRadius: radius.md,
+    alignSelf: 'center',
+    marginLeft: 10,
+    backgroundColor: colors.neutral[200],
   },
   cardBody: {
     flex: 1,
@@ -1025,6 +1066,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(46, 43, 37, 0.08)',
     ...shadow.sm,
+  },
+  routeCardImageContainer: {
+    height: 96,
+    borderRadius: radius.sm,
+    marginBottom: 8,
+    overflow: 'hidden',
+    backgroundColor: colors.neutral[200],
+  },
+  routeCardImage: {
+    width: '100%',
+    height: '100%',
   },
   routeCardTopRow: {
     flexDirection: 'row',
