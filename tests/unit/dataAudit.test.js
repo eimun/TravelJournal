@@ -9,6 +9,10 @@ import {
   DELHI_SEARCH_HUBS,
   MUMBAI_SEARCH_HUBS,
 } from '../../app/data/cityPlacesData';
+import {
+  calculateDynamicFareMatrix,
+  getTimeSurgeContext,
+} from '../../src/domain/dynamicFare';
 
 describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
   test('Audit 1: Auto Fare formulas match government gazetted rates', () => {
@@ -157,5 +161,49 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
 
     const palace = PLACES.find((p) => p.id === 'palace');
     expect(palace.costs.find((c) => c.label.includes('Entry')).amount).toBe('₹250');
+  });
+
+  test('Audit 10: Rapido, Uber, Ola, and Cab Fare Matrix Empirical Accuracy', () => {
+    // 1. Off-Peak 3 km ride (e.g. 2:00 PM)
+    const offPeakDate = new Date('2026-09-29T14:00:00');
+    const fare3km = calculateDynamicFareMatrix(3000, offPeakDate);
+
+    // Rapido Bike: Base ₹25 + ₹8.5 * 1.5km = ~₹38
+    expect(fare3km.providers.rapidoBike.fare).toBe(38);
+    expect(fare3km.providers.rapidoBike.tag).toBe('FASTEST');
+
+    // Govt Meter: Base ₹30 + ₹15 * 1.0km = ₹45
+    expect(fare3km.providers.rtoMeter.fare).toBe(45);
+
+    // Namma Yatri (Direct, fair tip): ~₹60
+    expect(fare3km.providers.nammaYatri.fare).toBeGreaterThanOrEqual(50);
+    expect(fare3km.providers.nammaYatri.fare).toBeLessThanOrEqual(65);
+
+    // Uber / Ola Auto (Platform fee + convenience): ~₹90–₹110
+    expect(fare3km.providers.uberOla.fare).toBeGreaterThan(fare3km.providers.nammaYatri.fare);
+    expect(fare3km.providers.uberOla.fareRange).toBeDefined();
+
+    // Street Driver Quote (Offline station gate overcharge): ~₹100–₹150
+    expect(fare3km.providers.streetQuote.fare).toBeGreaterThanOrEqual(100);
+
+    // 2. Evening Peak Rush 8 km ride (e.g. 6:30 PM - Silk Board / ORR gridlock)
+    const peakDate = new Date('2026-09-29T18:30:00');
+    const fare8kmPeak = calculateDynamicFareMatrix(8000, peakDate);
+
+    // Surge active
+    expect(fare8kmPeak.surge.multiplier).toBeGreaterThanOrEqual(1.5);
+    expect(fare8kmPeak.surge.label).toContain('Peak Evening');
+
+    // Uber / Ola surge charges significantly more during rush
+    expect(fare8kmPeak.providers.uberOla.fare).toBeGreaterThan(180);
+
+    // Rapido Bike remains affordable option for solo commuters (~₹80–₹100)
+    expect(fare8kmPeak.providers.rapidoBike.fare).toBeLessThan(120);
+
+    // Rain surcharge simulation (30% additional surge)
+    const rainFare = calculateDynamicFareMatrix(8000, peakDate, { isRain: true });
+    expect(rainFare.surge.isRain).toBe(true);
+    expect(rainFare.surge.label).toContain('Rain Surcharge');
+    expect(rainFare.providers.uberOla.fare).toBeGreaterThan(fare8kmPeak.providers.uberOla.fare);
   });
 });
