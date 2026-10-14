@@ -15,6 +15,7 @@ import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 import { getDistanceBetween } from '../data/transitData';
 import { formatDistance } from '../services/locationService';
+import { AuthenticRestaurantImage } from '../screens/ExploreScreen';
 
 const PRICE_TIER_LABELS = { 1: '₹', 2: '₹₹', 3: '₹₹₹' };
 const PRICE_TIER_COLORS = {
@@ -181,19 +182,22 @@ export default function RestaurantDetailSheet() {
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           {/* Hero Image Banner */}
-          {r.image ? (
-            <View style={styles.heroImageContainer}>
-              <Image source={{ uri: r.image }} style={styles.heroImage} resizeMode="cover" />
-              <View style={styles.heroOverlayGradient} />
-              {r.mustTry?.dish && (
-                <View style={styles.heroMustTryBadge}>
-                  <Text style={styles.heroMustTryBadgeText} numberOfLines={1}>
-                    ⭐ Must Try: {r.mustTry.dish}
-                  </Text>
-                </View>
-              )}
-            </View>
-          ) : null}
+          <View style={styles.heroImageContainer}>
+            <AuthenticRestaurantImage
+              uri={r.image}
+              cuisine={r.cuisine}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroOverlayGradient} />
+            {r.mustTry?.dish && (
+              <View style={styles.heroMustTryBadge}>
+                <Text style={styles.heroMustTryBadgeText} numberOfLines={1}>
+                  ⭐ Must Try: {r.mustTry.dish}
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Header */}
           <View style={styles.header}>
@@ -347,7 +351,7 @@ export default function RestaurantDetailSheet() {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.45)',
   },
   sheet: {
@@ -399,7 +403,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heroOverlayGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.22)',
   },
   heroMustTryBadge: {

@@ -17,6 +17,39 @@ import { formatDistance } from '../services/locationService';
 
 const PRICE_TIER_LABELS = { 1: '₹', 2: '₹₹', 3: '₹₹₹' };
 
+export const AUTHENTIC_CUISINE_FALLBACKS = {
+  southindian: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=800&q=80',
+  biryani: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80',
+  streetfood: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80',
+  cafe: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80',
+  northindian: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=800&q=80',
+  desserts: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
+  dessert: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
+  continental: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+};
+
+export function AuthenticRestaurantImage({ uri, cuisine, style, resizeMode = 'cover' }) {
+  const fallback = AUTHENTIC_CUISINE_FALLBACKS[cuisine] || AUTHENTIC_CUISINE_FALLBACKS.southindian;
+  const [sourceUri, setSourceUri] = React.useState(uri || fallback);
+
+  React.useEffect(() => {
+    setSourceUri(uri || fallback);
+  }, [uri, cuisine]);
+
+  return (
+    <Image
+      source={{ uri: sourceUri }}
+      style={style}
+      resizeMode={resizeMode}
+      onError={() => {
+        if (sourceUri !== fallback) {
+          setSourceUri(fallback);
+        }
+      }}
+    />
+  );
+}
+
 const DIET_FILTERS = [
   { id: 'all', label: 'All', emoji: '🍽️' },
   { id: 'veg', label: 'Veg', emoji: '🌿' },
@@ -133,103 +166,99 @@ export default function ExploreScreen({ contentPadding }) {
         </Pressable>
       </View>
 
-      {/* ── Live Source / Provider Quick Toggle ── */}
-      <View style={styles.sourceBarContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.sourceStrip}
-        >
-          <Pressable
-            onPress={() => setSourceFilter('all')}
-            style={({ pressed }) => [
-              styles.sourceChip,
-              sourceFilter === 'all' && styles.sourceChipActive,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Text style={[styles.sourceChipText, sourceFilter === 'all' && styles.sourceChipTextActive]}>
-              🍽️ All ({(totalRestaurants || []).length})
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setSourceFilter('foursquare')}
-            style={({ pressed }) => [
-              styles.sourceChip,
-              styles.sourceChipFsq,
-              sourceFilter === 'foursquare' && styles.sourceChipFsqActive,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <View style={styles.fsqDot} />
-            <Text style={[styles.sourceChipText, styles.sourceChipFsqText, sourceFilter === 'foursquare' && styles.sourceChipFsqTextActive]}>
-              ⚡ Foursquare Live ({fsqCount})
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setSourceFilter('curated')}
-            style={({ pressed }) => [
-              styles.sourceChip,
-              sourceFilter === 'curated' && styles.sourceChipActive,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Text style={[styles.sourceChipText, sourceFilter === 'curated' && styles.sourceChipTextActive]}>
-              🏛️ Heritage Legends ({heritageCount})
-            </Text>
-          </Pressable>
-        </ScrollView>
-      </View>
-
-      {/* ── Diet Quick Filter ── */}
+      {/* ── Unified Clean Food Filters ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterStrip}
       >
-        {effectiveDietFilters.map((f) => {
-          const active = dietFilter === f.id;
-          return (
-            <Pressable
-              key={f.id}
-              onPress={() => setDietFilter(f.id)}
-              style={({ pressed }) => [
-                styles.dietChip,
-                active && styles.dietChipActive,
-                pressed && { transform: [{ scale: 0.95 }] },
-              ]}
-            >
-              <Text style={styles.dietChipEmoji}>{f.emoji}</Text>
-              <Text style={[styles.dietChipText, active && styles.dietChipTextActive]}>
-                {f.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+        {routeEateries && routeEateries.length > 0 && (
+          <Pressable
+            onPress={() => {
+              setDietFilter(dietFilter === 'route' ? 'all' : 'route');
+              setCuisineFilter('all');
+            }}
+            style={({ pressed }) => [
+              styles.dietChip,
+              dietFilter === 'route' && styles.dietChipActive,
+              pressed && { opacity: 0.8 },
+            ]}
+          >
+            <Text style={styles.dietChipEmoji}>🚇</Text>
+            <Text style={[styles.dietChipText, dietFilter === 'route' && styles.dietChipTextActive]}>
+              Along Route ({routeEateries.length})
+            </Text>
+          </Pressable>
+        )}
 
-      {/* ── Cuisine Category Scroll ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.cuisineStrip}
-      >
-        {CUISINE_CATEGORIES.map((cat) => {
+        <Pressable
+          onPress={() => {
+            setDietFilter('all');
+            setCuisineFilter('all');
+          }}
+          style={({ pressed }) => [
+            styles.dietChip,
+            dietFilter === 'all' && cuisineFilter === 'all' && styles.dietChipActive,
+            pressed && { opacity: 0.8 },
+          ]}
+        >
+          <Text style={styles.dietChipEmoji}>🍽️</Text>
+          <Text style={[styles.dietChipText, dietFilter === 'all' && cuisineFilter === 'all' && styles.dietChipTextActive]}>
+            All
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            setDietFilter(dietFilter === 'veg' ? 'all' : 'veg');
+            setCuisineFilter('all');
+          }}
+          style={({ pressed }) => [
+            styles.dietChip,
+            dietFilter === 'veg' && styles.dietChipActive,
+            pressed && { opacity: 0.8 },
+          ]}
+        >
+          <Text style={styles.dietChipEmoji}>🌿</Text>
+          <Text style={[styles.dietChipText, dietFilter === 'veg' && styles.dietChipTextActive]}>
+            Pure Veg
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            setDietFilter(dietFilter === 'nonveg' ? 'all' : 'nonveg');
+            setCuisineFilter('all');
+          }}
+          style={({ pressed }) => [
+            styles.dietChip,
+            dietFilter === 'nonveg' && styles.dietChipActive,
+            pressed && { opacity: 0.8 },
+          ]}
+        >
+          <Text style={styles.dietChipEmoji}>🍗</Text>
+          <Text style={[styles.dietChipText, dietFilter === 'nonveg' && styles.dietChipTextActive]}>
+            Non-veg
+          </Text>
+        </Pressable>
+
+        {CUISINE_CATEGORIES.filter((c) => c.id !== 'all').map((cat) => {
           const active = cuisineFilter === cat.id;
           return (
             <Pressable
               key={cat.id}
-              onPress={() => setCuisineFilter(cat.id)}
+              onPress={() => {
+                setCuisineFilter(active ? 'all' : cat.id);
+                setDietFilter('all');
+              }}
               style={({ pressed }) => [
-                styles.cuisineChip,
-                active && styles.cuisineChipActive,
-                pressed && { transform: [{ scale: 0.96 }] },
+                styles.dietChip,
+                active && styles.dietChipActive,
+                pressed && { opacity: 0.8 },
               ]}
             >
-              <Text style={styles.cuisineEmoji}>{cat.emoji}</Text>
-              <Text style={[styles.cuisineLabel, active && styles.cuisineLabelActive]}>
+              <Text style={styles.dietChipEmoji}>{cat.emoji}</Text>
+              <Text style={[styles.dietChipText, active && styles.dietChipTextActive]}>
                 {cat.label}
               </Text>
             </Pressable>
@@ -280,11 +309,13 @@ export default function ExploreScreen({ contentPadding }) {
                     pressed && { transform: [{ scale: 0.97 }] },
                   ]}
                 >
-                  {r.image ? (
-                    <View style={styles.routeCardImageContainer}>
-                      <Image source={{ uri: r.image }} style={styles.routeCardImage} resizeMode="cover" />
-                    </View>
-                  ) : null}
+                  <View style={styles.routeCardImageContainer}>
+                    <AuthenticRestaurantImage
+                      uri={r.image}
+                      cuisine={r.cuisine}
+                      style={styles.routeCardImage}
+                    />
+                  </View>
                   <View style={styles.routeCardTopRow}>
                     <View style={styles.routeDistanceBadge}>
                       <Text style={styles.routeDistanceBadgeText} numberOfLines={1}>
@@ -319,23 +350,7 @@ export default function ExploreScreen({ contentPadding }) {
             })}
           </ScrollView>
         </View>
-      ) : (
-        <Pressable
-          onPress={() => setTab('navigate')}
-          style={({ pressed }) => [styles.planRouteBanner, pressed && { opacity: 0.85 }]}
-        >
-          <View style={styles.planRouteIconCircle}>
-            <Text style={{ fontSize: 16 }}>🧭</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.planRouteBannerTitle}>Plan a route in Navigate tab</Text>
-            <Text style={styles.planRouteBannerSub}>
-              We will automatically show you legendary eateries along your metro stops!
-            </Text>
-          </View>
-          <Text style={styles.planRouteBannerArrow}>→</Text>
-        </Pressable>
-      )}
+      ) : null}
 
       {/* ── Hot Right Now Banner ── */}
       {hotNow.length > 0 && (
@@ -361,22 +376,18 @@ export default function ExploreScreen({ contentPadding }) {
                     pressed && { transform: [{ scale: 0.97 }] },
                   ]}
                 >
-                  {r.image ? (
-                    <View style={styles.hotCardImageContainer}>
-                      <Image source={{ uri: r.image }} style={styles.hotCardImage} resizeMode="cover" />
-                      {isVisited && (
-                        <View style={styles.visitedBadge}>
-                          <Text style={styles.visitedBadgeText}>✓</Text>
-                        </View>
-                      )}
-                    </View>
-                  ) : (
-                    isVisited && (
+                  <View style={styles.hotCardImageContainer}>
+                    <AuthenticRestaurantImage
+                      uri={r.image}
+                      cuisine={r.cuisine}
+                      style={styles.hotCardImage}
+                    />
+                    {isVisited && (
                       <View style={styles.visitedBadge}>
-                        <Text style={styles.visitedBadgeText}>✓ Been here</Text>
+                        <Text style={styles.visitedBadgeText}>✓</Text>
                       </View>
-                    )
-                  )}
+                    )}
+                  </View>
                   <View style={styles.hotCardCuisineTag}>
                     <Text style={styles.hotCardCuisineText}>
                       {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.emoji} {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.label}
@@ -411,46 +422,7 @@ export default function ExploreScreen({ contentPadding }) {
         </Text>
       </View>
 
-      {/* ── Live Places Radar & Provider Status Banner ── */}
-      <View style={styles.osmDiscoveryBanner}>
-        <View style={styles.osmIconCircle}>
-          <Text style={{ fontSize: 20 }}>⚡</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <Text style={styles.osmTitle}>Live Places Radar · {currentCity?.name || 'City'}</Text>
-            <View style={styles.fsqLivePillBadge}>
-              <View style={styles.osmLivePulseDot} />
-              <Text style={styles.fsqLivePillBadgeText}>
-                {fsqCount > 0 ? `${fsqCount} FSQ LIVE` : 'FOURSQUARE ACTIVE'}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.osmSubtitle}>
-            {fsqCount > 0
-              ? `${fsqCount} live ${currentCity?.name || 'Bengaluru'} venues loaded via Foursquare Places API. Verified open timings & transit links.`
-              : `Connecting to Foursquare & OpenStreetMap Places API for real-time live restaurants & cafes in ${currentCity?.name || 'Bengaluru'}.`}
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => fetchNearbyOsm()}
-          disabled={isFetchingOsm}
-          style={({ pressed }) => [
-            styles.osmFetchButton,
-            styles.fsqFetchButton,
-            isFetchingOsm && styles.osmFetchButtonDisabled,
-            pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] },
-          ]}
-        >
-          {isFetchingOsm ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <Text style={styles.osmFetchButtonText}>
-              {fsqCount > 0 ? '🔄 Refresh' : '⚡ Scan Live'}
-            </Text>
-          )}
-        </Pressable>
-      </View>
+
 
       {/* ── All Restaurants List ── */}
       <View style={styles.listSection}>
@@ -493,9 +465,11 @@ export default function ExploreScreen({ contentPadding }) {
                   { backgroundColor: open ? '#4caf50' : colors.neutral[300] }
                 ]} />
 
-                {r.image ? (
-                  <Image source={{ uri: r.image }} style={styles.cardThumbnail} resizeMode="cover" />
-                ) : null}
+                <AuthenticRestaurantImage
+                  uri={r.image}
+                  cuisine={r.cuisine}
+                  style={styles.cardThumbnail}
+                />
 
                 <View style={styles.cardBody}>
                   {/* Top row */}
