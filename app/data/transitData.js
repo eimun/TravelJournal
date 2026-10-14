@@ -245,7 +245,7 @@ export const POPULAR_DESTINATIONS = [
     metroLine: 'purple',
     walkMinutesFromMetro: 2,
     tip: 'Sunday is pedestrian-only inside. Take Exit A for Hudson Circle corner.',
-    autoFareQuoteWarning: 'Auto drivers ask ₹150 from Majestic; meter is ₹65.',
+    autoFareQuoteWarning: 'Auto drivers often quote ₹150 from Majestic. Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 35,
   },
   {
@@ -287,7 +287,7 @@ export const POPULAR_DESTINATIONS = [
     metroLine: 'purple',
     walkMinutesFromMetro: 3,
     tip: '12th Main cafes are 5 min walk south from Metro Exit B.',
-    autoFareQuoteWarning: 'Auto fare to 12th Main cross is ₹40 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 30,
   },
   {
@@ -301,7 +301,7 @@ export const POPULAR_DESTINATIONS = [
     metroLine: 'green',
     walkMinutesFromMetro: 18,
     tip: 'No direct metro yet! Best route: Metro to Trinity or South End Circle, then auto/BMTC bus 201.',
-    autoFareQuoteWarning: 'Auto from Trinity Metro to Koramangala 5th Block is ₹90 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 95,
   },
   {
@@ -343,7 +343,7 @@ export const POPULAR_DESTINATIONS = [
     metroLine: 'green',
     walkMinutesFromMetro: 14,
     tip: 'Only buy tickets at the interior official counter (₹250 Indian / ₹500 Foreigner).',
-    autoFareQuoteWarning: 'Auto from Mantri Square to Palace Gate is ₹50 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 75,
   },
   {

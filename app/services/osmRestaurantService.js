@@ -1,94 +1,48 @@
-import { findNearestMetroStation, getDistanceBetween } from '../data/transitData.js';
+import { describeSchedule, parseOsmOpeningHours } from '../../src/domain/openingHours';
+import { FEATURES, log, loggedFetch } from '../../src/logging';
+import { nearestStationText } from './restaurantAudit';
 
 /**
- * OpenStreetMap Overpass API Discovery Service
- * Queries live OSM Overpass nodes for restaurants, cafes, and eateries around any Bengaluru location.
+ * OpenStreetMap Overpass discovery service.
+ *
+ * Only data that exists in OpenStreetMap is returned. Fields OSM does not have
+ * (ratings, menus, prices) are left empty — the UI says "not available" instead of
+ * inventing values. Diet tags follow the OSM wiki meaning:
+ *   diet:vegetarian=only → pure veg · =yes → has veg options · =no → no veg options.
  */
 
+// Public instances from https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances
+// tried in order; each failure is logged with its status / timeout.
 const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://lz4.overpass-api.de/api/interpreter',
+  { name: 'main', url: 'https://overpass-api.de/api/interpreter' },
+  { name: 'vk_maps', url: 'https://maps.mail.ru/osm/tools/overpass/api/interpreter' },
+  { name: 'kumi', url: 'https://overpass.kumi.systems/api/interpreter' },
 ];
-
-const SIGNATURE_DISHES_BY_CUISINE = {
-  southindian: {
-    mustTry: { dish: 'Ghee Podi Masala Dosa', price: 85 },
-    topDishes: [
-      { name: 'Filter Coffee', price: 25 },
-      { name: 'Button Idli Sambar', price: 60 },
-      { name: 'Medu Vada', price: 40 },
-    ],
-  },
-  northindian: {
-    mustTry: { dish: 'Paneer Butter Masala & Naan', price: 210 },
-    topDishes: [
-      { name: 'Dal Makhani', price: 180 },
-      { name: 'Butter Garlic Naan', price: 65 },
-      { name: 'Tandoori Roti Platter', price: 120 },
-    ],
-  },
-  cafe: {
-    mustTry: { dish: 'Artisanal Cappuccino & Croissant', price: 190 },
-    topDishes: [
-      { name: 'Pour Over Coffee', price: 160 },
-      { name: 'Avocado Sourdough Toast', price: 240 },
-      { name: 'Cinnamon Roll', price: 130 },
-    ],
-  },
-  biryani: {
-    mustTry: { dish: 'Signature Bengaluru Donne Biryani', price: 230 },
-    topDishes: [
-      { name: 'Chicken Kebab (Oil Fry)', price: 160 },
-      { name: 'Mutton Chukka', price: 270 },
-      { name: 'Kshatriya Chilli Chicken', price: 210 },
-    ],
-  },
-  streetfood: {
-    mustTry: { dish: 'Special Masala Puri & Sev Puri', price: 55 },
-    topDishes: [
-      { name: 'Pani Puri (6 pcs)', price: 40 },
-      { name: 'Dahi Papdi Chaat', price: 65 },
-      { name: 'Bhel Puri', price: 50 },
-    ],
-  },
-  dessert: {
-    mustTry: { dish: 'Classic Hot Chocolate Fudge Sundae', price: 180 },
-    topDishes: [
-      { name: 'DBC (Death By Chocolate)', price: 210 },
-      { name: 'Belgian Dark Chocolate Scoop', price: 95 },
-      { name: 'Kulfi Falooda', price: 120 },
-    ],
-  },
-  continental: {
-    mustTry: { dish: 'Woodfired Sourdough Margherita', price: 340 },
-    topDishes: [
-      { name: 'Penne Alfredo with Garlic Toast', price: 290 },
-      { name: 'Crispy Truffle Fries', price: 190 },
-      { name: 'Grilled Herb Sandwich', price: 220 },
-    ],
-  },
-};
 
 export const CUISINE_AUTHENTIC_IMAGES = {
   southindian: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=800&q=80',
-  northindian: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=800&q=80',
+  northindian: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800&q=80',
   cafe: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80',
   biryani: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80',
   streetfood: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80',
   dessert: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
   desserts: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
   continental: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+  fastfood: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
+  other: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
 };
 
 /**
- * Infer app cuisine category from OSM tags
+ * Maps OSM tags to the app's cuisine categories. Returns 'other' when nothing
+ * matches rather than guessing a cuisine.
  */
 export function inferCuisine(tags = {}) {
-  const c = (tags.cuisine || '').toLowerCase();
+  // OSM uses "south_indian"; Foursquare/Google use "South Indian Restaurant" — normalise both.
+  const c = (tags.cuisine || '').toLowerCase().replace(/[\s-]+/g, '_');
   const amenity = (tags.amenity || '').toLowerCase();
   const name = (tags.name || '').toLowerCase();
 
-  if (c.includes('south_indian') || c.includes('dosa') || c.includes('idli') || c.includes('udupi') || name.includes('tiffin') || name.includes('dosa') || name.includes('bhavan')) {
+  if (c.includes('south_indian') || c.includes('dosa') || c.includes('idli') || c.includes('udupi') || name.includes('tiffin') || name.includes('dosa') || name.includes('bhavan') || name.includes('udupi')) {
     return 'southindian';
   }
   if (c.includes('biryani') || name.includes('biryani') || name.includes('military') || name.includes('donne')) {
@@ -100,216 +54,154 @@ export function inferCuisine(tags = {}) {
   if (amenity === 'cafe' || c.includes('coffee') || c.includes('tea') || c.includes('bakery') || name.includes('cafe') || name.includes('roasters') || name.includes('coffee')) {
     return 'cafe';
   }
-  if (c.includes('chaat') || c.includes('street_food') || amenity === 'fast_food' || name.includes('chaat') || name.includes('sandwich')) {
+  if (c.includes('chaat') || c.includes('street_food') || name.includes('chaat')) {
     return 'streetfood';
   }
-  if (c.includes('ice_cream') || c.includes('dessert') || c.includes('sweets') || name.includes('ice cream') || name.includes('gelato')) {
+  if (amenity === 'ice_cream' || c.includes('ice_cream') || c.includes('dessert') || c.includes('sweets') || name.includes('ice cream') || name.includes('gelato')) {
     return 'dessert';
   }
   if (c.includes('pizza') || c.includes('burger') || c.includes('italian') || c.includes('continental') || c.includes('pasta')) {
     return 'continental';
   }
-
-  return amenity === 'cafe' ? 'cafe' : 'southindian';
+  if (amenity === 'fast_food' || c.includes('sandwich') || name.includes('sandwich')) {
+    return 'fastfood';
+  }
+  return 'other';
 }
 
 /**
- * Infer dietary tags from OSM tags
+ * Diet tags from explicit OSM tags only (plus a "pure veg" claim in the name,
+ * which is the restaurant's own declaration). Unknown → empty array.
  */
-export function inferDietaryTags(tags = {}, cuisine = 'southindian') {
+export function inferDietaryTags(tags = {}) {
   const result = new Set();
-  const rawDietVeg = (tags['diet:vegetarian'] || '').toLowerCase();
-  const rawDietVegan = (tags['diet:vegan'] || '').toLowerCase();
-  const rawDietHalal = (tags['diet:halal'] || '').toLowerCase();
-  const rawCuisine = (tags.cuisine || '').toLowerCase();
+  const veg = (tags['diet:vegetarian'] || '').toLowerCase();
+  const vegan = (tags['diet:vegan'] || '').toLowerCase();
+  const halal = (tags['diet:halal'] || '').toLowerCase();
+  const jain = (tags['diet:jain'] || '').toLowerCase();
+  const cuisine = (tags.cuisine || '').toLowerCase();
   const name = (tags.name || '').toLowerCase();
 
-  const isExplicitVeg =
-    rawDietVeg === 'only' ||
-    rawDietVeg === 'yes' ||
-    rawDietVegan === 'yes' ||
-    rawCuisine === 'vegetarian' ||
-    name.includes('pure veg') ||
-    name.includes('shanti sagar') ||
-    name.includes('udupi') ||
-    name.includes('bhavan');
+  const pureVeg = veg === 'only' || vegan === 'only' || /(^|;)vegetarian($|;)/.test(cuisine) || name.includes('pure veg');
+  if (pureVeg) result.add('veg');
+  else if (veg === 'yes') result.add('veg_options');
 
-  const isExplicitHalal =
-    rawDietHalal === 'yes' ||
-    rawDietHalal === 'only' ||
-    rawCuisine.includes('halal') ||
-    name.includes('halal') ||
-    name.includes('al-') ||
-    name.includes('empire') ||
-    name.includes('rahhams');
-
-  const isJainFriendly =
-    tags['diet:jain'] === 'yes' ||
-    rawCuisine.includes('jain') ||
-    name.includes('jain') ||
-    name.includes('brahmin');
-
-  if (isExplicitVeg) {
-    result.add('veg');
-  }
-
-  if (isExplicitHalal) {
-    result.add('halal');
-    result.add('nonveg');
-  }
-
-  if (isJainFriendly) {
-    result.add('nog');
+  if (halal === 'yes' || halal === 'only') result.add('halal');
+  if (jain === 'yes' || jain === 'only') {
     result.add('jain');
-    result.add('veg');
+    result.add('nog');
   }
-
-  if (cuisine === 'biryani' || rawCuisine.includes('chicken') || rawCuisine.includes('meat') || name.includes('bar') || name.includes('brew')) {
-    result.add('nonveg');
-  }
-
-  // Sensible fallbacks
-  if (result.size === 0) {
-    if (cuisine === 'southindian' || cuisine === 'cafe' || cuisine === 'dessert') {
-      result.add('veg');
-    } else {
-      result.add('veg');
-      result.add('nonveg');
-    }
-  }
-
-  result.add('card');
-  result.add('cash');
-
   return Array.from(result);
 }
 
-/**
- * Generate deterministic rating between 4.1 and 4.7 based on node id
- */
-function getDeterministicRating(nodeId) {
-  const hash = String(nodeId).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  const rating = 4.1 + (hash % 7) * 0.1;
-  return Number(rating.toFixed(1));
+function areaFromTags(tags) {
+  return tags['addr:suburb'] || tags['addr:neighbourhood'] || tags['addr:district'] || tags['addr:street'] || null;
 }
 
-/**
- * Transform OSM node into app Restaurant schema
- */
-export function transformOsmNodeToRestaurant(node) {
+/** OSM element (node/way/relation with `out center`) → app restaurant. */
+export function transformOsmNodeToRestaurant(node, cityId) {
   const tags = node.tags || {};
-  const name = tags.name || tags['name:en'] || 'Local Bengaluru Eatery';
+  const lat = node.lat ?? node.center?.lat;
+  const lon = node.lon ?? node.center?.lon;
+  const type = node.type || 'node';
   const cuisine = inferCuisine(tags);
-  const dietTags = inferDietaryTags(tags, cuisine);
-  const rating = getDeterministicRating(node.id);
-
-  // Price Tier
-  let priceTier = 1;
-  if (tags.price_level) {
-    priceTier = Math.min(3, Math.max(1, Number(tags.price_level)));
-  } else if (cuisine === 'continental' || cuisine === 'cafe') {
-    priceTier = 2;
-  } else if (tags.amenity === 'fast_food' || cuisine === 'streetfood') {
-    priceTier = 1;
-  } else if (cuisine === 'biryani') {
-    priceTier = 2;
-  }
-
-  // Nearest Metro calculation
-  const nearestStation = findNearestMetroStation(node.lat, node.lon);
-  let nearestMetro = 'Bengaluru Metro accessible via auto';
-  if (nearestStation) {
-    const walkMins = Math.max(1, Math.round(nearestStation.distanceMeters / 80));
-    const lineName = nearestStation.line === 'purple' ? 'Purple Line' : 'Green Line';
-    nearestMetro = `${nearestStation.name} (${lineName}) · ${walkMins} min walk (${nearestStation.distanceMeters}m)`;
-  }
-
-  // Area inference
-  const suburb = tags['addr:suburb'] || tags['addr:neighbourhood'] || tags['addr:district'] || tags['addr:street'] || 'Bengaluru Urban';
-
-  // Signature Dishes
-  const dishes = SIGNATURE_DISHES_BY_CUISINE[cuisine] || SIGNATURE_DISHES_BY_CUISINE.southindian;
+  const schedule = parseOsmOpeningHours(tags.opening_hours);
 
   return {
-    id: `osm_${node.id}`,
-    name,
-    area: `${suburb} · Live OSM`,
+    id: `osm_${type}_${node.id}`,
+    name: tags.name || tags['name:en'],
+    area: areaFromTags(tags),
     cuisine,
-    rating,
-    priceTier,
-    latitude: node.lat,
-    longitude: node.lon,
-    openTime: tags.opening_hours ? '8:00' : '7:30',
-    closeTime: tags.opening_hours ? '22:30' : '23:00',
-    tags: dietTags,
-    nearestMetro,
-    image: CUISINE_AUTHENTIC_IMAGES[cuisine] || CUISINE_AUTHENTIC_IMAGES.southindian,
-    mustTry: dishes.mustTry,
-    topDishes: dishes.topDishes,
-    insiderNote: `Discovered live via OpenStreetMap (${tags.amenity || 'eatery'}). Real-time neighborhood location verified by community mappers.`,
-    established: tags.start_date ? `Since ${tags.start_date}` : 'OpenStreetMap Live',
+    cuisineRaw: tags.cuisine || null,
+    rating: null,
+    ratingSource: null,
+    priceTier: null,
+    latitude: lat,
+    longitude: lon,
+    schedule,
+    hoursText: describeSchedule(schedule) || tags.opening_hours || null,
+    rawOsmHours: tags.opening_hours || null,
+    hoursSource: tags.opening_hours ? 'OpenStreetMap' : null,
+    tags: inferDietaryTags(tags),
+    dietSource: 'OpenStreetMap',
+    nearestMetro: nearestStationText(lat, lon, cityId),
+    image: CUISINE_AUTHENTIC_IMAGES[cuisine] || CUISINE_AUTHENTIC_IMAGES.other,
+    imageIsRepresentative: true,
+    mustTry: null,
+    topDishes: [],
+    insiderNote: null,
+    established: tags.start_date ? `Since ${tags.start_date}` : null,
+    website: tags.website || tags['contact:website'] || null,
     isOsmLive: true,
+    isLive: true,
+    source: 'osm',
     osmId: node.id,
+    verification: {
+      status: 'live_osm',
+      source: 'OpenStreetMap (live)',
+      checkedAt: new Date().toISOString().slice(0, 10),
+      osmUrl: `https://www.openstreetmap.org/${type}/${node.id}`,
+    },
   };
 }
 
 /**
- * Fetch nearby restaurants from OpenStreetMap Overpass API
- * @param {Object} options
- * @param {number} options.latitude
- * @param {number} options.longitude
- * @param {number} [options.radiusMeters=2200]
- * @param {number} [options.limit=25]
- * @returns {Promise<Array>} List of formatted restaurants
+ * Fetch nearby restaurants from the OpenStreetMap Overpass API.
+ * @returns {Promise<Array>} restaurants (empty array if every endpoint failed)
  */
-export async function fetchNearbyOsmRestaurants({
-  latitude,
-  longitude,
-  radiusMeters = 2200,
-  limit = 25,
-}) {
+export async function fetchNearbyOsmRestaurants({ latitude, longitude, radiusMeters = 2200, limit = 40, cityId }) {
   if (!latitude || !longitude) {
     return [];
   }
 
-  const query = `[out:json][timeout:6];node["amenity"~"restaurant|cafe|fast_food"](around:${Math.round(radiusMeters)},${latitude},${longitude});out ${limit};`;
+  const r = Math.round(radiusMeters);
+  const query = `[out:json][timeout:18];nwr["amenity"~"^(restaurant|cafe|fast_food|ice_cream)$"]["name"](around:${r},${latitude},${longitude});out center tags ${limit};`;
 
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+  // All mirrors are queried in parallel and the first usable answer wins, so one
+  // overloaded server (504 / timeout) no longer adds its full timeout to the wait.
+  const attempt = async ({ name, url: endpoint }) => {
+    const res = await loggedFetch(endpoint, {
+      name: `overpass.${name}`,
+      feature: FEATURES.FOOD,
+      method: 'POST',
+      timeoutMs: 20000,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'TravelBuddy/1.0 (+https://github.com/eimun/TravelJournal)',
+      },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!res.ok || !res.json || !Array.isArray(res.json.elements)) throw new Error(res.error || 'bad response');
 
-    try {
-      const response = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, {
-        signal: controller.signal,
-        headers: {
-          Accept: 'application/json',
-          'User-Agent': 'TravelBuddyBengaluruApp/1.0',
-        },
-      });
+    const formatted = res.json.elements
+      .filter((el) => el && el.tags && (el.tags.name || el.tags['name:en']))
+      .map((el) => transformOsmNodeToRestaurant(el, cityId))
+      .filter((x) => Number.isFinite(x.latitude) && Number.isFinite(x.longitude));
 
-      clearTimeout(timeoutId);
+    log.info(FEATURES.FOOD, 'osm.results', {
+      endpoint,
+      raw: res.json.elements.length,
+      usable: formatted.length,
+      withHours: formatted.filter((x) => x.schedule).length,
+      withDiet: formatted.filter((x) => x.tags.length > 0).length,
+    });
+    if (formatted.length === 0) throw new Error('no usable results');
+    return formatted;
+  };
 
-      if (!response.ok) {
-        continue;
-      }
+  return firstSuccessful(OVERPASS_ENDPOINTS.map(attempt)).catch(() => []);
+}
 
-      const data = await response.json();
-      if (!data || !Array.isArray(data.elements)) {
-        continue;
-      }
-
-      const formatted = data.elements
-        .filter((node) => node && node.tags && (node.tags.name || node.tags['name:en']))
-        .map(transformOsmNodeToRestaurant);
-
-      if (formatted.length > 0) {
-        return formatted;
-      }
-    } catch (err) {
-      clearTimeout(timeoutId);
-      // Try next endpoint or fallback
-    }
-  }
-
-  return [];
+/** Resolves with the first promise that fulfils; rejects only if all reject (Promise.any). */
+function firstSuccessful(promises) {
+  return new Promise((resolve, reject) => {
+    let pending = promises.length;
+    promises.forEach((pr) =>
+      pr.then(resolve, () => {
+        pending -= 1;
+        if (pending === 0) reject(new Error('all failed'));
+      }),
+    );
+  });
 }

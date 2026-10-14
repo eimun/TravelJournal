@@ -60,3 +60,8 @@ local.properties
 .claude/
 CLAUDE.md
 AGENTS.md
+
+# Device logs pulled by scripts/logs.js (may contain location data)
+device-logs/
+# Overpass response cache used by scripts/verify-restaurants.mjs
+scripts/.cache/

@@ -205,15 +205,16 @@ describe('transitData & Routing Service', () => {
     expect(leg.modes.walk).toBeDefined();
 
     // Auto fare & duration
-    expect(leg.modes.auto.fare).toBeGreaterThanOrEqual(30);
+    expect(leg.modes.auto.fare).toBeGreaterThanOrEqual(36); // Bengaluru minimum fare
     expect(leg.modes.auto.durationMinutes).toBeLessThan(12);
 
-    // Bike Taxi fare & duration (cheaper than auto, faster)
-    expect(leg.modes.bike.fare).toBeGreaterThanOrEqual(20);
+    // Bike taxi: no government tariff in Karnataka -> no invented number
+    expect(leg.modes.bike.fare).toBeNull();
+    expect(leg.modes.bike.meta).toContain('Price set by app');
     expect(leg.modes.bike.durationMinutes).toBeLessThanOrEqual(leg.modes.auto.durationMinutes);
 
     // Cab
-    expect(leg.modes.cab.fare).toBeGreaterThanOrEqual(79);
+    expect(leg.modes.cab.fare).toBe(100); // Karnataka uniform cab fare, first 4 km
 
     // BMTC Feeder Bus (economical ₹10)
     expect(leg.modes.bus.fare).toBe(10);

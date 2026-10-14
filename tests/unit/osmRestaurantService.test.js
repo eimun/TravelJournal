@@ -24,9 +24,10 @@ describe('osmRestaurantService', () => {
       expect(inferCuisine({ name: 'Third Wave Coffee' })).toBe('cafe');
     });
 
-    it('infers streetfood for chaat/fast_food tags', () => {
+    it('infers streetfood for chaat and fastfood for fast_food tags', () => {
       expect(inferCuisine({ cuisine: 'chaat' })).toBe('streetfood');
-      expect(inferCuisine({ amenity: 'fast_food', name: 'Hari Super Sandwich' })).toBe('streetfood');
+      expect(inferCuisine({ amenity: 'fast_food', name: 'Hari Super Sandwich' })).toBe('fastfood');
+      expect(inferCuisine({ amenity: 'fast_food', name: 'Subway', cuisine: 'sandwich' })).toBe('fastfood');
     });
 
     it('infers continental for pizza or burger tags', () => {
@@ -35,24 +36,28 @@ describe('osmRestaurantService', () => {
     });
   });
 
-  describe('inferDietaryTags', () => {
-    it('detects pure vegetarian places', () => {
+  describe('inferDietaryTags (OSM wiki semantics, no guessing)', () => {
+    it('diet:vegetarian=only means pure veg', () => {
+      expect(inferDietaryTags({ 'diet:vegetarian': 'only' })).toEqual(['veg']);
+    });
+
+    it('diet:vegetarian=yes only means veg options are available', () => {
       const tags = inferDietaryTags({ 'diet:vegetarian': 'yes' });
-      expect(tags).toContain('veg');
-      expect(tags).not.toContain('nonveg');
+      expect(tags).toContain('veg_options');
+      expect(tags).not.toContain('veg');
     });
 
-    it('detects halal tags', () => {
-      const tags = inferDietaryTags({ 'diet:halal': 'yes' });
-      expect(tags).toContain('halal');
-      expect(tags).toContain('nonveg');
+    it('detects halal and jain from explicit tags', () => {
+      expect(inferDietaryTags({ 'diet:halal': 'yes' })).toContain('halal');
+      const jain = inferDietaryTags({ 'diet:jain': 'yes' });
+      expect(jain).toContain('jain');
+      expect(jain).toContain('nog');
     });
 
-    it('detects jain and no onion-garlic tags', () => {
-      const tags = inferDietaryTags({ 'diet:jain': 'yes' });
-      expect(tags).toContain('jain');
-      expect(tags).toContain('nog');
-      expect(tags).toContain('veg');
+    it('does not infer diet from restaurant names like "Empire" or "Udupi"', () => {
+      expect(inferDietaryTags({ name: 'Hotel Empire' })).toEqual([]);
+      expect(inferDietaryTags({ name: 'Udupi Upahar' })).toEqual([]);
+      expect(inferDietaryTags({ name: 'Sri Sagar Pure Veg' })).toEqual(['veg']);
     });
   });
 
@@ -72,19 +77,34 @@ describe('osmRestaurantService', () => {
       };
 
       const restaurant = transformOsmNodeToRestaurant(node);
-      expect(restaurant.id).toBe('osm_998877');
+      expect(restaurant.id).toBe('osm_node_998877');
       expect(restaurant.name).toBe('MG Road Coffee Stop');
       expect(restaurant.cuisine).toBe('cafe');
       expect(restaurant.isOsmLive).toBe(true);
       expect(restaurant.latitude).toBe(12.9754);
       expect(restaurant.longitude).toBe(77.6067);
-      expect(restaurant.rating).toBeGreaterThanOrEqual(4.0);
-      expect(restaurant.nearestMetro).toMatch(/(Line|Metro|walk)/);
-      expect(restaurant.mustTry.dish).toBeDefined();
-      expect(restaurant.mustTry.price).toBeGreaterThan(0);
-      expect(Array.isArray(restaurant.topDishes)).toBe(true);
-      expect(restaurant.topDishes.length).toBeGreaterThan(0);
-      expect(restaurant.tags).toContain('veg');
+      // OSM has no ratings or menus — they must stay empty, not be invented.
+      expect(restaurant.rating).toBeNull();
+      expect(restaurant.mustTry).toBeNull();
+      expect(restaurant.topDishes).toEqual([]);
+      expect(restaurant.nearestMetro).toMatch(/(Line|walk|auto)/);
+      expect(restaurant.tags).toEqual(['veg_options']);
+      expect(restaurant.area).toBe('MG Road');
+      expect(restaurant.verification.osmUrl).toBe('https://www.openstreetmap.org/node/998877');
+    });
+
+    it('parses real OSM opening_hours instead of assuming hours', () => {
+      const r = transformOsmNodeToRestaurant({
+        id: 1,
+        lat: 12.97,
+        lon: 77.6,
+        tags: { name: 'X', amenity: 'restaurant', opening_hours: 'Mo-Sa 07:00-22:00; Su off' },
+      });
+      expect(r.schedule[1]).toEqual([[420, 1320]]);
+      expect(r.schedule[0]).toEqual([]);
+      const none = transformOsmNodeToRestaurant({ id: 2, lat: 12.97, lon: 77.6, tags: { name: 'Y' } });
+      expect(none.schedule).toBeNull();
+      expect(none.hoursText).toBeNull();
     });
   });
 
@@ -111,7 +131,8 @@ describe('osmRestaurantService', () => {
       const originalFetch = global.fetch;
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ elements: mockElements }),
+        status: 200,
+        text: async () => JSON.stringify({ elements: mockElements }),
       });
 
       const results = await fetchNearbyOsmRestaurants({

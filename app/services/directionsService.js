@@ -22,42 +22,53 @@ import {
   detectCityFromCoord,
 } from '../data/transitData';
 import { formatDistance, estimateWalkMinutes } from './locationService';
-import { calculateDynamicFareMatrix } from '../../src/domain/dynamicFare';
+import { getFareMatrix, getOfficialFare } from './fareService';
+import { FEATURES, log, loggedFetch, reportIssue } from '../../src/logging';
 import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
 
 /**
- * Fetches real road-level geometry from OSRM road routing engine.
- * Falls back to straight line if offline or request times out.
+ * Fetches real road-level geometry from the OSRM demo server.
+ * Falls back to a straight line if offline or the request times out.
+ * Note: router.project-osrm.org is a public demo (max 1 req/s, non-commercial,
+ * no uptime guarantee) and only serves the car profile.
  */
 export async function fetchRoadPolyline(fromCoord, toCoord, mode = 'walking') {
   if (!fromCoord || !toCoord) return [];
-  try {
-    const profile = mode === 'driving' ? 'driving' : 'walking';
-    const url = `https://router.project-osrm.org/route/v1/${profile}/${fromCoord.longitude},${fromCoord.latitude};${toCoord.longitude},${toCoord.latitude}?overview=full&geometries=geojson`;
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2800);
-
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.routes && data.routes.length > 0 && data.routes[0].geometry?.coordinates) {
-        return data.routes[0].geometry.coordinates.map(([lon, lat]) => ({
-          latitude: lat,
-          longitude: lon,
-        }));
-      }
-    }
-  } catch {
-    // Fallback on network delay or offline
+  const route = await fetchOsrmRoute(fromCoord, toCoord, mode === 'driving' ? 'driving' : 'walking', 'osrm.polyline');
+  if (route && route.geometry?.coordinates?.length) {
+    return route.geometry.coordinates.map(([lon, lat]) => ({ latitude: lat, longitude: lon }));
   }
-
+  reportIssue('NAV_ROAD_GEOMETRY_FAILED', { key: mode, message: 'Straight line drawn instead of road geometry' });
   return [
     { latitude: fromCoord.latitude, longitude: fromCoord.longitude },
     { latitude: toCoord.latitude, longitude: toCoord.longitude },
   ];
+}
+
+async function fetchOsrmRoute(fromCoord, toCoord, profile, name) {
+  const url = `https://router.project-osrm.org/route/v1/${profile}/${fromCoord.longitude},${fromCoord.latitude};${toCoord.longitude},${toCoord.latitude}?overview=full&geometries=geojson`;
+  const res = await loggedFetch(url, { name, feature: FEATURES.NAV, timeoutMs: 6000 });
+  if (!res.ok || !res.json) return null;
+  if (res.json.code !== 'Ok' || !res.json.routes?.length) {
+    log.warn(FEATURES.NAV, `${name}.no_route`, { code: res.json.code, message: res.json.message });
+    return null;
+  }
+  return res.json.routes[0];
+}
+
+/**
+ * Real driving distance between two points (meters), used for meter fares.
+ * Returns null when unavailable; callers then fall back to straight-line × detour factor.
+ */
+export async function fetchRoadDistance(fromCoord, toCoord) {
+  if (!fromCoord || !toCoord) return null;
+  const route = await fetchOsrmRoute(fromCoord, toCoord, 'driving', 'osrm.distance');
+  if (!route || !Number.isFinite(route.distance)) return null;
+  log.info(FEATURES.FARE, 'road_distance.ok', {
+    meters: Math.round(route.distance),
+    durationSec: Math.round(route.duration),
+  });
+  return { meters: route.distance, durationSec: route.duration };
 }
 
 /**
@@ -73,6 +84,8 @@ export function buildConnectingLeg({
   toCoord,
   distanceMeters,
   seniorMode = false,
+  cityId = 'bengaluru',
+  roadMeters,
 }) {
   // If seniorMode is active, minimize walking to under 250m
   const isLongDistance = seniorMode ? distanceMeters > 250 : distanceMeters > 800;
@@ -84,13 +97,14 @@ export function buildConnectingLeg({
   const busMin = Math.max(5, Math.round(distanceMeters / 250) + 3);
   const cabMin = Math.max(4, Math.round(distanceMeters / 300) + 3);
 
-  const dynamicFare = calculateDynamicFareMatrix(distanceMeters, new Date());
-  const autoMeterFare = dynamicFare.providers.rtoMeter.fare;
-  const autoAppFare = dynamicFare.providers.nammaYatri.fare;
-  const autoQuoteFare = dynamicFare.providers.streetQuote.fare;
-  const bikeFare = dynamicFare.providers.rapidoBike.fare;
+  const dynamicFare = getFareMatrix(distanceMeters, new Date(), { cityId, roadMeters, where: legType || id });
+  const { auto: autoOfficial, cab: cabOfficial, bike: bikeOfficial } = dynamicFare.official;
+  const autoMeterFare = autoOfficial.fare;
+  const bikeFare = bikeOfficial.fare;
+  const cabFare = cabOfficial.fare;
   const busFare = 10;
-  const cabFare = Math.max(89, Math.round(dynamicFare.providers.uberOla.fare + 45));
+  const approx = autoOfficial.distanceSource === 'estimated' ? '~' : '';
+  const nightNote = autoOfficial.isNight ? ` (${autoOfficial.tariff.night.label})` : '';
 
   const matchedBuses = findBusesForLocation(locationName);
   const matchedBus = matchedBuses.length > 0 ? matchedBuses[0] : null;
@@ -103,16 +117,16 @@ export function buildConnectingLeg({
       icon: 'car',
       emoji: '🛺',
       durationMinutes: autoMin,
-      fare: autoAppFare,
+      fare: autoMeterFare,
       meterFare: autoMeterFare,
-      quoteFare: autoQuoteFare,
+      fareOfficial: autoOfficial,
       dynamicFare,
       title: `Auto to ${locationName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${autoMin} min · App ~₹${autoAppFare} (Meter ₹${autoMeterFare})`,
+      meta: `${formatDistance(distanceMeters)} · ~${autoMin} min · Meter ${approx}₹${autoMeterFare}${nightNote}`,
       details: seniorMode
-        ? `Senior/Family Pick: Hop into a meter auto or Namma Yatri (~${autoMin} min). Drops right at the station elevator/ramp.`
-        : `Take auto (~${autoMin} min). Namma Yatri ~₹${autoAppFare}, Uber/Ola ~${dynamicFare.providers.uberOla.fareRange || `₹${dynamicFare.providers.uberOla.fare}`}. Meter rate: ₹${autoMeterFare}.`,
-      tip: `${dynamicFare.surge.label}. Offline drivers quote ~₹${autoQuoteFare}. Use Namma Yatri or ask for meter.`,
+        ? `Senior/Family Pick: Hop into a meter auto (~${autoMin} min). Official meter fare ${approx}₹${autoMeterFare}.`
+        : `Take an auto (~${autoMin} min). Official meter fare ${approx}₹${autoMeterFare}${nightNote}. App autos set their own price.`,
+      tip: `${dynamicFare.surge.label}. Ask for the meter; app prices are usually higher than the meter.`,
     },
     bike: {
       key: 'bike',
@@ -121,10 +135,13 @@ export function buildConnectingLeg({
       emoji: '🛵',
       durationMinutes: bikeMin,
       fare: bikeFare,
-      quoteFare: bikeFare,
+      fareOfficial: bikeOfficial,
       title: `Bike Taxi to ${locationName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${bikeMin} min · ₹${bikeFare}`,
-      details: `Rapido / Uber Moto (~${bikeMin} min). Fastest option to cut through Bengaluru traffic bottlenecks.`,
+      meta: `${formatDistance(distanceMeters)} · ~${bikeMin} min · ${bikeFare === null ? 'Price set by app' : `Official ${approx}₹${bikeFare}`}`,
+      details:
+        bikeFare === null
+          ? `Rapido / Uber Moto (~${bikeMin} min). ${bikeOfficial.tariff?.legalStatus || 'No government bike-taxi tariff.'} Check the price in the app.`
+          : `Rapido / Uber Moto (~${bikeMin} min). Official bike-taxi fare ${approx}₹${bikeFare}.`,
       tip: `Wear the helmet provided. Best for single commuter with light luggage.`,
     },
     cab: {
@@ -134,10 +151,10 @@ export function buildConnectingLeg({
       emoji: '🚕',
       durationMinutes: cabMin,
       fare: cabFare,
-      quoteFare: cabFare,
+      fareOfficial: cabOfficial,
       title: `Cab to ${locationName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${cabMin} min · AC Cab ₹${cabFare}`,
-      details: `Uber / Ola / BluSmart cab (~${cabMin} min). Comfortable AC ride, best in afternoon heat, rain or with heavy luggage.`,
+      meta: `${formatDistance(distanceMeters)} · ~${cabMin} min · Official ${approx}₹${cabFare}`,
+      details: `${cabOfficial.tariff?.label || 'Cab'}: ${approx}₹${cabFare} (~${cabMin} min). ${cabOfficial.tariff?.appNote || ''}`,
       tip: `Pickups at station exit gate 2. Pre-booked cabs arrive in 3-5 min.`,
     },
     bus: {
@@ -222,6 +239,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     travelDateObj = opts.travelDate || new Date();
   }
   const seniorMode = !!opts.seniorMode;
+  const roadMeters = opts.roadDistanceMeters;
 
   const totalDirectDistance = getDistanceBetween(
     origin.latitude,
@@ -232,6 +250,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 
   const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
   const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
+  const cityId = opts.cityId || detectCityFromCoord(origin.latitude, origin.longitude) || detectCityFromCoord(destination.latitude, destination.longitude) || 'bengaluru';
 
   // Case 1: If destination is very close (less than 900 meters), direct connection is best
   if (totalDirectDistance < 900) {
@@ -265,11 +284,15 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
       seniorMode,
+      cityId,
+      roadMeters,
     });
 
-    const legitMeter = 30;
-    const directCab = 79;
-    const savings = Math.max(0, directCab - shortLeg.cost);
+    const shortAuto = getOfficialFare(cityId, 'auto', { straightMeters: totalDirectDistance, roadMeters }, 'short_hop');
+    const shortCab = getOfficialFare(cityId, 'cab', { straightMeters: totalDirectDistance, roadMeters }, 'short_hop');
+    const legitMeter = shortAuto.fare;
+    const directCab = shortCab.fare;
+    const savings = Math.max(0, (directCab || 0) - (shortLeg.cost || 0));
 
     return {
       type: 'walk_direct',
@@ -284,8 +307,9 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       seniorMode,
       autoAdvisory: {
         fare: legitMeter,
-        streetQuote: 60,
+        streetQuote: null,
         cabFare: directCab,
+        fareDistanceSource: shortAuto.distanceSource,
         cabDurationMinutes: 8,
         transitCost: shortLeg.cost,
         transitDurationMinutes: shortLeg.durationMinutes,
@@ -294,14 +318,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         dosaCount: 0,
         coffeeCount: 2,
         foodEquivalent: '2 Filter Coffees',
-        tip: 'Short distance. Walking is pleasant, or hop into a quick meter auto for ₹30.',
-        scamAlert: 'Drivers asking ₹80–₹100 for this short walk are overcharging. Ask for meter.',
+        tip: `Short distance. Walking is pleasant, or take a meter auto (official minimum ₹${shortAuto.tariff?.baseFare ?? legitMeter}).`,
+        scamAlert: `The official auto meter fare for this trip is ₹${legitMeter}. Anything far above that is not the meter rate — ask for the meter.`,
       },
     };
   }
 
-  // Detect city context
-  const cityId = opts.cityId || detectCityFromCoord(origin.latitude, origin.longitude) || detectCityFromCoord(destination.latitude, destination.longitude) || 'bengaluru';
 
   // Find nearest metro stations
   const originStation = findNearestMetroStation(origin.latitude, origin.longitude, cityId);
@@ -321,10 +343,10 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
 
   if (isSameStation || metroTooFar || !originStation || !destStation) {
     const destName = destination.name || destination.title || 'Destination';
-    const distanceKm = Math.max(0.5, totalDirectDistance / 1000);
-    const legitAutoMeter = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2) * 15));
-    const streetQuote = Math.round(legitAutoMeter * 1.85);
-    const directCab = Math.max(89, Math.round(80 + distanceKm * 22));
+    const directAuto = getOfficialFare(cityId, 'auto', { straightMeters: totalDirectDistance, roadMeters }, 'direct');
+    const directCabFare = getOfficialFare(cityId, 'cab', { straightMeters: totalDirectDistance, roadMeters }, 'direct');
+    const legitAutoMeter = directAuto.fare;
+    const directCab = directCabFare.fare;
     const autoCoords = [originCoord, destCoord];
 
     const milestones = [
@@ -354,9 +376,11 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       toCoord: destCoord,
       distanceMeters: totalDirectDistance,
       seniorMode,
+      cityId,
+      roadMeters,
     });
 
-    const savings = Math.max(0, directCab - directLeg.cost);
+    const savings = Math.max(0, (directCab || 0) - (directLeg.cost || 0));
     let foodEquivalent = '';
     let scamAlert = '';
     let tip = '';
@@ -365,20 +389,20 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       const choleCount = Math.floor(savings / 90);
       const chaiCount = Math.max(1, Math.floor((savings % 90) / 15));
       foodEquivalent = choleCount > 0 ? `${choleCount} Chole Bhature + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
-      scamAlert = `Paharganj / New Delhi station auto drivers quote ₹${streetQuote}+ without meter. Insist on meter or use Delhi Metro.`;
-      tip = `Fair CNG auto meter is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. Delhi Metro connects key hubs fastest.`;
+      scamAlert = `Official auto meter fare here is ₹${legitAutoMeter}. Station touts often quote far more without the meter — insist on the meter or use Delhi Metro.`;
+      tip = `Auto meter fare: ₹${legitAutoMeter}. Metered taxi: ₹${directCab}. Delhi Metro connects key hubs fastest.`;
     } else if (cityId === 'mumbai') {
       const vadaCount = Math.floor(savings / 25);
       const chaiCount = Math.max(1, Math.floor((savings % 25) / 15));
       foodEquivalent = vadaCount > 0 ? `${vadaCount} Ashok Vada Pavs + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
       scamAlert = `Mumbai taxis and autos strictly run by meter by law! Never agree to fixed street quotes.`;
-      tip = `Fair meter rate is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. Suburban local train costs just ₹5–₹10.`;
+      tip = `Auto meter fare: ₹${legitAutoMeter}. Kaali-peeli taxi meter: ₹${directCab}. Suburban local trains are much cheaper.`;
     } else {
       const dosaCount = Math.floor(savings / 85);
       const coffeeCount = Math.max(1, Math.floor((savings % 85) / 20));
       foodEquivalent = dosaCount > 0 ? `${dosaCount} Benne Dosas + ${coffeeCount} Filter Coffees` : `${coffeeCount} Filter Coffees`;
-      scamAlert = `Drivers at major spots quote ₹${streetQuote}+ without meter. Always ask for meter.`;
-      tip = `Fair meter fare is ~₹${legitAutoMeter}. Direct cab is ~₹${directCab}. If street auto asks more than ₹${streetQuote}, insist on meter or book via Namma Yatri.`;
+      scamAlert = `Official auto meter fare here is ₹${legitAutoMeter}. Drivers at busy spots often quote more without the meter — ask for the meter.`;
+      tip = `Auto meter fare: ₹${legitAutoMeter}. Official cab fare: ₹${directCab}. App autos set their own price.`;
     }
 
     return {
@@ -394,8 +418,9 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       seniorMode,
       autoAdvisory: {
         fare: legitAutoMeter,
-        streetQuote,
+        streetQuote: null,
         cabFare: directCab,
+        fareDistanceSource: directAuto.distanceSource,
         cabDurationMinutes: directLeg.durationMinutes + 5,
         transitCost: directLeg.cost,
         transitDurationMinutes: directLeg.durationMinutes,
@@ -444,6 +469,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     toCoord: originStationCoord,
     distanceMeters: walkToOriginStationMeters,
     seniorMode,
+    cityId,
   });
   totalTime += firstMileStep.durationMinutes;
   totalFare += firstMileStep.cost;
@@ -719,6 +745,7 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     toCoord: destCoord,
     distanceMeters: walkFromDestStationMeters,
     seniorMode,
+    cityId,
   });
   totalTime += lastMileStep.durationMinutes;
   totalFare += lastMileStep.cost;
@@ -743,9 +770,10 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
   });
 
   const distanceKm = Math.max(1, totalDirectDistance / 1000);
-  const legitAutoFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2) * 15));
-  const streetAutoQuote = Math.round(legitAutoFare * 1.85);
-  const fullCabFare = Math.max(149, Math.round(110 + distanceKm * 25));
+  const metroCompareAuto = getOfficialFare(cityId, 'auto', { straightMeters: totalDirectDistance, roadMeters }, 'metro_compare');
+  const metroCompareCab = getOfficialFare(cityId, 'cab', { straightMeters: totalDirectDistance, roadMeters }, 'metro_compare');
+  const legitAutoFare = metroCompareAuto.fare;
+  const fullCabFare = metroCompareCab.fare;
   const cabTrafficMinutes = Math.max(20, Math.round(distanceKm * 3.6) + 12);
 
   const transitCost = totalFare;
@@ -796,20 +824,21 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     cityId,
     autoAdvisory: {
       fare: legitAutoFare,
-      streetQuote: streetAutoQuote,
+      streetQuote: null,
       cabFare: fullCabFare,
+      fareDistanceSource: metroCompareAuto.distanceSource,
       cabDurationMinutes: cabTrafficMinutes,
       transitCost,
       transitDurationMinutes: transitMinutes,
       moneySaved,
       timeSaved,
       foodEquivalent,
-      tip: `Direct cab would cost ~₹${fullCabFare} and get stuck in city traffic (${cabTrafficMinutes} min). ${agencyName} costs only ₹${transitCost} and takes ${transitMinutes} min!`,
+      tip: `A cab at the official fare would cost ₹${fullCabFare} (~${cabTrafficMinutes} min in traffic). ${agencyName} costs ₹${transitCost} and takes ${transitMinutes} min.`,
       scamAlert: cityId === 'mumbai'
-        ? `Mumbai taxis strictly follow meter by law. Meter rate: ~₹${legitAutoFare}. Suburban local train is fastest.`
+        ? `Mumbai autos and taxis must run by meter. Auto meter fare: ₹${legitAutoFare}.`
         : cityId === 'delhi'
-          ? `Never pay street quotes of ₹${streetAutoQuote}+ at railway stations. Use Delhi Metro or insist on meter (~₹${legitAutoFare}).`
-          : `Never pay street auto quotes of ₹${streetAutoQuote}+. Insist on meter (fair rate: ~₹${legitAutoFare}) or take the metro.`,
+          ? `Official auto meter fare: ₹${legitAutoFare}. Insist on the meter at railway stations.`
+          : `Official auto meter fare: ₹${legitAutoFare}. Insist on the meter or take the metro.`,
     },
   };
 }
@@ -821,30 +850,27 @@ export function planDirectAutoRoute(origin, destination, distanceMeters, cityId 
   const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
   const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
   const destName = destination.name || destination.title || 'Destination';
-  const distanceKm = Math.max(0.5, distanceMeters / 1000);
-
-  let legitMeterFare = 30;
-  if (cityId === 'delhi') {
-    legitMeterFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 1.5) * 11));
-  } else if (cityId === 'mumbai') {
-    legitMeterFare = Math.max(23, Math.round(23 + Math.max(0, distanceKm - 1.5) * 15.33));
-  } else {
-    // Bengaluru
-    legitMeterFare = Math.max(30, Math.round(30 + Math.max(0, distanceKm - 2.0) * 15));
-  }
-  const streetQuote = Math.round(legitMeterFare * 1.7);
-  const rideMin = Math.max(4, Math.round(distanceKm * 3.2));
+  const roadMeters = opts.roadDistanceMeters;
+  const autoFare = getOfficialFare(cityId, 'auto', { straightMeters: distanceMeters, roadMeters }, 'route_auto');
+  const cabCompare = getOfficialFare(cityId, 'cab', { straightMeters: distanceMeters, roadMeters }, 'route_auto');
+  const legitMeterFare = autoFare.fare;
+  const distanceKm = autoFare.distanceKm || Math.max(0.5, distanceMeters / 1000);
+  const approx = autoFare.distanceSource === 'estimated' ? '~' : '';
+  const nightNote = autoFare.isNight ? ` · ${autoFare.tariff.night.label}` : '';
+  const rideMin = opts.roadDurationSec
+    ? Math.max(4, Math.round(opts.roadDurationSec / 60))
+    : Math.max(4, Math.round(distanceKm * 3.2));
   const totalMin = rideMin + 3;
 
   const steps = [
     {
       id: 'auto_hail',
       type: 'walk',
-      title: 'Hail Auto / Namma Yatri',
-      meta: 'Pickup at doorstep · 2-3 min',
+      title: 'Hail a meter auto',
+      meta: 'Street auto or app booking · 2-3 min',
       cost: 0,
       durationMinutes: 3,
-      description: 'Hop into a street meter auto or book via Namma Yatri / Uber Auto.',
+      description: 'Ask for the meter. App autos (Uber / Ola / Rapido / Namma Yatri) set their own price, usually above the meter.',
       fromCoord: originCoord,
       toCoord: originCoord,
       coordinates: [originCoord, originCoord],
@@ -853,7 +879,7 @@ export function planDirectAutoRoute(origin, destination, distanceMeters, cityId 
       id: 'auto_ride',
       type: 'auto',
       title: `Auto to ${destName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${rideMin} min · Meter ₹${legitMeterFare}`,
+      meta: `${autoFare.distanceSource === 'road' ? `${distanceKm} km by road` : `~${distanceKm} km road (est.)`} · ~${rideMin} min · Meter ${approx}₹${legitMeterFare}${nightNote}`,
       cost: legitMeterFare,
       durationMinutes: rideMin,
       description: 'Direct street ride via main roads without metro stairs or line transfers. Insist on meter or use app.',
@@ -889,7 +915,8 @@ export function planDirectAutoRoute(origin, destination, distanceMeters, cityId 
     title: `Direct Auto to ${destName}`,
     totalDurationMinutes: totalMin,
     totalCost: legitMeterFare,
-    totalDistanceText: formatDistance(distanceMeters),
+    totalDistanceText: roadMeters ? `${formatDistance(roadMeters)} by road` : formatDistance(distanceMeters),
+    fareDetail: autoFare,
     routeCategory: 'Direct Auto (Door-to-Door)',
     coordinates: [originCoord, destCoord],
     milestones,
@@ -897,32 +924,37 @@ export function planDirectAutoRoute(origin, destination, distanceMeters, cityId 
     cityId,
     autoAdvisory: {
       fare: legitMeterFare,
-      streetQuote,
-      cabFare: Math.max(89, Math.round(80 + distanceKm * 22)),
-      tip: `Meter rate: ₹${legitMeterFare}. For short distances under 5 km, direct auto is much faster than multi-leg metro.`,
-      scamAlert: `If street auto asks for ₹${streetQuote}+, insist on meter or book Namma Yatri.`,
+      streetQuote: null,
+      cabFare: cabCompare.fare,
+      fareDistanceSource: autoFare.distanceSource,
+      tip: `Official meter fare: ${approx}₹${legitMeterFare} (${autoFare.breakdown?.base}, ${autoFare.breakdown?.perKm}).`,
+      scamAlert: `If a driver refuses the meter, the fair price is still ${approx}₹${legitMeterFare}.`,
     },
   };
 }
 
 /**
- * Direct AC Cab route (Uber / Ola / BluSmart)
+ * Direct cab route — official cab / taxi tariff of the city.
  */
 export function planDirectCabRoute(origin, destination, distanceMeters, cityId = 'bengaluru', opts = {}) {
   const originCoord = { latitude: origin.latitude, longitude: origin.longitude };
   const destCoord = { latitude: destination.latitude, longitude: destination.longitude };
   const destName = destination.name || destination.title || 'Destination';
-  const distanceKm = Math.max(0.5, distanceMeters / 1000);
-
-  const cabFare = Math.max(89, Math.round(75 + distanceKm * 22));
-  const driveMin = Math.max(5, Math.round(distanceKm * 3.6));
+  const roadMeters = opts.roadDistanceMeters;
+  const cabOfficial = getOfficialFare(cityId, 'cab', { straightMeters: distanceMeters, roadMeters }, 'route_cab');
+  const cabFare = cabOfficial.fare;
+  const distanceKm = cabOfficial.distanceKm || Math.max(0.5, distanceMeters / 1000);
+  const approx = cabOfficial.distanceSource === 'estimated' ? '~' : '';
+  const driveMin = opts.roadDurationSec
+    ? Math.max(5, Math.round(opts.roadDurationSec / 60))
+    : Math.max(5, Math.round(distanceKm * 3.6));
   const totalMin = driveMin + 5;
 
   const steps = [
     {
       id: 'cab_pickup',
       type: 'walk',
-      title: 'Book AC Cab (Uber / BluSmart)',
+      title: 'Book a cab (Uber / Ola / taxi)',
       meta: 'Pickup at doorstep · 4-5 min wait',
       cost: 0,
       durationMinutes: 5,
@@ -935,10 +967,10 @@ export function planDirectCabRoute(origin, destination, distanceMeters, cityId =
       id: 'cab_drive',
       type: 'cab',
       title: `AC Cab to ${destName}`,
-      meta: `${formatDistance(distanceMeters)} · ~${driveMin} min · ~₹${cabFare}`,
+      meta: `${cabOfficial.distanceSource === 'road' ? `${distanceKm} km by road` : `~${distanceKm} km road (est.)`} · ~${driveMin} min · Official ${approx}₹${cabFare}`,
       cost: cabFare,
       durationMinutes: driveMin,
-      description: 'Air-conditioned direct ride via main arterial roads & flyovers. Perfect for hot weather, rain or luggage.',
+      description: `${cabOfficial.tariff?.label || 'Cab'}: ${cabOfficial.breakdown?.base}, ${cabOfficial.breakdown?.perKm}. ${cabOfficial.tariff?.appNote || ''}`,
       fromCoord: originCoord,
       toCoord: destCoord,
       coordinates: [originCoord, destCoord],
@@ -971,7 +1003,8 @@ export function planDirectCabRoute(origin, destination, distanceMeters, cityId =
     title: `Direct Cab to ${destName}`,
     totalDurationMinutes: totalMin,
     totalCost: cabFare,
-    totalDistanceText: formatDistance(distanceMeters),
+    totalDistanceText: roadMeters ? `${formatDistance(roadMeters)} by road` : formatDistance(distanceMeters),
+    fareDetail: cabOfficial,
     routeCategory: 'Direct Cab (AC Comfort)',
     coordinates: [originCoord, destCoord],
     milestones,
@@ -979,10 +1012,11 @@ export function planDirectCabRoute(origin, destination, distanceMeters, cityId =
     cityId,
     autoAdvisory: {
       fare: cabFare,
-      streetQuote: cabFare,
+      streetQuote: null,
       cabFare,
-      tip: 'Comfortable AC ride door-to-door. Heavy luggage & bad weather friendly.',
-      scamAlert: 'Fixed app upfront pricing via Uber / BluSmart / Ola.',
+      fareDistanceSource: cabOfficial.distanceSource,
+      tip: 'Door-to-door ride. Good for luggage and bad weather.',
+      scamAlert: cabOfficial.tariff?.appNote || 'App cab prices are set by the app.',
     },
   };
 }
@@ -1094,8 +1128,8 @@ export function planDirectBusRoute(origin, destination, distanceMeters, cityId =
     cityId,
     autoAdvisory: {
       fare: busFare,
-      streetQuote: busFare,
-      cabFare: Math.max(89, Math.round(80 + distanceKm * 22)),
+      streetQuote: null,
+      cabFare: getOfficialFare(cityId, 'cab', { straightMeters: distanceMeters, roadMeters: opts.roadDistanceMeters }, 'route_bus').fare,
       tip: `Cheapest way to travel across ${cityId}. Pass holders travel free.`,
       scamAlert: `Official ticket is strictly ₹${busFare}. Collect physical ticket from conductor.`,
     },
@@ -1131,6 +1165,10 @@ export function planMultimodalRoutes(origin, destination, departureTime = new Da
   const autoRoute = planDirectAutoRoute(origin, destination, totalDirectDistance, cityId, opts);
   const cabRoute = planDirectCabRoute(origin, destination, totalDirectDistance, cityId, opts);
   const busRoute = planDirectBusRoute(origin, destination, totalDirectDistance, cityId, opts);
+
+  const tripDistanceText = opts.roadDistanceMeters
+    ? `${formatDistance(opts.roadDistanceMeters)} by road`
+    : formatDistance(totalDirectDistance);
 
   // Short trip (< 4.5km): Direct Auto is fastest
   const isShortDistance = totalDirectDistance < 4500;
@@ -1192,12 +1230,14 @@ export function planMultimodalRoutes(origin, destination, departureTime = new Da
     origin,
     destination,
     distanceMeters: totalDirectDistance,
-    distanceKm: parseFloat(distanceKm.toFixed(1)),
+    // Road km when OSRM answered, otherwise straight-line km (distanceIsRoad says which).
+    distanceKm: parseFloat(((opts.roadDistanceMeters || totalDirectDistance) / 1000).toFixed(1)),
+    distanceIsRoad: Boolean(opts.roadDistanceMeters),
     isShortDistance,
     recommendedMode,
     recommendationReason: isShortDistance
-      ? `Short trip (${formatDistance(totalDirectDistance)}): Direct auto takes ~${autoRoute.totalDurationMinutes} min, avoiding metro stairs and transfer delays.`
-      : `Long trip (${formatDistance(totalDirectDistance)}): Metro rail avoids road traffic jams and saves money vs cab.`,
+      ? `Short trip (${tripDistanceText}): Direct auto takes ~${autoRoute.totalDurationMinutes} min, avoiding metro stairs and transfer delays.`
+      : `Long trip (${tripDistanceText}): Metro rail avoids road traffic jams and saves money vs cab.`,
     routes: {
       metro: metroRoute,
       auto: autoRoute,
@@ -1229,7 +1269,12 @@ export async function enrichRouteWithRealRoads(baseRoute) {
       step.type === 'direct_auto' ||
       step.type === 'direct_cab' ||
       step.type === 'direct_bus';
-    if (isConnect && step.fromCoord && step.toCoord) {
+    const zeroLength =
+      step.fromCoord &&
+      step.toCoord &&
+      step.fromCoord.latitude === step.toCoord.latitude &&
+      step.fromCoord.longitude === step.toCoord.longitude;
+    if (isConnect && step.fromCoord && step.toCoord && !zeroLength) {
       const mode = (step.selectedMode === 'walk' || step.type === 'walk') ? 'walking' : 'driving';
       const roadCoords = await fetchRoadPolyline(step.fromCoord, step.toCoord, mode);
       if (roadCoords && roadCoords.length > 2) {

@@ -10,6 +10,14 @@ import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import DynamicAutoFareCard from './DynamicAutoFareCard';
 import BmtcBusScheduleModal from './BmtcBusScheduleModal';
 import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
+import { formatDistance, estimateWalkMinutes } from '../services/locationService';
+
+function fareLabel(m) {
+  if (m.fare === null || m.fare === undefined) return m.key === 'walk' ? 'Free' : 'App price';
+  if (m.fare === 0) return 'Free';
+  const approx = m.fareOfficial && m.fareOfficial.distanceSource === 'estimated' ? '~' : '';
+  return approx + '₹' + m.fare;
+}
 
 export default function ConnectingLegSelector({
   step,
@@ -37,6 +45,8 @@ export default function ConnectingLegSelector({
     (matchedBus ? calculateUpcomingBusDepartures(matchedBus, new Date()) : null);
 
   const modeKeys = ['auto', 'bike', 'cab', 'bus', 'walk'];
+  const legDistance = formatDistance(step.distanceMeters || 0);
+  const legWalkMin = estimateWalkMinutes(step.distanceMeters || 0);
 
   return (
     <View style={styles.container}>
@@ -52,13 +62,13 @@ export default function ConnectingLegSelector({
           <View style={styles.warningTextCol}>
             <Text style={styles.warningTitle}>
               {currentKey === 'walk'
-                ? 'LONG WALK WARNING (1.9 km · ~26 min)'
+                ? `LONG WALK WARNING (${legDistance} · ~${legWalkMin} min)`
                 : 'SMART COMMUTE RECOMMENDATION'}
             </Text>
             <Text style={styles.warningDesc}>
               {currentKey === 'walk'
-                ? 'Walking 1.9 km in Bengaluru heat and traffic is exhausting. Auto or Bike Taxi is strongly recommended!'
-                : '1.9 km is too far to walk. Auto or Bike Taxi suggested with fares compared below.'}
+                ? `Walking ${legDistance} in heat and traffic is tiring. An auto or bike taxi is recommended.`
+                : `${legDistance} is a long walk. Auto or bike taxi fares are compared below.`}
             </Text>
           </View>
         </View>
@@ -96,7 +106,7 @@ export default function ConnectingLegSelector({
                     {m.label}
                   </Text>
                   <Text style={[styles.pillSub, isSelected && styles.pillSubSelected]}>
-                    {m.fare > 0 ? `₹${m.fare}` : 'Free'} · {m.durationMinutes}m
+                    {fareLabel(m)} · {m.durationMinutes}m
                   </Text>
                 </View>
               </Pressable>
@@ -147,23 +157,22 @@ export default function ConnectingLegSelector({
                         <Text style={[styles.compareModeName, isSelected && styles.compareModeNameSelected]}>
                           {m.label}
                         </Text>
-                        {key === 'bike' && <Text style={styles.bestTag}>Fastest</Text>}
                         {key === 'bus' && <Text style={styles.bestTag}>Cheapest</Text>}
                         {key === 'auto' && isLong && <Text style={styles.bestTag}>Popular</Text>}
                       </View>
                       <Text style={styles.compareNote}>
-                        {key === 'auto' && `Meter ~₹${m.fare} · App/Gate ~₹${m.quoteFare}`}
-                        {key === 'bike' && `Rapido / Uber Moto · Beats traffic`}
-                        {key === 'cab' && `Uber Go / BluSmart · AC comfort`}
+                        {key === 'auto' && 'Official meter fare · apps set their own price'}
+                        {key === 'bike' && (m.fare === null ? 'No govt tariff · price shown in app' : 'Official bike-taxi fare')}
+                        {key === 'cab' && 'Official cab / taxi tariff'}
                         {key === 'bus' && `BMTC Feeder bus · Direct stop`}
-                        {key === 'walk' && (isLong ? `1.9 km · High traffic/heat` : `Direct footpath`)}
+                        {key === 'walk' && (isLong ? `${legDistance} · long walk` : 'Direct footpath')}
                       </Text>
                     </View>
                   </View>
 
                   <View style={styles.compareRowRight}>
                     <Text style={[styles.compareFare, isSelected && styles.compareFareSelected]}>
-                      {m.fare > 0 ? `₹${m.fare}` : 'Free'}
+                      {fareLabel(m)}
                     </Text>
                     <Text style={styles.compareTime}>{m.durationMinutes} min</Text>
                   </View>

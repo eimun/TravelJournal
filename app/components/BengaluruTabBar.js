@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { fontFamily, radius, shadow, space } from '../theme/tokens';
+import { openDiagnostics } from '../../src/logging/diagnosticsBus';
 
 const TABS = [
   {
@@ -35,6 +36,8 @@ export default function BengaluruTabBar({ active, onChange, bottomInset = 0 }) {
           <Pressable
             key={tab.key}
             onPress={() => onChange(tab.key)}
+            onLongPress={tab.key === 'guide' ? () => openDiagnostics('tab_long_press') : undefined}
+            delayLongPress={600}
             style={({ pressed }) => [
               styles.item,
               isSelected && styles.itemSelected,

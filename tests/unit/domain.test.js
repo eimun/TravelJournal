@@ -70,15 +70,15 @@ describe('Domain: Distance & Walking Time', () => {
 
 describe('Domain: Auto & Transit Fare', () => {
   it('estimates fair auto meter price for short hop', () => {
-    const res = meterEstimate(1000); // 1 km -> base flagfall ₹30
-    expect(res.fair).toBe(30);
+    const res = meterEstimate(1000); // 1 km road -> Bengaluru minimum ₹36 (Aug 2025 tariff)
+    expect(res.fair).toBe(36);
     expect(res.isShortHop).toBe(true);
   });
 
   it('estimates auto meter fare for longer journey', () => {
-    const res = meterEstimate(5000); // 5 km -> 30 + 3*15 = 75
-    expect(res.fair).toBe(75);
-    expect(res.expectedQuote).toBeGreaterThan(res.fair);
+    const res = meterEstimate(5000); // 5 km road -> 36 + 3*18 = 90
+    expect(res.fair).toBe(90);
+    expect(res.isShortHop).toBe(false);
   });
 
   it('resolves distance band transit fare', () => {

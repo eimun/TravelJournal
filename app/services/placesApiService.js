@@ -1,193 +1,147 @@
-import { findNearestMetroStation } from '../data/transitData.js';
-import { inferCuisine, inferDietaryTags } from './osmRestaurantService.js';
+import { inferCuisine, inferDietaryTags, CUISINE_AUTHENTIC_IMAGES } from './osmRestaurantService.js';
+import { nearestStationText } from './restaurantAudit';
+import { FEATURES, log, loggedFetch, reportIssue } from '../../src/logging';
 
 /**
- * Universal Multi-Provider Restaurant Discovery Service
- * Supports Google Places API, Foursquare Places API (v3),
- * with graceful fallback to OpenStreetMap Overpass and curated local legends.
+ * Optional commercial restaurant providers (Google Places, Foursquare Places).
+ * Both need an API key (EXPO_PUBLIC_GOOGLE_PLACES_KEY / EXPO_PUBLIC_FOURSQUARE_API_KEY);
+ * without one the app falls back to OpenStreetMap.
+ *
+ * Only values returned by the provider are used. Missing ratings, review counts,
+ * prices or photos stay null — they are never filled with defaults.
  */
 
-// Default or configurable API keys (can be supplied via process.env or settings)
 export const API_KEYS = {
   google: process.env.EXPO_PUBLIC_GOOGLE_PLACES_KEY || '',
   foursquare: process.env.EXPO_PUBLIC_FOURSQUARE_API_KEY || '',
 };
 
-/**
- * Transform a Google Places API result item into our app's Restaurant schema
- */
-export function transformGooglePlace(place, apiKey = '') {
-  const lat = place.location?.latitude || place.geometry?.location?.lat || 12.9716;
-  const lng = place.location?.longitude || place.geometry?.location?.lng || 77.5946;
-  const displayName = place.displayName?.text || place.name || 'Bengaluru Restaurant';
+function clampTier(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.min(3, Math.max(1, Math.round(n)));
+}
 
-  // Infer cuisine from types and name
-  const cuisine = inferCuisine({
-    name: displayName,
-    amenity: 'restaurant',
-    cuisine: (place.types || []).join(' '),
-  });
+/** Google Places (legacy Nearby Search) result → app restaurant. */
+export function transformGooglePlace(place, apiKey = '', cityId) {
+  const lat = place.location?.latitude ?? place.geometry?.location?.lat ?? null;
+  const lng = place.location?.longitude ?? place.geometry?.location?.lng ?? null;
+  const name = place.displayName?.text || place.name || null;
+  const cuisine = inferCuisine({ name, amenity: 'restaurant', cuisine: (place.types || []).join(' ') });
 
-  const dietTags = Array.from(
-    inferDietaryTags({ name: displayName, cuisine: (place.types || []).join(' ') }, cuisine)
-  );
+  const photoRef = place.photos?.[0]?.photo_reference;
+  const image =
+    photoRef && apiKey
+      ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${apiKey}`
+      : CUISINE_AUTHENTIC_IMAGES[cuisine] || CUISINE_AUTHENTIC_IMAGES.other;
 
-  // Photo URL generation
-  let imageUrl = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80';
-  const photoRef = place.photos?.[0]?.photo_reference || place.photos?.[0]?.name;
-  if (photoRef && apiKey) {
-    imageUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoRef}&key=${apiKey}`;
-  }
-
-  // Nearest Metro calculation
-  const nearestStation = findNearestMetroStation(lat, lng);
-  let nearestMetro = 'Bengaluru Metro accessible via auto';
-  if (nearestStation) {
-    const walkMins = Math.max(1, Math.round(nearestStation.distanceMeters / 80));
-    const lineName = nearestStation.line === 'purple' ? 'Purple Line' : 'Green Line';
-    nearestMetro = `${nearestStation.name} (${lineName}) · ${walkMins} min walk (${nearestStation.distanceMeters}m)`;
-  }
-
-  const priceLevel = place.priceLevel || place.price_level !== undefined ? Math.min(3, Math.max(1, place.priceLevel || place.price_level)) : 2;
-
+  const hasRating = Number.isFinite(place.rating);
   return {
-    id: `gplace_${place.place_id || place.id || Math.random().toString(36).substr(2, 9)}`,
-    name: place.name || 'Bengaluru Restaurant',
-    area: place.vicinity || place.formatted_address?.split(',')[0] || 'Bengaluru Urban',
+    id: `gplace_${place.place_id || place.id}`,
+    name,
+    area: place.vicinity || place.formatted_address?.split(',')[0] || null,
     cuisine,
-    rating: place.rating || 4.4,
-    userRatingCount: place.user_ratings_total || 120,
-    priceTier: priceLevel,
+    rating: hasRating ? place.rating : null,
+    userRatingCount: Number.isFinite(place.user_ratings_total) ? place.user_ratings_total : null,
+    ratingSource: hasRating ? 'Google' : null,
+    priceTier: clampTier(place.price_level ?? place.priceLevel),
     latitude: lat,
     longitude: lng,
-    openTime: '08:00',
-    closeTime: '23:00',
-    isOpen: place.opening_hours?.open_now ?? true,
-    tags: dietTags,
-    nearestMetro,
-    image: imageUrl,
-    mustTry: { dish: 'Signature Chef Special', price: priceLevel === 1 ? 85 : priceLevel === 2 ? 180 : 320 },
-    topDishes: [
-      { name: 'Special Platter', price: 160 },
-      { name: 'Chef Special Beverage', price: 60 },
-    ],
-    insiderNote: `Verified location via Google Places (${place.user_ratings_total || 0} reviews). ${place.vicinity || ''}`,
-    established: 'Google Places Verified',
+    schedule: null,
+    isOpenFromProvider: typeof place.opening_hours?.open_now === 'boolean' ? place.opening_hours.open_now : null,
+    hoursSource: typeof place.opening_hours?.open_now === 'boolean' ? 'Google (open now)' : null,
+    tags: inferDietaryTags({ name }),
+    dietSource: 'Not provided by Google',
+    nearestMetro: lat !== null ? nearestStationText(lat, lng, cityId) : null,
+    image,
+    imageIsRepresentative: !photoRef,
+    mustTry: null,
+    topDishes: [],
+    insiderNote: null,
+    established: null,
     source: 'google',
     isLive: true,
     isGoogleLive: true,
-    verifiedBy: 'Google Places API',
+    verification: {
+      status: 'live_google',
+      source: 'Google Places (live)',
+      checkedAt: new Date().toISOString().slice(0, 10),
+    },
   };
 }
 
-/**
- * Transform a Foursquare Places API item into our app's Restaurant schema
- */
-export function transformFoursquarePlace(place) {
-  const lat = place.latitude || place.geocodes?.main?.latitude || place.location?.latitude || 12.9716;
-  const lng = place.longitude || place.geocodes?.main?.longitude || place.location?.longitude || 77.5946;
-
+/** Foursquare Places API (2025-06-17 version) result → app restaurant. */
+export function transformFoursquarePlace(place, cityId) {
+  const lat = place.latitude ?? place.geocodes?.main?.latitude ?? null;
+  const lng = place.longitude ?? place.geocodes?.main?.longitude ?? null;
   const categoryNames = (place.categories || []).map((c) => c.name).join(' ');
-  const cuisine = inferCuisine({
-    name: place.name,
-    amenity: 'restaurant',
-    cuisine: categoryNames,
-  });
+  const cuisine = inferCuisine({ name: place.name, amenity: 'restaurant', cuisine: categoryNames });
 
-  const dietTags = Array.from(
-    inferDietaryTags({ name: place.name, cuisine: categoryNames }, cuisine)
-  );
+  let image = CUISINE_AUTHENTIC_IMAGES[cuisine] || CUISINE_AUTHENTIC_IMAGES.other;
+  const photo = place.photos && place.photos[0];
+  if (photo && photo.prefix && photo.suffix) image = `${photo.prefix}800x600${photo.suffix}`;
 
-  // Foursquare photo URL construction: prefix + size + suffix
-  let imageUrl = 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80';
-  if (place.photos && place.photos.length > 0) {
-    const p = place.photos[0];
-    imageUrl = `${p.prefix}800x600${p.suffix}`;
-  }
-
-  // Nearest Metro calculation
-  const nearestStation = findNearestMetroStation(lat, lng);
-  let nearestMetro = 'Bengaluru Metro accessible via auto';
-  if (nearestStation) {
-    const walkMins = Math.max(1, Math.round(nearestStation.distanceMeters / 80));
-    const lineName = nearestStation.line === 'purple' ? 'Purple Line' : 'Green Line';
-    nearestMetro = `${nearestStation.name} (${lineName}) · ${walkMins} min walk (${nearestStation.distanceMeters}m)`;
-  }
-
-  // Foursquare rating is 0 to 10 -> convert to 5-star scale
-  const normalizedRating = place.rating ? Math.round((place.rating / 2) * 10) / 10 : 4.5;
-  const priceTier = place.price ? Math.min(3, Math.max(1, place.price)) : 2;
-
-  const address = place.location?.formatted_address || place.location?.address || 'Bengaluru';
-  const id = place.fsq_place_id || place.fsq_id || Math.random().toString(36).substr(2, 9);
-
+  // Foursquare ratings are 0–10; convert to a 5-star scale only when present.
+  const hasRating = Number.isFinite(place.rating);
+  const id = place.fsq_place_id || place.fsq_id;
   return {
     id: `fsq_${id}`,
-    name: place.name || 'Bengaluru Food Spot',
-    area: place.location?.locality || place.location?.neighborhood?.[0] || address.split(',')[0],
+    name: place.name || null,
+    area: place.location?.locality || place.location?.neighborhood?.[0] || place.location?.formatted_address?.split(',')[0] || null,
     cuisine,
-    rating: normalizedRating,
-    userRatingCount: place.stats?.total_ratings || 85,
-    priceTier,
+    cuisineRaw: categoryNames || null,
+    rating: hasRating ? Math.round((place.rating / 2) * 10) / 10 : null,
+    userRatingCount: Number.isFinite(place.stats?.total_ratings) ? place.stats.total_ratings : null,
+    ratingSource: hasRating ? 'Foursquare' : null,
+    priceTier: clampTier(place.price),
     latitude: lat,
     longitude: lng,
-    openTime: '08:30',
-    closeTime: '22:30',
-    isOpen: !place.closed_bucket || place.closed_bucket !== 'VeryLikelyClosed',
-    tags: dietTags,
-    nearestMetro,
-    image: imageUrl,
-    mustTry: { dish: 'Trending Popular Item', price: priceTier === 1 ? 90 : priceTier === 2 ? 190 : 340 },
-    topDishes: [
-      { name: 'House Special', price: 175 },
-      { name: 'Fresh Brew / Drink', price: 70 },
-    ],
-    insiderNote: `Discovered on Foursquare (${categoryNames || 'Dining'}). Address: ${address}`,
-    established: 'Foursquare Live Verified',
+    schedule: null,
+    tags: inferDietaryTags({ name: place.name }),
+    dietSource: 'Not provided by Foursquare',
+    nearestMetro: lat !== null ? nearestStationText(lat, lng, cityId) : null,
+    image,
+    imageIsRepresentative: !photo,
+    mustTry: null,
+    topDishes: [],
+    insiderNote: null,
+    established: null,
+    address: place.location?.formatted_address || place.location?.address || null,
     source: 'foursquare',
     isLive: true,
     isFsqLive: true,
-    verifiedBy: 'Foursquare Places API',
+    verification: {
+      status: 'live_foursquare',
+      source: 'Foursquare Places (live)',
+      checkedAt: new Date().toISOString().slice(0, 10),
+    },
   };
 }
 
-/**
- * Fetch from Google Places API (Nearby Search)
- */
-export async function fetchGooglePlacesRestaurants({
-  latitude,
-  longitude,
-  radiusMeters = 2500,
-  apiKey = API_KEYS.google,
-}) {
-  if (!apiKey || !latitude || !longitude) return [];
+/** Google Places legacy Nearby Search. Logs Google's `status` + `error_message` on failure. */
+export async function fetchGooglePlacesRestaurants({ latitude, longitude, radiusMeters = 2500, apiKey = API_KEYS.google, cityId }) {
+  if (!apiKey) {
+    reportIssue('FOOD_PROVIDER_NOT_CONFIGURED', { key: 'google' });
+    return [];
+  }
+  if (!latitude || !longitude) return [];
 
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radiusMeters}&type=restaurant&key=${apiKey}`;
+  const res = await loggedFetch(url, { name: 'google.nearby', feature: FEATURES.FOOD, timeoutMs: 8000 });
+  if (!res.ok || !res.json) return [];
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-
-  try {
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.results && Array.isArray(data.results)) {
-        return data.results.slice(0, 20).map((p) => transformGooglePlace(p, apiKey));
-      }
-    }
-  } catch {
-    clearTimeout(timer);
+  const { status, error_message: errorMessage, results } = res.json;
+  if (status !== 'OK' && status !== 'ZERO_RESULTS') {
+    // e.g. REQUEST_DENIED (key invalid / legacy API not enabled), OVER_QUERY_LIMIT.
+    reportIssue('FOOD_PROVIDER_ERROR', { key: `google:${status}`, message: errorMessage || status, data: { status } });
+    return [];
   }
-
-  return [];
+  const list = (results || []).slice(0, 20).map((p) => transformGooglePlace(p, apiKey, cityId));
+  log.info(FEATURES.FOOD, 'google.results', { status, count: list.length });
+  return list;
 }
 
-/**
- * Fetch from Foursquare Places API
- * Uses current Foursquare Places API with X-Places-Api-Version header
- */
+/** Foursquare Places search (places-api.foursquare.com, version 2025-06-17). */
 export async function fetchFoursquarePlacesRestaurants({
   latitude,
   longitude,
@@ -195,37 +149,34 @@ export async function fetchFoursquarePlacesRestaurants({
   query = 'restaurant',
   limit = 20,
   apiKey = API_KEYS.foursquare,
+  cityId,
 }) {
-  if (!apiKey || !latitude || !longitude) return [];
+  if (!apiKey) {
+    reportIssue('FOOD_PROVIDER_NOT_CONFIGURED', { key: 'foursquare' });
+    return [];
+  }
+  if (!latitude || !longitude) return [];
 
-  const encodedQuery = encodeURIComponent(query);
-  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&query=${encodedQuery}&limit=${limit}&fields=fsq_id,name,location,categories,rating,stats,price,photos`;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-
+  const fields = 'fsq_place_id,name,latitude,longitude,location,categories,rating,stats,price,photos';
+  const url = `https://places-api.foursquare.com/places/search?ll=${latitude},${longitude}&radius=${radiusMeters}&query=${encodeURIComponent(query)}&limit=${limit}&fields=${fields}`;
   const authHeader = apiKey.startsWith('Bearer ') ? apiKey : `Bearer ${apiKey}`;
 
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        Authorization: authHeader,
-        'X-Places-Api-Version': '2025-06-17',
-      },
-    });
-    clearTimeout(timer);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.results && Array.isArray(data.results)) {
-        return data.results.map(transformFoursquarePlace);
-      }
+  const res = await loggedFetch(url, {
+    name: 'foursquare.search',
+    feature: FEATURES.FOOD,
+    timeoutMs: 8000,
+    headers: { Accept: 'application/json', Authorization: authHeader, 'X-Places-Api-Version': '2025-06-17' },
+  });
+  if (!res.ok) {
+    if (res.status >= 400 && res.status < 500) {
+      reportIssue('FOOD_PROVIDER_ERROR', {
+        key: `foursquare:${res.status}`,
+        message: (res.json && (res.json.message || res.json.error)) || `HTTP ${res.status}`,
+      });
     }
-  } catch {
-    clearTimeout(timer);
+    return [];
   }
-
-  return [];
+  const list = Array.isArray(res.json?.results) ? res.json.results.map((p) => transformFoursquarePlace(p, cityId)) : [];
+  log.info(FEATURES.FOOD, 'foursquare.results', { count: list.length });
+  return list;
 }

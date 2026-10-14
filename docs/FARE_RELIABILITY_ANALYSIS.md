@@ -1,101 +1,58 @@
-# 📊 Cab & Auto Fare Reliability & Multi-Platform Benchmark Analysis
-**Project:** Urban Explorer & Transit Companion (Bengaluru)  
-**Date:** September 2026  
-**Subject:** Empirical Audit & Verification of Auto Rickshaw, Cab, and Transit Fares against Ground Platforms (Uber, Ola, Rapido, Namma Yatri, and Karnataka RTO Gazette).
+# Fare sources & how fares are calculated
 
----
+_Last research pass: 14 Oct 2026. Code: [`src/domain/tariffs.js`](../src/domain/tariffs.js) (single source of truth)._
 
-## 1. Executive Summary: Are the App's Price Estimates Reliable?
+> **Correction notice.** An earlier version of this document claimed "92–95 % empirical accuracy"
+> against Uber / Ola / Rapido and listed the Bengaluru auto tariff as ₹30 + ₹15/km. Neither was
+> backed by a measurement: aggregator prices are not published, and the Bengaluru tariff was revised
+> on 1 Aug 2025. The app now shows **only official, sourced tariffs** and labels everything else.
 
-**YES. The app's price engine operates with a 92%–95% empirical accuracy benchmark against live Bengaluru platforms.**
+## What the app shows
 
-The discrepancy observed by commuters between "theoretical auto rates" and "aggregator apps (Uber/Rapido)" is not an estimation error—it is an economic reality of Bengaluru's dual-pricing transit ecosystem.
+| Shown as | Meaning |
+|---|---|
+| `₹54` | Official meter fare for the **real road distance** (OSRM routing) |
+| `~₹54` | Official meter fare, but road distance was **estimated** (straight line × 1.34) because routing was unavailable |
+| `Set by app` / `App price` | No published number exists (Uber / Ola / Rapido / Namma Yatri pricing, unregulated bike taxis) — nothing is invented |
 
-Our system models this through a **3-tier dynamic tariff architecture**:
-1. **Tier 1 (Statutory Base):** Karnataka State Transport Department (RTO) Gazetted Meter Tariff.
-2. **Tier 2 (Open Mobility Direct):** Namma Yatri (ONDC-backed, zero-commission, driver-direct rate).
-3. **Tier 3 (Commercial Dynamic Aggregators):** Uber Auto, Ola Auto, and Rapido, factoring platform convenience fees, driver pickup allowances, and live time-of-day surge coefficients.
+Formula: `fare = base fare + max(0, road km − base km) × per-km rate`, then × night multiplier
+inside the night window, rounded to the nearest rupee.
 
----
+The 1.34 detour factor is the reported average road circuity across ~300 European cities; no
+India-specific study was found, which is why estimated fares are marked with `~`.
 
-## 2. Regulatory vs Commercial Formula Comparison
+## Tariffs
 
-| Platform / Mechanism | Minimum Flagfall (Base) | Per Km Rate | Night Surcharge (10 PM – 5 AM) | Platform Fee / Tip | Surge Pricing Multiplier |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Karnataka RTO Meter** | ₹30 (first 2.0 km) | ₹15.00 / km | +50% (1.5x mandatory) | ₹0 | None (Legally prohibited) |
-| **Namma Yatri (Direct)** | ₹35–₹40 (first 2.0 km) | ₹15.00–₹16.50 / km | +50% | ₹10–₹25 pickup tip | 1.0x–1.2x (Driver acceptance incentive) |
-| **Rapido Auto** | ₹38 (first 1.8 km) | ₹15.50 / km | +50% | ₹5–₹10 tech fee | 1.1x–1.6x (Peak hours) |
-| **Uber Auto** | ₹42 (first 1.5 km) | ₹17.50–₹19.00 / km | +50% | ₹15 platform fee + GST | 1.3x–1.9x (Traffic/weather surge) |
-| **Ola Auto** | ₹45 (first 1.5 km) | ₹18.00 / km | +50% | ₹16 platform fee | 1.3x–1.85x |
-| **Uber Go / Ola Mini (Cab)** | ₹85 (first 2.0 km) | ₹21.00–₹26.00 / km | +25%–40% | ₹35–₹45 booking fee | 1.4x–2.3x (Rain & rush hour gridlock) |
-| **Street Offline Quote** | ₹100 flat minimum | Flat quote | 2.0x–3.0x | N/A | Flat demand (Overcharging tourist trap) |
+### Bengaluru
+| Vehicle | Tariff | Night | Effective | Source |
+|---|---|---|---|---|
+| Auto | ₹36 first 2 km, ₹18/km after | 1.5× 22:00–05:00 | 1 Aug 2025 | Bengaluru Urban DTA — [Deccan Herald](https://www.deccanherald.com/india/karnataka/bengaluru/bengaluru-auto-fares-to-increase-from-august-1-3630129), [CarDekho Trucks](https://trucks.cardekho.com/en/news/detail/bengalurus-revised-auto-rickshaw-fares-base-charge-hiked-to-rs-36-for-first-2-km-3076.html) |
+| Cab (≤ ₹10 lakh vehicle) | ₹100 first 4 km, ₹24/km | not applied (reports conflict) | Mar 2024 | Karnataka uniform cab fare notification, 3 Feb 2024 — [Deccan Herald](https://www.deccanherald.com/india/karnataka/in-a-first-karnataka-brings-in-uniform-fares-for-all-cabs-2879202). Also ₹115/₹28 (₹10–15 lakh) and ₹130/₹32 (> ₹15 lakh). Surge is banned by the notification but [compliance is weak](https://www.deccanherald.com/india/karnataka/bengaluru/karnataka-new-cab-fares-kick-in-but-govt-unlikely-to-act-against-violators-2923719). |
+| Bike taxi | **No government tariff** | — | — | HC division bench allowed bike taxis on 23 Jan 2026; state appealed to the Supreme Court — [Business Standard](https://www.business-standard.com/industry/news/karnataka-hc-lifts-bike-taxi-ban-uber-rapido-ola-126012301206_1.html) |
 
----
+App autos: a 2022 interim Karnataka HC order capped the aggregator fee at 10 % + GST; current
+compliance is unclear, so the app shows the meter fare plus a note.
 
-## 3. Empirical Ground Benchmark Across Trip Distance Bands
+### Delhi
+| Vehicle | Tariff | Night | Effective | Source |
+|---|---|---|---|---|
+| Auto | ₹30 first 1.5 km, ₹11/km | +25 % 23:00–05:00 | 9 Jan 2023 | Delhi Transport Dept — [Business Today](https://www.businesstoday.in/latest/story/auto-and-taxi-fares-hiked-in-delhi-check-new-rates-359828-2023-01-11) |
+| Taxi (non-AC) | ₹40 first 1 km, ₹17/km (AC ₹20/km) | +25 % 23:00–05:00 | 9 Jan 2023 | same |
+| Bike taxi | No government tariff found | — | — | — |
 
-### Scenario A: Short Metro Connecting Leg (2.5 km)
-*Example: Indiranagar Metro Station to 100 Feet Road / Domlur*
-- **RTO Govt Meter:** ₹37.50 (₹38 rounded)
-- **Namma Yatri:** ₹52 – ₹58
-- **Rapido Auto:** ₹55 – ₹62
-- **Uber Auto (Off-Peak):** ₹68 – ₹78
-- **Uber Auto (Peak Rush 6:30 PM):** ₹95 – ₹115 *(1.5x surge applied)*
-- **Street Hail Driver Quote:** ₹120 – ₹150 *(Overcharging demand)*
-- **Our App Prediction:**
-  - *Meter:* ₹40
-  - *Namma Yatri:* ₹55
-  - *Uber/Ola:* ₹70 (Off-peak) / ₹105 (Peak rush)
-  - **Accuracy vs Live Uber/Rapido:** **94.8%**
+### Mumbai (MMR)
+| Vehicle | Tariff | Night | Effective | Source |
+|---|---|---|---|---|
+| Auto | ₹27 first 1.5 km, ₹18.22/km | +25 % 00:00–05:00 | 1 Sep 2026 | MMRTA (Khatua formula) — [Time Out Mumbai](https://www.timeout.com/mumbai/news/mumbai-auto-and-taxi-fares-rise-from-september-1-check-the-new-rates-090126). Meters to be recalibrated by end-Nov 2026. |
+| Kaali-peeli taxi | ₹33 first 1.5 km, ₹21.90/km | +25 % 00:00–05:00 | 1 Sep 2026 | same |
+| Bike taxi | ₹15 first 1.5 km, ₹10.27/km | — | Sep 2025 | Maharashtra Bike Taxi Rules 2025 — [Storyboard18](https://www.storyboard18.com/brand-marketing/maharashtra-formalises-bike-taxi-rules-grants-licences-to-ola-uber-rapido-81009.htm) |
 
----
+## Keeping this correct
 
-### Scenario B: Mid-Distance Suburban Commute (6.0 km)
-*Example: Majestic Railway Station to Malleshwaram 18th Cross*
-- **RTO Govt Meter:** ₹90.00
-- **Namma Yatri:** ₹110 – ₹120
-- **Rapido Auto:** ₹115 – ₹128
-- **Uber Auto (Off-Peak):** ₹135 – ₹148
-- **Uber Auto (Evening Peak 7:00 PM):** ₹185 – ₹220 *(1.65x surge)*
-- **Uber Go Cab:** ₹240 – ₹310
-- **Our App Prediction:**
-  - *Meter:* ₹90
-  - *Namma Yatri:* ₹115
-  - *Uber Auto:* ₹140 (Off-peak) / ₹205 (Peak rush)
-  - **Accuracy vs Live Uber/Rapido:** **93.2%**
-
----
-
-### Scenario C: Long-Distance Cross-City Trip (14.0 km)
-*Example: MG Road to Whitefield ITPL*
-- **RTO Govt Meter:** ₹210.00
-- **Namma Yatri:** ₹245 – ₹270
-- **Uber Auto (Peak):** ₹340 – ₹420 *(High driver cancellation area)*
-- **Uber Go / Ola Cab (AC):** ₹480 – ₹620
-- **Direct Cab Surge in Rain:** ₹680 – ₹850
-- **Metro + Last-Mile Auto:** ₹45 Metro + ₹40 Feeder = **₹85 all-in**
-- **Commuter Savings Highlighted by App:** **Save ₹495 – ₹650 (82% cost reduction)**
-
----
-
-## 4. Dynamic Time-Surge Engine Verification
-
-Our mathematical time-of-day multiplier model:
-
-$$\text{Estimated Fare} = \left(\text{Base} + (\text{Dist} - \text{BaseDist}) \times \text{Rate}\right) \times S_{\text{time}} \times S_{\text{weather}} + \text{PlatformFee}$$
-
-Where $S_{\text{time}}$ is empirically calibrated as:
-- **05:00 – 08:30 (Early Morning):** $S_{\text{time}} = 1.00$
-- **08:30 – 11:30 (Morning Office Rush):** $S_{\text{time}} = 1.45$ (High demand near Tech Parks)
-- **11:30 – 17:00 (Midday Off-Peak):** $S_{\text{time}} = 1.05$ (Stable supply)
-- **17:00 – 20:30 (Evening Peak Gridlock):** $S_{\text{time}} = 1.65$ (Severe Outer Ring Road congestion)
-- **20:30 – 22:00 (Post-Rush Normalization):** $S_{\text{time}} = 1.20$
-- **22:00 – 05:00 (Night Surcharge):** $S_{\text{time}} = 1.50$ (Legal RTO Gazetted 50% tariff)
-
----
-
-## 5. Summary for Academic & Evaluator Presentation
-When evaluators or professors ask: *"Are your prices real?"*, the answers are:
-1. **Multi-Source Transparency:** The app does not assume a single fake number; it transparently presents **5 distinct providers** (RTO Meter, Namma Yatri, Rapido, Uber, and Offline quote).
-2. **Live Clock Calibration:** Fares adjust dynamically in real-time according to the user's local clock.
-3. **Commuter Protection (Anti-Scam):** By showing the legal RTO meter alongside the Uber surge price, the user knows exactly whether paying an offline driver's demand is reasonable or an extortionate 2.5x quote.
+- Each tariff has `verifiedOn`. When it is older than 180 days the app logs `FARE_TARIFF_STALE`
+  (MINOR) — re-check the source URLs and update `src/domain/tariffs.js`.
+- Every fare the app displays is logged (`FARE fare.computed`: city, vehicle, km, road vs estimated,
+  night). Fares below the official minimum, NaN fares, missing tariffs and impossible > 100 km trips
+  are logged as MAJOR. See [LOGGING.md](LOGGING.md).
+- Unit tests in `tests/unit/tariffs.test.js`, `dynamicFare.test.js` and `dataAudit.test.js` pin the
+  numbers above.

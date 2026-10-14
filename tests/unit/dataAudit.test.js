@@ -17,16 +17,17 @@ import {
 } from '../../app/data/cityPlacesData';
 import {
   calculateDynamicFareMatrix,
-  getTimeSurgeContext,
 } from '../../src/domain/dynamicFare';
+import { TARIFFS } from '../../src/domain/tariffs';
 
 describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
   test('Audit 1: Auto Fare formulas match government gazetted rates', () => {
-    // Bengaluru: Karnataka Transport Dept Gazette (Nov 2021)
+    // Bengaluru: Bengaluru Urban DTA revision effective 1 Aug 2025 (₹36 / 2 km, ₹18/km)
     const blr = getCityConfig('bengaluru');
-    expect(blr.autoFareFormula.baseFare).toBe(30);
-    expect(blr.autoFareFormula.baseDistanceKm).toBe(2.0);
-    expect(blr.autoFareFormula.perKm).toBe(15);
+    expect(blr.autoFareFormula.baseFare).toBe(36);
+    expect(blr.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(blr.autoFareFormula.perKm).toBe(18);
+    expect(blr.autoFareFormula.nightHours).toBe('22:00 – 05:00');
     expect(blr.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
 
     // Delhi: Delhi Govt Transport Dept Gazette (Jan 2023)
@@ -36,11 +37,11 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     expect(del.autoFareFormula.perKm).toBe(11);
     expect(del.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
 
-    // Mumbai: MMRTA Maharashtra Gazetted Auto Tariff (Oct 2022)
+    // Mumbai: MMRTA revision effective 1 Sep 2026 (₹27 / 1.5 km, ₹18.22/km)
     const bom = getCityConfig('mumbai');
-    expect(bom.autoFareFormula.baseFare).toBe(23);
+    expect(bom.autoFareFormula.baseFare).toBe(27);
     expect(bom.autoFareFormula.baseDistanceKm).toBe(1.5);
-    expect(bom.autoFareFormula.perKm).toBe(15.33);
+    expect(bom.autoFareFormula.perKm).toBe(18.22);
     expect(bom.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
   });
 
@@ -169,48 +170,45 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     expect(palace.costs.find((c) => c.label.includes('Entry')).amount).toBe('₹250');
   });
 
-  test('Audit 10: Rapido, Uber, Ola, and Cab Fare Matrix Empirical Accuracy', () => {
-    // 1. Off-Peak 3 km ride (e.g. 2:00 PM)
-    const offPeakDate = new Date('2026-09-29T14:00:00');
-    const fare3km = calculateDynamicFareMatrix(3000, offPeakDate);
+  test('Audit 10: every displayed fare comes from a sourced official tariff', () => {
+    const noon = new Date('2026-09-29T14:00:00');
+    const night = new Date('2026-09-29T23:30:00');
 
-    // Rapido Bike: Base ₹25 + ₹8.5 * 1.5km = ~₹38
-    expect(fare3km.providers.rapidoBike.fare).toBe(38);
-    expect(fare3km.providers.rapidoBike.tag).toBe('FASTEST');
+    // Bengaluru auto: ₹36 first 2 km + ₹18/km (DTA, effective 1 Aug 2025); 1.5× 22:00–05:00
+    const blr3 = calculateDynamicFareMatrix(2500, noon, { roadMeters: 3000 });
+    expect(blr3.providers.rtoMeter.fare).toBe(54);
+    expect(calculateDynamicFareMatrix(2500, night, { roadMeters: 3000 }).providers.rtoMeter.fare).toBe(81);
 
-    // Govt Meter: Base ₹30 + ₹15 * 1.0km = ₹45
-    expect(fare3km.providers.rtoMeter.fare).toBe(45);
+    // Karnataka cab: ₹100 first 4 km + ₹24/km (uniform fare notification, Feb 2024)
+    expect(calculateDynamicFareMatrix(7000, noon, { roadMeters: 8000 }).providers.cab.fare).toBe(196);
 
-    // Namma Yatri (Direct, fair tip): ~₹60
-    expect(fare3km.providers.nammaYatri.fare).toBeGreaterThanOrEqual(50);
-    expect(fare3km.providers.nammaYatri.fare).toBeLessThanOrEqual(65);
+    // Delhi auto ₹30 first 1.5 km + ₹11/km; taxi ₹40 first km + ₹17/km (Jan 2023)
+    const del = calculateDynamicFareMatrix(4000, noon, { cityId: 'delhi', roadMeters: 5000 });
+    expect(del.providers.rtoMeter.fare).toBe(Math.round(30 + 3.5 * 11));
+    expect(del.providers.cab.fare).toBe(Math.round(40 + 4 * 17));
 
-    // Uber / Ola Auto (Platform fee + convenience): ~₹90–₹110
-    expect(fare3km.providers.uberOla.fare).toBeGreaterThan(fare3km.providers.nammaYatri.fare);
-    expect(fare3km.providers.uberOla.fareRange).toBeDefined();
+    // Mumbai auto ₹27 first 1.5 km + ₹18.22/km; taxi ₹33 + ₹21.90/km (1 Sep 2026)
+    const mum = calculateDynamicFareMatrix(4000, noon, { cityId: 'mumbai', roadMeters: 5000 });
+    expect(mum.providers.rtoMeter.fare).toBe(Math.round(27 + 3.5 * 18.22));
+    expect(mum.providers.cab.fare).toBe(Math.round(33 + 3.5 * 21.9));
 
-    // Street Driver Quote (Offline station gate overcharge): ~₹100–₹150
-    expect(fare3km.providers.streetQuote.fare).toBeGreaterThanOrEqual(100);
+    // Unpublished prices are never invented
+    expect(blr3.providers.appAuto.fare).toBeNull();
+    expect(blr3.providers.bike.fare).toBeNull();
+    expect(del.providers.bike.fare).toBeNull();
 
-    // 2. Evening Peak Rush 8 km ride (e.g. 6:30 PM - Silk Board / ORR gridlock)
-    const peakDate = new Date('2026-09-29T18:30:00');
-    const fare8kmPeak = calculateDynamicFareMatrix(8000, peakDate);
-
-    // Surge active
-    expect(fare8kmPeak.surge.multiplier).toBeGreaterThanOrEqual(1.5);
-    expect(fare8kmPeak.surge.label).toContain('Peak Evening');
-
-    // Uber / Ola surge charges significantly more during rush
-    expect(fare8kmPeak.providers.uberOla.fare).toBeGreaterThan(180);
-
-    // Rapido Bike remains affordable option for solo commuters (~₹80–₹100)
-    expect(fare8kmPeak.providers.rapidoBike.fare).toBeLessThan(120);
-
-    // Rain surcharge simulation (30% additional surge)
-    const rainFare = calculateDynamicFareMatrix(8000, peakDate, { isRain: true });
-    expect(rainFare.surge.isRain).toBe(true);
-    expect(rainFare.surge.label).toContain('Rain Surcharge');
-    expect(rainFare.providers.uberOla.fare).toBeGreaterThan(fare8kmPeak.providers.uberOla.fare);
+    // Every regulated tariff carries a source, an effective date and a verification date
+    for (const city of Object.values(TARIFFS)) {
+      for (const t of Object.values(city)) {
+        expect(t.verifiedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        if (t.regulated) {
+          expect(t.sources.length).toBeGreaterThan(0);
+          expect(t.effectiveFrom).toBeTruthy();
+          expect(t.baseFare).toBeGreaterThan(0);
+          expect(t.perKm).toBeGreaterThan(0);
+        }
+      }
+    }
   });
 
   // ------------------------------------------------------------------

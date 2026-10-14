@@ -13,6 +13,8 @@ import { DISHES, DIET_OPTIONS, PACK_ITEMS } from '../data/bengaluruData';
 import CircularProgress from '../components/CircularProgress';
 import CloakroomModal from '../components/CloakroomModal';
 import SafetyPingModal from '../components/SafetyPingModal';
+import { openDiagnostics } from '../../src/logging/diagnosticsBus';
+import { useIssueCounts } from '../../src/logging/useIssueCounts';
 
 const KANNADA_PHRASES = [
   { phrase: 'Meter haaki', english: 'Please put the meter on', context: 'When boarding an auto' },
@@ -38,6 +40,7 @@ export default function GuideScreen({ contentPadding }) {
     openCitySwitcher,
     cityDishes,
   } = useTrip();
+  const issueCounts = useIssueCounts();
 
   const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'food' | 'offline'
   const [showCloakroomModal, setShowCloakroomModal] = useState(false);
@@ -67,6 +70,23 @@ export default function GuideScreen({ contentPadding }) {
           <Text style={styles.guideCityPillText}>📍 {currentCity?.shortName || 'BLR'} ▼</Text>
         </Pressable>
       </View>
+
+      <Pressable
+        onPress={() => openDiagnostics('guide_button')}
+        style={({ pressed }) => [styles.logsPill, pressed && { opacity: 0.8 }]}
+      >
+        <Text style={styles.logsPillText}>🐞 Diagnostics & logs</Text>
+        {issueCounts.major > 0 && (
+          <View style={styles.logsBadgeMajor}>
+            <Text style={styles.logsBadgeText}>{issueCounts.major} major</Text>
+          </View>
+        )}
+        {issueCounts.minor > 0 && (
+          <View style={styles.logsBadgeMinor}>
+            <Text style={styles.logsBadgeText}>{issueCounts.minor} minor</Text>
+          </View>
+        )}
+      </Pressable>
 
       {/* Segmented Sub-Tabs */}
       <View style={styles.subTabRow}>
@@ -110,8 +130,8 @@ export default function GuideScreen({ contentPadding }) {
               <Text style={styles.tipCardTitle}>{(currentCity?.autoFareFormula?.vehicleType || 'AUTO-RICKSHAW').toUpperCase()} SURVIVAL</Text>
             </View>
             <Text style={styles.tipCardBody}>
-              • Minimum fare: ₹{currentCity?.autoFareFormula?.baseFare || 30} for first {currentCity?.autoFareFormula?.baseDistanceKm || 2} km, then ₹{currentCity?.autoFareFormula?.perKm || 15}/km.{'\n'}
-              • Night fare ({currentCity?.autoFareFormula?.nightHours || '22:00 – 05:00'}): {currentCity?.autoFareFormula?.nightMultiplier || 1.5}x standard rate.{'\n'}
+              • Meter fare: ₹{currentCity?.autoFareFormula?.baseFare} for first {currentCity?.autoFareFormula?.baseDistanceKm} km, then ₹{currentCity?.autoFareFormula?.perKm}/km (tariff effective {currentCity?.autoFareFormula?.effectiveFrom}).{'\n'}
+              • Night fare ({currentCity?.autoFareFormula?.nightHours}): {currentCity?.autoFareFormula?.nightMultiplier}× standard rate.{'\n'}
               • Essential local phrase: “{currentCity?.autoFareFormula?.lingoPhrase || 'Meter haaki'}” ({currentCity?.autoFareFormula?.hindiMeaning || 'Run by meter'}).{'\n'}
               • {currentCity?.scamAlert || 'Demand meter or book via verified mobility apps.'}
             </Text>
@@ -316,6 +336,41 @@ export default function GuideScreen({ contentPadding }) {
 }
 
 const styles = StyleSheet.create({
+  logsPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+  },
+  logsPillText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[800],
+  },
+  logsBadgeMajor: {
+    backgroundColor: '#dc2626',
+    borderRadius: radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+  },
+  logsBadgeMinor: {
+    backgroundColor: '#f59e0b',
+    borderRadius: radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+  },
+  logsBadgeText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#fff',
+  },
   container: {
     paddingHorizontal: 20,
     paddingTop: 8,

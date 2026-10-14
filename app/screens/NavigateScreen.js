@@ -25,6 +25,11 @@ import BmtcBusScheduleModal from '../components/BmtcBusScheduleModal';
 import CloakroomModal from '../components/CloakroomModal';
 import SafetyPingModal from '../components/SafetyPingModal';
 import CitymapperTransportGrid from '../components/CitymapperTransportGrid';
+import Constants from 'expo-constants';
+import { reportIssue } from '../../src/logging';
+
+// Android's Google Maps SDK crashes without an API key (see app.config.js).
+const ANDROID_MAPS_READY = Boolean(Constants.expoConfig?.extra?.googleMapsConfigured);
 
 let MapView, Marker, Polyline;
 try {
@@ -215,6 +220,18 @@ export default function NavigateScreen({ contentPadding }) {
     }
 
     if (!MapView || !Marker) return null;
+
+    if (Platform.OS === 'android' && !ANDROID_MAPS_READY) {
+      reportIssue('MAP_API_KEY_MISSING', { key: 'android', message: 'GOOGLE_MAPS_ANDROID_API_KEY not set at build time' });
+      return (
+        <View style={[StyleSheet.absoluteFill, mapFallbackStyles.box]}>
+          <Text style={mapFallbackStyles.title}>Map unavailable</Text>
+          <Text style={mapFallbackStyles.text}>
+            Google Maps API key is not configured for this build. Routes, fares and directions below still work.
+          </Text>
+        </View>
+      );
+    }
 
     const initialRegion = {
       latitude: (userLocation?.latitude + (destination?.latitude || userLocation.latitude)) / 2,
@@ -1639,5 +1656,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fontFamily.body,
     color: '#475569',
+  },
+});
+
+const mapFallbackStyles = StyleSheet.create({
+  box: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eef2ec',
+    paddingHorizontal: 32,
+    paddingBottom: 120,
+    gap: 6,
+  },
+  title: {
+    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[800],
+  },
+  text: {
+    fontSize: 13,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    textAlign: 'center',
   },
 });

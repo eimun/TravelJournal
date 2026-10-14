@@ -14,9 +14,9 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
 
   test('validates city auto-meter formulas match legal gazetted rates', () => {
     const blr = getCityConfig('bengaluru');
-    expect(blr.autoFareFormula.baseFare).toBe(30);
-    expect(blr.autoFareFormula.baseDistanceKm).toBe(2.0);
-    expect(blr.autoFareFormula.perKm).toBe(15);
+    expect(blr.autoFareFormula.baseFare).toBe(36);
+    expect(blr.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(blr.autoFareFormula.perKm).toBe(18);
     expect(blr.autoFareFormula.lingoPhrase).toContain('Meter haaki');
 
     const del = getCityConfig('delhi');
@@ -26,9 +26,9 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(del.transitAgency).toContain('DMRC');
 
     const bom = getCityConfig('mumbai');
-    expect(bom.autoFareFormula.baseFare).toBe(23);
+    expect(bom.autoFareFormula.baseFare).toBe(27);
     expect(bom.autoFareFormula.baseDistanceKm).toBe(1.5);
-    expect(bom.autoFareFormula.perKm).toBe(15.33);
+    expect(bom.autoFareFormula.perKm).toBe(18.22);
     expect(bom.transitAgency).toContain('Suburban');
   });
 

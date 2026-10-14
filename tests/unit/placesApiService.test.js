@@ -36,7 +36,16 @@ describe('placesApiService (Google Places & Foursquare)', () => {
     expect(restaurant.priceTier).toBe(2);
     expect(restaurant.source).toBe('google');
     expect(restaurant.nearestMetro).toBeDefined();
-    expect(restaurant.mustTry).toBeDefined();
+    expect(restaurant.ratingSource).toBe('Google');
+    expect(restaurant.mustTry).toBeNull(); // Google gives no menu — nothing invented
+  });
+
+  it('leaves rating / review count empty when Google does not return them', () => {
+    const r = transformGooglePlace({ place_id: 'x', name: 'No Rating Cafe', geometry: { location: { lat: 12.97, lng: 77.59 } } });
+    expect(r.rating).toBeNull();
+    expect(r.userRatingCount).toBeNull();
+    expect(r.ratingSource).toBeNull();
+    expect(r.priceTier).toBeNull();
   });
 
   it('correctly transforms Foursquare v3 Places response to app restaurant schema', () => {

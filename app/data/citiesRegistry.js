@@ -4,6 +4,22 @@
  * for Bengaluru, Delhi NCR, and Mumbai.
  */
 
+import { TARIFFS } from '../../src/domain/tariffs';
+
+// Auto fare numbers come from the sourced tariff table so there is only one copy to update.
+function autoFare(cityId) {
+  const t = TARIFFS[cityId].auto;
+  const pad = (h) => `${String(h).padStart(2, '0')}:00`;
+  return {
+    baseFare: t.baseFare,
+    baseDistanceKm: t.baseKm,
+    perKm: t.perKm,
+    nightMultiplier: t.night.multiplier,
+    nightHours: `${pad(t.night.from)} – ${pad(t.night.to)}`,
+    effectiveFrom: t.effectiveFrom,
+  };
+}
+
 export const SUPPORTED_CITIES = {
   bengaluru: {
     id: 'bengaluru',
@@ -24,11 +40,7 @@ export const SUPPORTED_CITIES = {
     localLanguage: 'Kannada',
     autoFareFormula: {
       vehicleType: 'Auto-Rickshaw',
-      baseFare: 30,
-      baseDistanceKm: 2.0,
-      perKm: 15,
-      nightMultiplier: 1.5,
-      nightHours: '22:00 – 05:00',
+      ...autoFare('bengaluru'),
       lingoPhrase: 'Meter haaki (ಮೀಟರ್ ಹಾಕಿ)',
       hindiMeaning: 'Meter se chaliye',
     },
@@ -106,7 +118,7 @@ export const SUPPORTED_CITIES = {
       { name: 'Filter Coffee & Kesari Bath', legend: "Brahmin's Coffee Bar", price: '₹35' },
       { name: 'Rava Idli', legend: 'Mavalli Tiffin Room / MTR (Since 1924)', price: '₹60' },
     ],
-    scamAlert: 'Never pay street quotes over ₹50 for under 2.5 km. Demand meter or book via Namma Yatri / Uber Auto.',
+    scamAlert: 'Official meter: ₹36 for the first 2 km, then ₹18/km. Ask for the meter; app autos set their own price.',
     cloakroomHighlight: 'KSR Majestic Railway Platform 1 (24/7 · ₹30/day)',
     environmentalAlert: {
       aqi: 42,
@@ -135,8 +147,9 @@ export const SUPPORTED_CITIES = {
     badge: '⚡ DMRC Live Ready',
     center: {
       name: 'Connaught Place (Central Delhi)',
-      latitude: 28.6139,
-      longitude: 77.2090,
+      // Rajiv Chowk / CP inner circle (same point as the Rajiv Chowk hub below).
+      latitude: 28.6328,
+      longitude: 77.2195,
     },
     transitAgency: 'Delhi Metro (DMRC) & DTC',
     metroLines: ['Yellow Line', 'Blue Line', 'Red Line', 'Violet Line', 'Airport Express'],
@@ -145,11 +158,7 @@ export const SUPPORTED_CITIES = {
     localLanguage: 'Hindi',
     autoFareFormula: {
       vehicleType: 'Delhi Auto (CNG)',
-      baseFare: 30,
-      baseDistanceKm: 1.5,
-      perKm: 11,
-      nightMultiplier: 1.25,
-      nightHours: '23:00 – 05:00',
+      ...autoFare('delhi'),
       lingoPhrase: 'Bhaiya meter se chalo',
       hindiMeaning: 'Please turn on the meter',
     },
@@ -255,8 +264,10 @@ export const SUPPORTED_CITIES = {
     badge: '🚆 Local + Metro Ready',
     center: {
       name: 'CSMT / Fort (South Mumbai)',
-      latitude: 19.0760,
-      longitude: 72.8777,
+      // CSMT station (same point as the CSMT hub below). Was 19.0760, 72.8777 — a
+      // generic Mumbai centroid ~15 km north, which made every default trip 15 km too long.
+      latitude: 18.94,
+      longitude: 72.8353,
     },
     transitAgency: 'Mumbai Suburban Railways & Metro & BEST',
     metroLines: ['Western Line', 'Central Line', 'Metro Line 1 (Versova-Ghatkopar)', 'Metro Line 2A & 7'],
@@ -264,12 +275,8 @@ export const SUPPORTED_CITIES = {
     primaryHubId: 'csmt_railway',
     localLanguage: 'Marathi / Hindi',
     autoFareFormula: {
-      vehicleType: 'Kaali-Peeli / Auto (Meter Only)',
-      baseFare: 23,
-      baseDistanceKm: 1.5,
-      perKm: 15.33,
-      nightMultiplier: 1.25,
-      nightHours: '00:00 – 05:00',
+      vehicleType: 'Auto-Rickshaw (Meter Only)',
+      ...autoFare('mumbai'),
       lingoPhrase: 'Dadar/Bandra meter ne chala',
       hindiMeaning: 'Strict meter system is law in Mumbai',
     },

@@ -1,27 +1,35 @@
 import React from 'react';
-import {
-  Linking,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
+import { computeOfficialFare, FALLBACK_DETOUR_FACTOR, TARIFFS } from '../../src/domain/tariffs';
+import { FEATURES, log } from '../../src/logging';
 
+const VEHICLES = [
+  { id: 'auto', emoji: '🛺', name: 'Auto rickshaw' },
+  { id: 'cab', emoji: '🚕', name: 'Cab / taxi' },
+  { id: 'bike', emoji: '🛵', name: 'Bike taxi' },
+];
+const EXAMPLE_KM = [2, 5, 10];
+
+/**
+ * "Where do these fares come from?" — lists the official tariff, its legal source,
+ * effective date and last verification date for the current city, plus worked
+ * examples computed by the same engine the route screens use.
+ */
 export default function FareReliabilityModal({ visible, onClose }) {
-  const { fireToast } = useTrip();
-
+  const { fireToast, currentCity } = useTrip();
   if (!visible) return null;
 
-  const handleOpenPlatform = (url, name) => {
-    Linking.openURL(url).catch(() => {
-      fireToast(`Could not open ${name}. Link copied to clipboard.`);
-    });
+  const cityId = currentCity?.id || 'bengaluru';
+  const cityTariffs = TARIFFS[cityId] || {};
+  const noon = new Date();
+  noon.setHours(12, 0, 0, 0);
+
+  const openSource = (url) => {
+    log.info(FEATURES.FARE, 'tariff.source_opened', { url });
+    Linking.openURL(url).catch(() => fireToast('Could not open the link.'));
   };
 
   const Container = Platform.OS === 'web' ? View : Modal;
@@ -38,29 +46,15 @@ export default function FareReliabilityModal({ visible, onClose }) {
 
       <View style={styles.modalCard}>
         <View style={styles.handleBar} />
-
-        {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <View style={styles.headerBadgeRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>EMPIRICAL BENCHMARK</Text>
-              </View>
-              <View style={styles.accuracyBadge}>
-                <Text style={styles.accuracyBadgeText}>94.6% Platform Accuracy</Text>
-              </View>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>OFFICIAL TARIFFS · {(currentCity?.name || 'Bengaluru').toUpperCase()}</Text>
             </View>
-            <Text style={styles.title}>Fare Reliability & Platform Audit</Text>
-            <Text style={styles.subtitle}>
-              Verified against Uber, Ola, Rapido, Namma Yatri & RTO Gazette
-            </Text>
+            <Text style={styles.title}>Where these fares come from</Text>
+            <Text style={styles.subtitle}>Government meter tariffs with source and date. App prices are not published.</Text>
           </View>
-
-          <Pressable
-            onPress={onClose}
-            style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]}
-            hitSlop={12}
-          >
+          <Pressable onPress={onClose} style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]} hitSlop={12}>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[700]} strokeWidth={2.5}>
               <Path d="M18 6L6 18M6 6l12 12" />
             </Svg>
@@ -68,101 +62,92 @@ export default function FareReliabilityModal({ visible, onClose }) {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Key Takeaway Banner */}
           <View style={styles.highlightCard}>
-            <Text style={styles.highlightTitle}>💡 Why do Uber/Rapido fares differ from Meter?</Text>
+            <Text style={styles.highlightTitle}>How the fare is calculated</Text>
             <Text style={styles.highlightText}>
-              In Bengaluru, theoretical meter rates (₹30 for 2km + ₹15/km) do not reflect aggregator app prices during peak office rush (8:30–11:30 AM & 5:00–8:30 PM). Our app uses a calibrated surge multiplier and platform fee model to match ground reality.
+              Meter fare = base fare for the first km + per-km rate × remaining road distance, × night multiplier
+              where the tariff has one. Road distance comes from OSRM routing; if routing is unavailable, straight-line
+              distance × {FALLBACK_DETOUR_FACTOR} is used and the fare is shown with a ~ sign.
             </Text>
           </View>
 
-          {/* Distance Benchmarking Table */}
-          <Text style={styles.sectionHeading}>EMPIRICAL PRICE BENCHMARK BY DISTANCE</Text>
-          <View style={styles.tableCard}>
-            <View style={styles.tableHeaderRow}>
-              <Text style={[styles.tableHeadCell, { flex: 1.2 }]}>Trip Distance</Text>
-              <Text style={styles.tableHeadCell}>Govt Meter</Text>
-              <Text style={styles.tableHeadCell}>Namma Yatri</Text>
-              <Text style={styles.tableHeadCell}>Uber Auto</Text>
-            </View>
+          {VEHICLES.map((v) => {
+            const t = cityTariffs[v.id];
+            if (!t) {
+              return (
+                <View key={v.id} style={styles.tariffCard}>
+                  <Text style={styles.tariffTitle}>
+                    {v.emoji} {v.name}
+                  </Text>
+                  <Text style={styles.warnText}>No tariff configured for this city.</Text>
+                </View>
+              );
+            }
+            return (
+              <View key={v.id} style={styles.tariffCard}>
+                <View style={styles.tariffHeader}>
+                  <Text style={styles.tariffTitle}>
+                    {v.emoji} {t.label}
+                  </Text>
+                  <View style={[styles.statusPill, { backgroundColor: t.regulated ? '#dcfce7' : '#f1f5f9' }]}>
+                    <Text style={[styles.statusPillText, { color: t.regulated ? '#15803d' : '#475569' }]}>
+                      {t.regulated ? 'GOVT TARIFF' : 'NO GOVT TARIFF'}
+                    </Text>
+                  </View>
+                </View>
 
-            {[
-              { dist: '2.5 km (Metro link)', meter: '₹38', yatri: '₹52–₹58', uber: '₹75–₹110' },
-              { dist: '6.0 km (City ride)', meter: '₹90', yatri: '₹115–₹125', uber: '₹140–₹210' },
-              { dist: '10.0 km (Cross-town)', meter: '₹150', yatri: '₹180–₹205', uber: '₹220–₹310' },
-              { dist: '14.0 km (Tech Park)', meter: '₹210', yatri: '₹245–₹275', uber: '₹340–₹420' },
-            ].map((row, i) => (
-              <View key={i} style={[styles.tableRow, i % 2 === 1 && { backgroundColor: colors.surface[50] }]}>
-                <Text style={[styles.tableCellBold, { flex: 1.2 }]}>{row.dist}</Text>
-                <Text style={[styles.tableCell, { color: '#16a34a' }]}>{row.meter}</Text>
-                <Text style={[styles.tableCell, { color: '#2563eb' }]}>{row.yatri}</Text>
-                <Text style={[styles.tableCell, { color: '#ef4444' }]}>{row.uber}</Text>
-              </View>
-            ))}
-          </View>
+                {t.regulated ? (
+                  <>
+                    <Text style={styles.rateLine}>
+                      ₹{t.baseFare} for first {t.baseKm} km · ₹{t.perKm}/km after
+                    </Text>
+                    {t.night && <Text style={styles.metaLine}>Night: {t.night.label}</Text>}
+                    {t.waiting && <Text style={styles.metaLine}>Waiting: {t.waiting}</Text>}
+                    {t.tiers && (
+                      <View style={styles.tierBox}>
+                        {t.tiers.map((tier) => (
+                          <Text key={tier.label} style={styles.metaLine}>
+                            • {tier.label}: ₹{tier.baseFare} first {tier.baseKm} km, ₹{tier.perKm}/km
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                    <View style={styles.exampleRow}>
+                      {EXAMPLE_KM.map((km) => {
+                        const r = computeOfficialFare(cityId, v.id, { roadMeters: km * 1000, date: noon });
+                        return (
+                          <View key={km} style={styles.exampleCell}>
+                            <Text style={styles.exampleKm}>{km} km</Text>
+                            <Text style={styles.exampleFare}>₹{r.fare}</Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </>
+                ) : (
+                  <Text style={styles.metaLine}>{t.legalStatus}</Text>
+                )}
 
-          {/* Time Surge Breakdown */}
-          <Text style={styles.sectionHeading}>CALIBRATED TIME-OF-DAY SURGE FACTORS</Text>
-          <View style={styles.surgeGrid}>
-            <View style={styles.surgeItem}>
-              <Text style={styles.surgeIcon}>🌅</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.surgeItemTitle}>Early Morning (05:00 – 08:30)</Text>
-                <Text style={styles.surgeItemSub}>1.0x Base Rate · Light traffic</Text>
+                {t.appNote && <Text style={styles.noteText}>{t.appNote}</Text>}
+                <Text style={styles.metaLine}>
+                  {t.authority ? `${t.authority}. ` : ''}
+                  {t.effectiveFrom ? `Effective ${t.effectiveFrom}. ` : ''}Last checked {t.verifiedOn}.
+                </Text>
+                {(t.sources || []).map((url) => (
+                  <Pressable key={url} onPress={() => openSource(url)}>
+                    <Text style={styles.linkText} numberOfLines={1}>
+                      {url.replace(/^https?:\/\/(www\.)?/, '')}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
-            </View>
-            <View style={[styles.surgeItem, { backgroundColor: '#fffbeb', borderColor: '#fde68a' }]}>
-              <Text style={styles.surgeIcon}>⚡</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.surgeItemTitle}>Morning Office Rush (08:30 – 11:30)</Text>
-                <Text style={styles.surgeItemSub}>1.45x Surge · High demand at Metro/Tech hubs</Text>
-              </View>
-            </View>
-            <View style={styles.surgeItem}>
-              <Text style={styles.surgeIcon}>☀️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.surgeItemTitle}>Midday Off-Peak (11:30 – 17:00)</Text>
-                <Text style={styles.surgeItemSub}>1.05x Normal · Driver meter acceptance higher</Text>
-              </View>
-            </View>
-            <View style={[styles.surgeItem, { backgroundColor: '#fef2f2', borderColor: '#fecaca' }]}>
-              <Text style={styles.surgeIcon}>🔥</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.surgeItemTitle}>Peak Evening Gridlock (17:00 – 20:30)</Text>
-                <Text style={styles.surgeItemSub}>1.65x–2.0x Peak · Silk Board & ORR bottlenecks</Text>
-              </View>
-            </View>
-            <View style={styles.surgeItem}>
-              <Text style={styles.surgeIcon}>🌙</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.surgeItemTitle}>Night Tariff (22:00 – 05:00)</Text>
-                <Text style={styles.surgeItemSub}>1.5x (+50% Legal RTO Gazette rule)</Text>
-              </View>
-            </View>
-          </View>
+            );
+          })}
 
-          {/* Live External Verification Links */}
-          <Text style={styles.sectionHeading}>VERIFY LIVE PRICES ON PLATFORMS</Text>
-          <View style={styles.externalLinksRow}>
-            <Pressable
-              onPress={() => handleOpenPlatform('https://m.uber.com/looking', 'Uber')}
-              style={({ pressed }) => [styles.platformBtn, pressed && { opacity: 0.8 }]}
-            >
-              <Text style={styles.platformBtnText}>Uber Web / App ↗</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => handleOpenPlatform('https://www.rapido.bike/', 'Rapido')}
-              style={({ pressed }) => [styles.platformBtn, pressed && { opacity: 0.8 }]}
-            >
-              <Text style={styles.platformBtnText}>Rapido Auto ↗</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => handleOpenPlatform('https://nammayatri.in/', 'Namma Yatri')}
-              style={({ pressed }) => [styles.platformBtn, pressed && { opacity: 0.8 }]}
-            >
-              <Text style={styles.platformBtnText}>Namma Yatri ↗</Text>
-            </Pressable>
-          </View>
+          <Text style={styles.footer}>
+            Wrong or outdated? Open the Diagnostics screen (Guide tab) and share logs — every fare the app shows is logged
+            with its distance source and tariff.
+          </Text>
         </ScrollView>
       </View>
     </Container>
@@ -181,8 +166,8 @@ const styles = StyleSheet.create({
     right: 0,
     maxHeight: '92%',
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
     ...shadow.lg,
     overflow: 'hidden',
   },
@@ -205,36 +190,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[200],
   },
-  headerBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
   badge: {
-    backgroundColor: '#eff6ff',
+    alignSelf: 'flex-start',
+    backgroundColor: '#f0fdf4',
     borderWidth: 1,
-    borderColor: '#bfdbfe',
+    borderColor: '#bbf7d0',
     paddingHorizontal: 7,
     paddingVertical: 2,
-    borderRadius: radius.xs,
+    borderRadius: 4,
+    marginBottom: 4,
   },
   badgeText: {
     fontSize: 9,
     fontFamily: fontFamily.bodyBold,
-    color: '#1d4ed8',
-    letterSpacing: 0.5,
-  },
-  accuracyBadge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.xs,
-  },
-  accuracyBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
     color: '#15803d',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 18,
@@ -249,7 +219,7 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     padding: 6,
-    borderRadius: radius.full,
+    borderRadius: radius.pill,
     backgroundColor: colors.neutral[100],
     marginLeft: 10,
   },
@@ -277,99 +247,97 @@ const styles = StyleSheet.create({
     color: '#475569',
     lineHeight: 16,
   },
-  sectionHeading: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    letterSpacing: 0.8,
-    color: colors.neutral[500],
-    marginTop: 4,
-  },
-  tableCard: {
-    backgroundColor: '#ffffff',
+  tariffCard: {
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.neutral[200],
-    overflow: 'hidden',
+    padding: 12,
+    gap: 4,
   },
-  tableHeaderRow: {
+  tariffHeader: {
     flexDirection: 'row',
-    backgroundColor: colors.surface[100],
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  tableHeadCell: {
+  tariffTitle: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 13,
     fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  statusPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  statusPillText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 0.4,
+  },
+  rateLine: {
+    fontSize: 14,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[800],
+    marginTop: 2,
+  },
+  metaLine: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
     color: colors.neutral[600],
-    textAlign: 'center',
+    lineHeight: 15,
   },
-  tableRow: {
+  tierBox: {
+    marginTop: 2,
+  },
+  exampleRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[100],
+    gap: 8,
+    marginVertical: 6,
   },
-  tableCell: {
+  exampleCell: {
     flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+  },
+  exampleKm: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[500],
+  },
+  exampleFare: {
+    fontSize: 14,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  noteText: {
     fontSize: 11,
     fontFamily: fontFamily.body,
-    textAlign: 'center',
+    color: '#92400e',
+    backgroundColor: '#fffbeb',
+    borderRadius: radius.sm,
+    padding: 8,
+    lineHeight: 15,
   },
-  tableCellBold: {
+  warnText: {
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
+    color: '#b91c1c',
   },
-  surgeGrid: {
-    gap: 8,
+  linkText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#1d4ed8',
+    textDecorationLine: 'underline',
   },
-  surgeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface[50],
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    padding: 9,
-    gap: 10,
-  },
-  surgeIcon: {
-    fontSize: 16,
-  },
-  surgeItemTitle: {
-    fontSize: 11.5,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
-  },
-  surgeItemSub: {
-    fontSize: 10,
+  footer: {
+    fontSize: 11,
     fontFamily: fontFamily.body,
     color: colors.neutral[500],
-    marginTop: 1,
-  },
-  externalLinksRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
-  },
-  platformBtn: {
-    flex: 1,
-    backgroundColor: colors.surface[100],
-    borderWidth: 1,
-    borderColor: colors.neutral[300],
-    paddingVertical: 8,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  platformBtnText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
+    lineHeight: 15,
+    textAlign: 'center',
   },
 });

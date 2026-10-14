@@ -20,7 +20,11 @@ import {
   planTransitRoute,
   planMultimodalRoutes,
   enrichRouteWithRealRoads,
+  fetchRoadDistance,
 } from '../../app/services/directionsService';
+import { FEATURES, log, reportIssue, serializeError, setLogContext, setScreen } from '../logging';
+import { auditRestaurants, withVerification } from '../../app/services/restaurantAudit';
+import { getOpenStatus } from '../domain/openingHours';
 import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
 import {
   fetchGooglePlacesRestaurants,
@@ -31,6 +35,22 @@ import { SUPPORTED_CITIES, getCityConfig } from '../../app/data/citiesRegistry';
 import { CITY_BOUNDS } from '../../app/services/searchService';
 
 const TripContext = createContext(null);
+
+function logLocationResult(loc, done) {
+  if (!loc) return;
+  if (loc.permissionDenied) {
+    reportIssue('LOCATION_PERMISSION_DENIED', { key: 'foreground', message: 'Using default location' });
+  } else if (loc.gpsUnavailable || loc.source === 'fallback') {
+    reportIssue('LOCATION_FAILED', { key: 'gps', message: 'No GPS fix; using default location' });
+  }
+  done({
+    source: loc.source || (loc.isDefault ? 'default' : 'gps'),
+    name: loc.name,
+    // Rounded to ~100 m so shared logs don't contain an exact home location.
+    lat: Math.round(loc.latitude * 1000) / 1000,
+    lon: Math.round(loc.longitude * 1000) / 1000,
+  });
+}
 
 export function TripProvider({ children }) {
   // Navigation tabs: 'navigate' | 'explore' | 'guide' (with 'eat' & 'offline' aliased to 'guide')
@@ -44,8 +64,16 @@ export function TripProvider({ children }) {
   const [isCitySwitcherOpen, setIsCitySwitcherOpen] = useState(false);
   const currentCity = useMemo(() => getCityConfig(cityId), [cityId]);
 
+  // Set once the user picks a city or an origin. A slow startup GPS fix must not
+  // overwrite that choice (it used to replace a Mumbai origin with a Bengaluru GPS
+  // point and produce an 835 km "trip").
+  const originChosenRef = useRef(false);
+
   const switchCity = useCallback((newCityId) => {
+    originChosenRef.current = true;
     const cfg = getCityConfig(newCityId);
+    log.info(FEATURES.CITY, 'city.switch', { to: newCityId });
+    setLogContext({ cityId: newCityId });
     setCityId(newCityId);
     setUserLocation({
       name: cfg.center?.name || `${cfg.name} Center`,
@@ -109,6 +137,8 @@ export function TripProvider({ children }) {
   const [visitedRestaurants, setVisitedRestaurants] = useState([]);
   const [liveOsmRestaurants, setLiveOsmRestaurants] = useState([]);
   const [isFetchingOsm, setIsFetchingOsm] = useState(false);
+  const [liveFetchStatus, setLiveFetchStatus] = useState(null);
+  const [onlyOpenNow, setOnlyOpenNow] = useState(false);
   const [apiKeys, setApiKeys] = useState(API_KEYS);
 
   const setApiKey = useCallback((provider, key) => {
@@ -130,11 +160,9 @@ export function TripProvider({ children }) {
 
   // Normalize setTab to support backwards-compatible names
   const setTab = useCallback((nextTab) => {
-    if (nextTab === 'eat' || nextTab === 'offline') {
-      setTabState('guide');
-    } else {
-      setTabState(nextTab);
-    }
+    const resolved = nextTab === 'eat' || nextTab === 'offline' ? 'guide' : nextTab;
+    setScreen(resolved);
+    setTabState(resolved);
   }, []);
 
   // Initialize live GPS location on app start
@@ -143,12 +171,21 @@ export function TripProvider({ children }) {
     async function initLocation() {
       try {
         setIsLocating(true);
+        const done = log.time(FEATURES.LOCATION, 'location.initial');
         const loc = await getCurrentUserLocation();
+        logLocationResult(loc, done);
         if (mounted) {
-          setUserLocation(loc);
+          if (originChosenRef.current) {
+            log.info(FEATURES.LOCATION, 'location.initial_ignored', {
+              reason: 'user already chose a city or origin before GPS answered',
+            });
+          } else {
+            setUserLocation(loc);
+          }
           setIsLocating(false);
         }
-      } catch {
+      } catch (err) {
+        reportIssue('LOCATION_FAILED', { key: 'initial', message: err && err.message, data: serializeError(err) });
         if (mounted) setIsLocating(false);
       }
     }
@@ -168,11 +205,63 @@ export function TripProvider({ children }) {
 
   const [selectedRouteMode, setSelectedRouteMode] = useState(null);
 
+  // Real road distance (OSRM) for meter fares; null until loaded or if routing fails.
+  const [roadInfo, setRoadInfo] = useState(null);
+  const tripKey = userLocation && destination
+    ? `${userLocation.latitude.toFixed(5)},${userLocation.longitude.toFixed(5)}>${destination.latitude.toFixed(5)},${destination.longitude.toFixed(5)}`
+    : null;
+  useEffect(() => {
+    if (!tripKey) return undefined;
+    let cancelled = false;
+    setRoadInfo(null);
+    fetchRoadDistance(userLocation, destination).then((r) => {
+      if (cancelled) return;
+      if (r) {
+        setRoadInfo({ key: tripKey, meters: r.meters, durationSec: r.durationSec });
+      } else {
+        reportIssue('FARE_ROAD_DISTANCE_ESTIMATED', {
+          key: 'trip',
+          message: 'OSRM road distance unavailable; fares use straight-line × detour factor',
+          data: { destination: destination.name },
+        });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tripKey]);
+
   // Compute multimodal options (Metro combo, Direct Auto, Direct Cab, Bus)
   const multimodalPlan = useMemo(() => {
     if (!userLocation || !destination) return null;
-    return planMultimodalRoutes(userLocation, destination, new Date(), { seniorMode, cityId });
-  }, [userLocation, destination, seniorMode, cityId]);
+    const road = roadInfo && roadInfo.key === tripKey ? roadInfo : null;
+    try {
+      const plan = planMultimodalRoutes(userLocation, destination, new Date(), {
+        seniorMode,
+        cityId,
+        roadDistanceMeters: road ? road.meters : undefined,
+        roadDurationSec: road ? road.durationSec : undefined,
+      });
+      log.info(FEATURES.NAV, 'route.planned', {
+        cityId,
+        from: userLocation.name,
+        to: destination.name,
+        straightKm: plan ? plan.distanceKm : null,
+        roadKm: road ? Math.round(road.meters / 100) / 10 : null,
+        recommended: plan ? plan.recommendedMode : null,
+        options: plan ? plan.options.map((o) => ({ mode: o.mode, cost: o.cost, min: o.durationMinutes })) : [],
+      });
+      return plan;
+    } catch (err) {
+      reportIssue('NAV_PLAN_FAILED', {
+        key: destination.name || 'destination',
+        message: err && err.message,
+        data: { error: serializeError(err), origin: userLocation, destination },
+      });
+      return null;
+    }
+  }, [userLocation, destination, seniorMode, cityId, roadInfo, tripKey]);
 
   const activeMode = selectedRouteMode || multimodalPlan?.recommendedMode || 'metro';
 
@@ -185,6 +274,7 @@ export function TripProvider({ children }) {
   // Asynchronously fetch real street road geometry and update route
   useEffect(() => {
     let cancelled = false;
+    setEnrichedRoute(null);
     if (!baseRoute) {
       return;
     }
@@ -204,12 +294,15 @@ export function TripProvider({ children }) {
 
   const refreshUserLocation = useCallback(async () => {
     setIsLocating(true);
+    const done = log.time(FEATURES.LOCATION, 'location.refresh');
     const loc = await getCurrentUserLocation();
+    logLocationResult(loc, done);
     setUserLocation(loc);
     setIsLocating(false);
   }, []);
 
   const selectDestination = useCallback((dest) => {
+    log.info(FEATURES.NAV, 'destination.selected', dest ? { id: dest.id, name: dest.name, lat: dest.latitude, lon: dest.longitude } : null);
     setDestination(dest);
     setSelectedRouteMode(null); // Reset mode for new destination so recommendation activates
     if (dest) {
@@ -221,11 +314,13 @@ export function TripProvider({ children }) {
   }, []);
 
   const changeUserLocation = useCallback((newLoc) => {
+    originChosenRef.current = true;
     setUserLocation(newLoc);
   }, []);
 
   const swapOriginDestination = useCallback(() => {
     if (!userLocation || !destination) return;
+    originChosenRef.current = true;
     const oldOrigin = { ...userLocation };
     const oldDest = { ...destination };
     setUserLocation({
@@ -272,6 +367,7 @@ export function TripProvider({ children }) {
   }, []);
 
   const openRestaurant = useCallback((restaurantId) => {
+    log.info(FEATURES.FOOD, 'restaurant.open', { id: restaurantId });
     setSelectedRestaurantId(restaurantId);
   }, []);
 
@@ -295,16 +391,20 @@ export function TripProvider({ children }) {
       const lon = customLon || userLocation?.longitude || cfg.center.longitude;
 
       setIsFetchingOsm(true);
+      const done = log.time(FEATURES.FOOD, 'live_fetch', { cityId: activeCity, preferredProvider, areaName });
+      const attempted = [];
       try {
         let results = [];
         let sourceUsed = 'OpenStreetMap';
 
         // 1. Try Google Places if key configured
         if ((preferredProvider === 'google' || preferredProvider === 'auto') && apiKeys.google) {
+          attempted.push('google');
           results = await fetchGooglePlacesRestaurants({
             latitude: lat,
             longitude: lon,
             apiKey: apiKeys.google,
+            cityId: activeCity,
           });
           if (results.length > 0) sourceUsed = 'Google Places';
         }
@@ -319,22 +419,26 @@ export function TripProvider({ children }) {
             cuisineFilter && cuisineFilter !== 'all'
               ? `${cuisineFilter} restaurant`
               : 'restaurant';
+          attempted.push('foursquare');
           results = await fetchFoursquarePlacesRestaurants({
             latitude: lat,
             longitude: lon,
             query: searchQuery,
             apiKey: apiKeys.foursquare,
+            cityId: activeCity,
           });
           if (results.length > 0) sourceUsed = 'Foursquare';
         }
 
         // 3. Fallback to OpenStreetMap Overpass (No key required, 100% free)
         if (results.length === 0) {
+          attempted.push('osm');
           results = await fetchNearbyOsmRestaurants({
             latitude: lat,
             longitude: lon,
             radiusMeters: 2200,
-            limit: 25,
+            limit: 40,
+            cityId: activeCity,
           });
           if (results.length > 0) sourceUsed = 'OpenStreetMap';
         }
@@ -351,15 +455,26 @@ export function TripProvider({ children }) {
             return [...others, ...Array.from(map.values())];
           });
           const locationLabel = areaName ? ` near ${areaName}` : '';
-          fireToast(`🌐 Discovered ${results.length} live spots via ${sourceUsed}${locationLabel}!`);
+          done({ ok: true, source: sourceUsed, count: results.length, attempted });
+          setLiveFetchStatus({ state: 'ok', source: sourceUsed, count: results.length, at: new Date().toISOString() });
+          fireToast(`Found ${results.length} places from ${sourceUsed}${locationLabel}`);
           return tagged;
         } else {
-          fireToast('No extra eateries found in immediate radius; showing offline spots.');
+          done({ ok: false, count: 0, attempted });
+          reportIssue('FOOD_ALL_PROVIDERS_FAILED', {
+            key: activeCity,
+            message: `No live results from ${attempted.join(', ')} — see NET entries for the cause`,
+            data: { attempted, lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 },
+          });
+          setLiveFetchStatus({ state: 'failed', attempted, at: new Date().toISOString() });
+          fireToast('Live restaurant search failed. Showing saved places only.');
           return [];
         }
       } catch (err) {
-        console.warn('Failed to fetch live restaurants:', err);
-        fireToast('Network timeout. Showing curated offline eateries.');
+        done.fail(err, { attempted });
+        reportIssue('FOOD_ALL_PROVIDERS_FAILED', { key: activeCity, message: err && err.message, data: serializeError(err) });
+        setLiveFetchStatus({ state: 'failed', attempted, at: new Date().toISOString() });
+        fireToast('Live restaurant search failed. Showing saved places only.');
         return [];
       } finally {
         setIsFetchingOsm(false);
@@ -466,8 +581,13 @@ export function TripProvider({ children }) {
     return PLACES.find((p) => p.id === selectedPlaceId) || null;
   }, [selectedPlaceId]);
 
+  const curatedRestaurants = useMemo(
+    () => getRestaurantsForCity(cityId).map((r) => withVerification(r, cityId)),
+    [cityId],
+  );
+
   const allRestaurants = useMemo(() => {
-    const baseRestaurants = getRestaurantsForCity(cityId);
+    const baseRestaurants = curatedRestaurants;
     if (!liveOsmRestaurants || liveOsmRestaurants.length === 0) {
       return baseRestaurants;
     }
@@ -499,7 +619,12 @@ export function TripProvider({ children }) {
       (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
     );
     return [...uniqueLive, ...baseRestaurants];
-  }, [liveOsmRestaurants, cityId]);
+  }, [liveOsmRestaurants, cityId, curatedRestaurants]);
+
+  // Data-quality audit (logs MAJOR / MINOR issues once per restaurant per session).
+  useEffect(() => {
+    auditRestaurants(allRestaurants, cityId);
+  }, [allRestaurants, cityId]);
 
   const selectedRestaurant = useMemo(() => {
     return allRestaurants.find((r) => r.id === selectedRestaurantId) || null;
@@ -572,13 +697,19 @@ export function TripProvider({ children }) {
       const routeIds = new Set(routeEateries.map((re) => re.id));
       list = list.filter((r) => routeIds.has(r.id));
     } else if (dietFilter === 'veg') {
-      list = list.filter((r) => !(r.tags || []).includes('nonveg'));
+      // Pure veg only when a source says so; unknown diet is NOT treated as veg.
+      list = list.filter((r) => (r.tags || []).includes('veg') && !(r.tags || []).includes('nonveg'));
     } else if (dietFilter === 'nonveg') {
       list = list.filter((r) => (r.tags || []).includes('nonveg'));
     } else if (dietFilter === 'halal') {
       list = list.filter((r) => (r.tags || []).includes('halal'));
     } else if (dietFilter === 'jain') {
-      list = list.filter((r) => (r.tags || []).includes('nog') && !(r.tags || []).includes('nonveg'));
+      list = list.filter((r) => ((r.tags || []).includes('jain') || (r.tags || []).includes('nog')) && !(r.tags || []).includes('nonveg'));
+    }
+
+    if (onlyOpenNow) {
+      const now = new Date();
+      list = list.filter((r) => getOpenStatus(r.schedule, now).isOpen === true || r.isOpenFromProvider === true);
     }
 
     // sort by distance if location known
@@ -591,7 +722,7 @@ export function TripProvider({ children }) {
     }
 
     return list;
-  }, [allRestaurants, sourceFilter, cuisineFilter, dietFilter, userLocation, routeEateries]);
+  }, [allRestaurants, sourceFilter, cuisineFilter, dietFilter, userLocation, routeEateries, onlyOpenNow]);
 
   // Filtered Eateries for Eat / Guide tab
   const filteredEateries = useMemo(() => {
@@ -690,6 +821,9 @@ export function TripProvider({ children }) {
       isFetchingOsm,
       fetchNearbyOsm,
       fetchNearbyLive,
+      liveFetchStatus,
+      onlyOpenNow,
+      setOnlyOpenNow,
       apiKeys,
       setApiKey,
       allRestaurants,
@@ -765,6 +899,9 @@ export function TripProvider({ children }) {
       liveOsmRestaurants,
       isFetchingOsm,
       fetchNearbyOsm,
+      fetchNearbyLive,
+      liveFetchStatus,
+      onlyOpenNow,
       allRestaurants,
     ],
   );

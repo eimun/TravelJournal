@@ -19,7 +19,7 @@ export const BENGALURU_SEARCH_HUBS = [
     longitude: 77.6389,
     nearestMetro: 'Silk Board / South End Circle',
     tip: 'Take metro to Silk Board, then 10 min bus/auto.',
-    autoFareQuoteWarning: 'Auto fare from closest metro is ~₹50 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 45,
   },
   {
@@ -31,7 +31,7 @@ export const BENGALURU_SEARCH_HUBS = [
     longitude: 77.6101,
     nearestMetro: 'Banashankari / Silk Board',
     tip: 'Direct connecting buses 500-series from Banashankari.',
-    autoFareQuoteWarning: 'Autos ask ₹100 flat. Insist on meter (~₹40).',
+    autoFareQuoteWarning: 'Autos often ask ₹100 flat. Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 35,
   },
   {
@@ -55,7 +55,7 @@ export const BENGALURU_SEARCH_HUBS = [
     longitude: 77.6387,
     nearestMetro: 'Indiranagar Metro (Purple Line)',
     tip: '12th Main cafes are 5 min walk south from Metro Exit B.',
-    autoFareQuoteWarning: 'Auto fare to 12th Main cross is ₹40 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 30,
   },
   {
@@ -67,7 +67,7 @@ export const BENGALURU_SEARCH_HUBS = [
     longitude: 77.6245,
     nearestMetro: 'South End Circle / Trinity',
     tip: 'Take Metro to Trinity, then auto/BMTC bus 201.',
-    autoFareQuoteWarning: 'Auto from Trinity Metro is ₹90 on meter.',
+    autoFareQuoteWarning: 'Use the meter: ₹36 for the first 2 km, then ₹18/km (Aug 2025 tariff).',
     estimatedCost: 95,
   },
   {
@@ -158,7 +158,7 @@ export const DELHI_SEARCH_HUBS = [
     nearestMetro: 'Rajiv Chowk Metro (Gate 7 or 8)',
     metroLine: 'Yellow & Blue Interchange',
     tip: 'Central interchange with exits into all CP inner and outer circles.',
-    autoFareQuoteWarning: 'Auto drivers ask flat ₹100; insist on ₹30 meter.',
+    autoFareQuoteWarning: 'Auto drivers ask flat ₹100; insist on the meter (minimum ₹30 for the first 1.5 km).',
     estimatedCost: 30,
   },
   {
@@ -343,7 +343,7 @@ export const MUMBAI_SEARCH_HUBS = [
     nearestMetro: 'Marine Lines / Churchgate Station',
     metroLine: 'Western Suburban Line',
     tip: '3.6 km promenade is breezy and pedestrian-friendly 24/7.',
-    autoFareQuoteWarning: 'Taxis charge base fare ₹23 on meter for local hops.',
+    autoFareQuoteWarning: 'Kaali-peeli taxis run on meter: minimum ₹33 for the first 1.5 km (Sept 2026 tariff).',
     estimatedCost: 23,
   },
   {
@@ -369,7 +369,7 @@ export const MUMBAI_SEARCH_HUBS = [
     nearestMetro: 'Bandra Station (Western Line)',
     metroLine: 'Western Suburban Line',
     tip: 'Auto-rickshaws operate north of Mahim/Bandra on strict meter.',
-    autoFareQuoteWarning: 'Autos strictly run on meter (₹23 base fare for 1.5 km).',
+    autoFareQuoteWarning: 'Autos must run on meter: minimum ₹27 for the first 1.5 km (Sept 2026 tariff).',
     estimatedCost: 23,
   },
   {
@@ -382,7 +382,7 @@ export const MUMBAI_SEARCH_HUBS = [
     nearestMetro: 'Vile Parle / Santacruz Station',
     metroLine: 'Western Suburban Line',
     tip: 'Juhu beach food stalls open till midnight with hot Pav Bhaji.',
-    autoFareQuoteWarning: 'Autos from Vile Parle station cost ₹35-₹45 on meter.',
+    autoFareQuoteWarning: 'Autos must run on meter: minimum ₹27 for the first 1.5 km (Sept 2026 tariff).',
     estimatedCost: 35,
   },
   {
@@ -421,7 +421,7 @@ export const MUMBAI_SEARCH_HUBS = [
     nearestMetro: 'Kanjurmarg / Vikhroli Station',
     metroLine: 'Central Suburban Line',
     tip: 'Scenic pedestrian European-style boulevard with artisanal coffee shops.',
-    autoFareQuoteWarning: 'Auto fare from Kanjurmarg station is ₹45 on meter.',
+    autoFareQuoteWarning: 'Autos must run on meter: minimum ₹27 for the first 1.5 km (Sept 2026 tariff).',
     estimatedCost: 45,
   },
   {
@@ -434,7 +434,7 @@ export const MUMBAI_SEARCH_HUBS = [
     nearestMetro: 'Versova Metro Station (Line 1 Terminal)',
     metroLine: 'Metro Line 1',
     tip: 'Terminal station of Metro Line 1; take a quick auto to the beach or ferry.',
-    autoFareQuoteWarning: 'Auto fare from Versova metro to beach is minimum ₹23.',
+    autoFareQuoteWarning: 'Autos must run on meter: minimum ₹27 for the first 1.5 km (Sept 2026 tariff).',
     estimatedCost: 23,
   },
   {
@@ -458,7 +458,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_sitaram',
     name: 'Sita Ram Diwan Chand',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
     area: 'Paharganj, New Delhi',
     cuisine: 'northindian',
     rating: 4.8,
@@ -527,7 +527,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_gulati',
     name: 'Gulati Restaurant',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
     area: 'Pandara Road Market',
     cuisine: 'northindian',
     rating: 4.8,
@@ -641,7 +641,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_aslam',
     name: 'Aslam Chicken',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=800&q=80',
     area: 'Matia Mahal, Jama Masjid',
     cuisine: 'northindian',
     rating: 4.7,
@@ -828,7 +828,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_bademiya',
     name: 'Bademiya',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?auto=format&fit=crop&w=800&q=80',
     area: 'Tulloch Road, Behind Taj Hotel, Colaba',
     cuisine: 'northindian',
     rating: 4.5,

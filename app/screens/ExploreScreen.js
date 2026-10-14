@@ -1,104 +1,203 @@
 import React, { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import Svg, { Path, Circle, Polygon } from 'react-native-svg';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Svg, { Path, Polygon } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 import { CUISINE_CATEGORIES } from '../data/bengaluruData';
 import { getDistanceBetween } from '../data/transitData';
 import { formatDistance } from '../services/locationService';
+import { getOpenStatus } from '../../src/domain/openingHours';
+import { FEATURES, log, reportIssue } from '../../src/logging';
 
 const PRICE_TIER_LABELS = { 1: '₹', 2: '₹₹', 3: '₹₹₹' };
+const PRICE_TIER_COLORS = {
+  1: { bg: '#e8f5e9', text: '#2e7d32' },
+  2: { bg: '#fff8e1', text: '#b26a00' },
+  3: { bg: '#fce4ec', text: '#c62828' },
+};
 
 export const AUTHENTIC_CUISINE_FALLBACKS = {
   southindian: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=800&q=80',
   biryani: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80',
   streetfood: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80',
   cafe: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80',
-  northindian: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=800&q=80',
+  northindian: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800&q=80',
   desserts: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
   dessert: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
   continental: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+  fastfood: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
+  other: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
 };
 
-export function AuthenticRestaurantImage({ uri, cuisine, style, resizeMode = 'cover' }) {
-  const fallback = AUTHENTIC_CUISINE_FALLBACKS[cuisine] || AUTHENTIC_CUISINE_FALLBACKS.southindian;
-  const [sourceUri, setSourceUri] = React.useState(uri || fallback);
+export function cuisineInfo(id) {
+  if (id === 'dessert') id = 'desserts';
+  if (id === 'continental') return { label: 'Continental', emoji: '🍕' };
+  if (id === 'fastfood') return { label: 'Fast food', emoji: '🍔' };
+  return CUISINE_CATEGORIES.find((c) => c.id === id) || { label: 'Restaurant', emoji: '🍽️' };
+}
 
-  React.useEffect(() => {
-    setSourceUri(uri || fallback);
-  }, [uri, cuisine]);
+export function AuthenticRestaurantImage({ uri, cuisine, style, resizeMode = 'cover', restaurantId }) {
+  const fallback = AUTHENTIC_CUISINE_FALLBACKS[cuisine] || AUTHENTIC_CUISINE_FALLBACKS.other;
+  // Remember which URI failed; a new `uri` prop is tried again automatically.
+  const [failedUri, setFailedUri] = React.useState(null);
+  const sourceUri = uri && uri !== failedUri ? uri : fallback;
 
   return (
     <Image
       source={{ uri: sourceUri }}
       style={style}
       resizeMode={resizeMode}
-      onError={() => {
+      onError={(e) => {
         if (sourceUri !== fallback) {
-          setSourceUri(fallback);
+          reportIssue('FOOD_IMAGE_FAILED', {
+            key: restaurantId || sourceUri,
+            message: e?.nativeEvent?.error || 'image load failed',
+            data: { uri: sourceUri },
+          });
+          setFailedUri(sourceUri);
         }
       }}
     />
   );
 }
 
-const DIET_FILTERS = [
-  { id: 'all', label: 'All', emoji: '🍽️' },
-  { id: 'veg', label: 'Veg', emoji: '🌿' },
-  { id: 'nonveg', label: 'Non-veg', emoji: '🍖' },
-  { id: 'halal', label: 'Halal', emoji: '☪️' },
-  { id: 'jain', label: 'Jain', emoji: '🪷' },
-];
-
 function getMealContext() {
   const hour = new Date().getHours();
-  if (hour >= 6 && hour < 11) return { label: 'Good morning', sub: 'Best breakfast spots near you', emoji: '☀️' };
+  if (hour >= 6 && hour < 11) return { label: 'Good morning', sub: 'Breakfast spots near you', emoji: '☀️' };
   if (hour >= 11 && hour < 15) return { label: 'Lunch time', sub: 'Hearty meals, honest prices', emoji: '🌤️' };
   if (hour >= 15 && hour < 18) return { label: 'Afternoon snack', sub: 'Tea, coffee & light bites', emoji: '☕' };
   if (hour >= 18 && hour < 22) return { label: 'Dinner time', sub: 'Evening meals & street food', emoji: '🌆' };
   return { label: 'Late night eats', sub: 'Places still open for you', emoji: '🌙' };
 }
 
-function isOpenNow(openTime, closeTime) {
-  const now = new Date();
-  const cur = now.getHours() * 60 + now.getMinutes();
-  const parse = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); };
-  return cur >= parse(openTime) && cur < parse(closeTime);
+/** Open status from the restaurant's schedule (or provider "open now" flag). */
+export function restaurantOpenStatus(r, now = new Date()) {
+  if (r.schedule) return getOpenStatus(r.schedule, now);
+  if (typeof r.isOpenFromProvider === 'boolean') {
+    return { known: true, isOpen: r.isOpenFromProvider, label: r.isOpenFromProvider ? 'Open now' : 'Closed now' };
+  }
+  return { known: false, isOpen: null, label: 'Hours not available' };
 }
 
-function MiniStars({ rating }) {
-  const STAR_POINTS = '12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26';
+/** Badge describing where the restaurant record comes from and whether it was checked. */
+export function verificationBadge(r) {
+  const status = r.verification?.status;
+  if (status === 'verified') return { label: '✓ Verified', bg: '#e8f5e9', fg: '#1b5e20' };
+  if (status === 'location_corrected') return { label: '✓ Location fixed', bg: '#e3f2fd', fg: '#0d47a1' };
+  if (status === 'live_osm') return { label: 'Live · OSM', bg: '#e0f2fe', fg: '#0369a1' };
+  if (status === 'live_google') return { label: 'Live · Google', bg: '#eff6ff', fg: '#1d4ed8' };
+  if (status === 'live_foursquare') return { label: 'Live · Foursquare', bg: '#f3e8ff', fg: '#7e22ce' };
+  return { label: 'Unverified', bg: '#f5f5f5', fg: '#6b6b6b' };
+}
+
+function StarRating({ rating, count, source }) {
+  if (rating === null || rating === undefined) return null;
+  const STAR = '12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26';
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 1 }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Svg key={i} width={10} height={10} viewBox="0 0 24 24">
-          <Polygon
-            points={STAR_POINTS}
-            fill={i <= Math.round(rating) ? '#f59e0b' : '#d1d5db'}
-            stroke="none"
-          />
-        </Svg>
-      ))}
-      <Text style={{ fontSize: 11, fontFamily: fontFamily.bodyBold, color: colors.neutral[600], marginLeft: 3 }}>
+    <View style={styles.ratingRow}>
+      <Svg width={11} height={11} viewBox="0 0 24 24">
+        <Polygon points={STAR} fill="#f59e0b" />
+      </Svg>
+      <Text style={styles.ratingText}>
         {rating.toFixed(1)}
+        {count ? ` (${count >= 1000 ? `${(count / 1000).toFixed(1)}k` : count})` : ''}
+        {source ? ` · ${source}` : ''}
       </Text>
     </View>
+  );
+}
+
+function OpenPill({ status }) {
+  const color = status.isOpen === true ? '#2e7d32' : status.isOpen === false ? '#b3261e' : '#757575';
+  const bg = status.isOpen === true ? '#e8f5e9' : status.isOpen === false ? '#fdecea' : '#f3f3f3';
+  return (
+    <View style={[styles.openPill, { backgroundColor: bg }]}>
+      <View style={[styles.openDot, { backgroundColor: color }]} />
+      <Text style={[styles.openText, { color }]} numberOfLines={1}>
+        {status.label}
+      </Text>
+    </View>
+  );
+}
+
+function FilterChip({ label, emoji, active, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && { opacity: 0.8 }]}
+    >
+      {!!emoji && <Text style={styles.chipEmoji}>{emoji}</Text>}
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
+  const status = restaurantOpenStatus(r, now);
+  const badge = verificationBadge(r);
+  const cuisine = cuisineInfo(r.cuisine);
+  const tier = r.priceTier ? PRICE_TIER_COLORS[r.priceTier] : null;
+  const subtitle = [cuisine.label, r.area].filter(Boolean).join(' · ');
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, isVisited && styles.cardVisited, pressed && styles.cardPressed]}
+    >
+      <View>
+        <AuthenticRestaurantImage uri={r.image} cuisine={r.cuisine} style={styles.cardThumb} restaurantId={r.id} />
+        {isVisited && (
+          <View style={styles.visitedDot}>
+            <Text style={styles.visitedDotText}>✓</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.cardBody}>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardName} numberOfLines={1}>
+            {r.name}
+          </Text>
+          {tier && (
+            <View style={[styles.tierPill, { backgroundColor: tier.bg }]}>
+              <Text style={[styles.tierText, { color: tier.text }]}>{PRICE_TIER_LABELS[r.priceTier]}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.cardSub} numberOfLines={1}>
+          {cuisine.emoji} {subtitle}
+        </Text>
+
+        <View style={styles.metaRow}>
+          <OpenPill status={status} />
+          {distMeters !== null && <Text style={styles.distText}>{formatDistance(distMeters)}</Text>}
+        </View>
+
+        <View style={styles.metaRow}>
+          <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+            <Text style={[styles.badgeText, { color: badge.fg }]}>{badge.label}</Text>
+          </View>
+          <StarRating rating={r.rating} count={r.userRatingCount} source={r.ratingSource} />
+        </View>
+
+        {r.mustTry?.dish ? (
+          <Text style={styles.mustTry} numberOfLines={1}>
+            Try: {r.mustTry.dish}
+            {r.mustTry.price ? <Text style={styles.mustTryPrice}> · ~₹{r.mustTry.price}</Text> : null}
+          </Text>
+        ) : null}
+      </View>
+
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[400]} strokeWidth={2.5} strokeLinecap="round">
+        <Path d="M9 18l6-6-6-6" />
+      </Svg>
+    </Pressable>
   );
 }
 
 export default function ExploreScreen({ contentPadding }) {
   const {
     filteredRestaurants,
-    sourceFilter,
-    setSourceFilter,
     cuisineFilter,
     setCuisineFilter,
     dietFilter,
@@ -107,301 +206,178 @@ export default function ExploreScreen({ contentPadding }) {
     visitedRestaurants,
     userLocation,
     routeEateries,
-    activeRoute,
     destination,
-    setTab,
-    liveOsmRestaurants,
     isFetchingOsm,
-    fetchNearbyOsm,
-    allRestaurants: totalRestaurants,
+    fetchNearbyLive,
+    liveFetchStatus,
+    onlyOpenNow,
+    setOnlyOpenNow,
+    allRestaurants,
     currentCity,
     openCitySwitcher,
   } = useTrip();
 
   const mealCtx = getMealContext();
+  const now = new Date();
 
-  const fsqCount = useMemo(() => {
-    return (totalRestaurants || []).filter((r) => r.source === 'foursquare' || r.isFsqLive).length;
-  }, [totalRestaurants]);
-
-  const heritageCount = useMemo(() => {
-    return (totalRestaurants || []).filter((r) => !r.isLive && r.source !== 'foursquare').length;
-  }, [totalRestaurants]);
-
-  const effectiveDietFilters = useMemo(() => {
-    if (routeEateries && routeEateries.length > 0) {
-      return [
-        { id: 'route', label: `Along Route (${routeEateries.length})`, emoji: '🚇' },
-        ...DIET_FILTERS,
-      ];
+  const counts = useMemo(() => {
+    const c = { verified: 0, corrected: 0, unverified: 0, live: 0 };
+    for (const r of allRestaurants || []) {
+      const s = r.verification?.status;
+      if (s === 'verified') c.verified += 1;
+      else if (s === 'location_corrected') c.corrected += 1;
+      else if (s && s.startsWith('live_')) c.live += 1;
+      else c.unverified += 1;
     }
-    return DIET_FILTERS;
-  }, [routeEateries]);
+    return c;
+  }, [allRestaurants]);
 
-  // Get time-aware "hot right now" suggestions (top 3 open restaurants by rating)
-  const hotNow = useMemo(() => {
-    const open = filteredRestaurants.filter((r) => isOpenNow(r.openTime, r.closeTime));
-    return [...open].sort((a, b) => b.rating - a.rating).slice(0, 3);
-  }, [filteredRestaurants]);
+  const distanceTo = (r) =>
+    userLocation ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude) : null;
 
-  const allRestaurants = filteredRestaurants;
+  // Open now, nearest first (the list is already sorted by distance). Places already
+  // shown in "Near your route" are skipped so the two strips don't repeat each other.
+  const openNearby = useMemo(() => {
+    const shownOnRoute = new Set(dietFilter !== 'route' ? (routeEateries || []).slice(0, 10).map((r) => r.id) : []);
+    return filteredRestaurants
+      .filter((r) => !shownOnRoute.has(r.id) && restaurantOpenStatus(r).isOpen === true)
+      .slice(0, 6);
+  }, [filteredRestaurants, routeEateries, dietFilter]);
+
+  const setDiet = (id) => {
+    log.info(FEATURES.FOOD, 'filter.diet', { id });
+    setDietFilter(dietFilter === id ? 'all' : id);
+    setCuisineFilter('all');
+  };
+  const setCuisine = (id) => {
+    log.info(FEATURES.FOOD, 'filter.cuisine', { id });
+    setCuisineFilter(cuisineFilter === id ? 'all' : id);
+    setDietFilter('all');
+  };
+  const refreshLive = () => {
+    log.info(FEATURES.FOOD, 'live_fetch.manual');
+    fetchNearbyLive(userLocation?.latitude, userLocation?.longitude, userLocation?.name, 'auto', currentCity?.id);
+  };
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={[styles.container, contentPadding]}
-    >
-      {/* ── Header ── */}
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.container, contentPadding]}>
+      {/* Header */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.kicker}>{(currentCity?.name || 'BENGALURU').toUpperCase()} · FOOD GUIDE</Text>
-          <Text style={styles.heading}>{mealCtx.emoji} {mealCtx.label}</Text>
+          <Text style={styles.kicker}>{(currentCity?.name || 'Bengaluru').toUpperCase()} · FOOD GUIDE</Text>
+          <Text style={styles.heading}>
+            {mealCtx.emoji} {mealCtx.label}
+          </Text>
           <Text style={styles.subHeading}>{mealCtx.sub}</Text>
         </View>
-        <Pressable
-          onPress={openCitySwitcher}
-          style={({ pressed }) => [styles.exploreCityPill, pressed && { opacity: 0.8 }]}
-        >
-          <Text style={styles.exploreCityPillText}>📍 {currentCity?.shortName || 'BLR'} ▼</Text>
+        <Pressable onPress={openCitySwitcher} style={({ pressed }) => [styles.cityPill, pressed && { opacity: 0.8 }]}>
+          <Text style={styles.cityPillText}>📍 {currentCity?.shortName || 'BLR'} ▾</Text>
         </Pressable>
       </View>
 
-      {/* ── Unified Clean Food Filters ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterStrip}
-      >
-        {routeEateries && routeEateries.length > 0 && (
-          <Pressable
-            onPress={() => {
-              setDietFilter(dietFilter === 'route' ? 'all' : 'route');
-              setCuisineFilter('all');
-            }}
-            style={({ pressed }) => [
-              styles.dietChip,
-              dietFilter === 'route' && styles.dietChipActive,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Text style={styles.dietChipEmoji}>🚇</Text>
-            <Text style={[styles.dietChipText, dietFilter === 'route' && styles.dietChipTextActive]}>
-              Along Route ({routeEateries.length})
-            </Text>
-          </Pressable>
-        )}
-
+      {/* Data status */}
+      <View style={styles.dataCard}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.dataTitle}>{(allRestaurants || []).length} places</Text>
+          <Text style={styles.dataLine}>
+            ✓ {counts.verified + counts.corrected} checked on OpenStreetMap · {counts.unverified} unverified
+          </Text>
+          <Text style={styles.dataLine}>
+            {isFetchingOsm
+              ? 'Searching live places nearby…'
+              : liveFetchStatus?.state === 'ok'
+                ? `🌐 ${liveFetchStatus.count} live from ${liveFetchStatus.source}`
+                : liveFetchStatus?.state === 'failed'
+                  ? '⚠️ Live search failed — showing saved places'
+                  : 'Live search not run yet'}
+          </Text>
+        </View>
         <Pressable
+          onPress={refreshLive}
+          disabled={isFetchingOsm}
+          style={({ pressed }) => [styles.refreshBtn, pressed && { opacity: 0.8 }, isFetchingOsm && { opacity: 0.6 }]}
+        >
+          {isFetchingOsm ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.refreshText}>↻ Live</Text>}
+        </Pressable>
+      </View>
+
+      {/* Filters */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipStrip}>
+        <FilterChip
+          label="Open now"
+          emoji="🟢"
+          active={onlyOpenNow}
+          onPress={() => {
+            log.info(FEATURES.FOOD, 'filter.open_now', { on: !onlyOpenNow });
+            setOnlyOpenNow(!onlyOpenNow);
+          }}
+        />
+        {routeEateries && routeEateries.length > 0 && (
+          <FilterChip label={`Along route (${routeEateries.length})`} emoji="🚇" active={dietFilter === 'route'} onPress={() => setDiet('route')} />
+        )}
+        <FilterChip
+          label="All"
+          active={dietFilter === 'all' && cuisineFilter === 'all'}
           onPress={() => {
             setDietFilter('all');
             setCuisineFilter('all');
           }}
-          style={({ pressed }) => [
-            styles.dietChip,
-            dietFilter === 'all' && cuisineFilter === 'all' && styles.dietChipActive,
-            pressed && { opacity: 0.8 },
-          ]}
-        >
-          <Text style={styles.dietChipEmoji}>🍽️</Text>
-          <Text style={[styles.dietChipText, dietFilter === 'all' && cuisineFilter === 'all' && styles.dietChipTextActive]}>
-            All
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => {
-            setDietFilter(dietFilter === 'veg' ? 'all' : 'veg');
-            setCuisineFilter('all');
-          }}
-          style={({ pressed }) => [
-            styles.dietChip,
-            dietFilter === 'veg' && styles.dietChipActive,
-            pressed && { opacity: 0.8 },
-          ]}
-        >
-          <Text style={styles.dietChipEmoji}>🌿</Text>
-          <Text style={[styles.dietChipText, dietFilter === 'veg' && styles.dietChipTextActive]}>
-            Pure Veg
-          </Text>
-        </Pressable>
-
-        <Pressable
-          onPress={() => {
-            setDietFilter(dietFilter === 'nonveg' ? 'all' : 'nonveg');
-            setCuisineFilter('all');
-          }}
-          style={({ pressed }) => [
-            styles.dietChip,
-            dietFilter === 'nonveg' && styles.dietChipActive,
-            pressed && { opacity: 0.8 },
-          ]}
-        >
-          <Text style={styles.dietChipEmoji}>🍗</Text>
-          <Text style={[styles.dietChipText, dietFilter === 'nonveg' && styles.dietChipTextActive]}>
-            Non-veg
-          </Text>
-        </Pressable>
-
-        {CUISINE_CATEGORIES.filter((c) => c.id !== 'all').map((cat) => {
-          const active = cuisineFilter === cat.id;
-          return (
-            <Pressable
-              key={cat.id}
-              onPress={() => {
-                setCuisineFilter(active ? 'all' : cat.id);
-                setDietFilter('all');
-              }}
-              style={({ pressed }) => [
-                styles.dietChip,
-                active && styles.dietChipActive,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Text style={styles.dietChipEmoji}>{cat.emoji}</Text>
-              <Text style={[styles.dietChipText, active && styles.dietChipTextActive]}>
-                {cat.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        />
+        <FilterChip label="Pure veg" emoji="🌿" active={dietFilter === 'veg'} onPress={() => setDiet('veg')} />
+        <FilterChip label="Non-veg" emoji="🍗" active={dietFilter === 'nonveg'} onPress={() => setDiet('nonveg')} />
+        {CUISINE_CATEGORIES.filter((c) => c.id !== 'all').map((cat) => (
+          <FilterChip key={cat.id} label={cat.label} emoji={cat.emoji} active={cuisineFilter === cat.id} onPress={() => setCuisine(cat.id)} />
+        ))}
       </ScrollView>
 
-      {/* ── Along Your Metro Route Section ── */}
-      {routeEateries && routeEateries.length > 0 ? (
-        <View style={styles.routeSection}>
-          <View style={styles.routeSectionHeader}>
-            <View style={styles.routeHeaderLeft}>
-              <View style={styles.routeBadge}>
-                <Text style={styles.routeBadgeText}>🚇 METRO EATERIES</Text>
-              </View>
-              <Text style={styles.routeHeading}>Food Along Your Route</Text>
-              <Text style={styles.routeSubHeading}>
-                Near stations between your origin and {destination?.name?.split(',')[0] || 'destination'}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => setDietFilter(dietFilter === 'route' ? 'all' : 'route')}
-              style={({ pressed }) => [
-                styles.viewAllRouteBtn,
-                dietFilter === 'route' && styles.viewAllRouteBtnActive,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <Text style={[styles.viewAllRouteText, dietFilter === 'route' && styles.viewAllRouteTextActive]}>
-                {dietFilter === 'route' ? 'Filtered ✓' : `Filter (${routeEateries.length})`}
-              </Text>
-            </Pressable>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.routeScroll}
-          >
-            {routeEateries.map((r) => {
-              const isVisited = visitedRestaurants.includes(r.id);
-              return (
-                <Pressable
-                  key={`route_card_${r.id}`}
-                  onPress={() => openRestaurant(r.id)}
-                  style={({ pressed }) => [
-                    styles.routeCard,
-                    pressed && { transform: [{ scale: 0.97 }] },
-                  ]}
-                >
-                  <View style={styles.routeCardImageContainer}>
-                    <AuthenticRestaurantImage
-                      uri={r.image}
-                      cuisine={r.cuisine}
-                      style={styles.routeCardImage}
-                    />
-                  </View>
-                  <View style={styles.routeCardTopRow}>
-                    <View style={styles.routeDistanceBadge}>
-                      <Text style={styles.routeDistanceBadgeText} numberOfLines={1}>
-                        📍 ~{r.routeDistanceMeters}m from {r.nearStationName}
-                      </Text>
-                    </View>
-                    {isVisited && (
-                      <View style={styles.routeVisitedDot}>
-                        <Text style={styles.routeVisitedText}>✓</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <Text style={styles.routeCardName} numberOfLines={1}>{r.name}</Text>
-                  <Text style={styles.routeCardArea} numberOfLines={1}>{r.area}</Text>
-
-                  <View style={styles.routeCardDishRow}>
-                    <Text style={styles.routeCardDishName} numberOfLines={1}>
-                      ⭐ {r.mustTry.dish}
-                    </Text>
-                    <Text style={styles.routeCardDishPrice}>₹{r.mustTry.price}</Text>
-                  </View>
-
-                  <View style={styles.routeCardFooter}>
-                    <MiniStars rating={r.rating} />
-                    <Text style={styles.routeCardCuisine}>
-                      {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.label || 'Eatery'}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
+      {/* Along route */}
+      {routeEateries && routeEateries.length > 0 && dietFilter !== 'route' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🚇 Near your route</Text>
+          <Text style={styles.sectionSub}>Close to stops between you and {destination?.name?.split(',')[0] || 'your destination'}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+            {routeEateries.slice(0, 10).map((r) => (
+              <Pressable
+                key={`route_${r.id}`}
+                onPress={() => openRestaurant(r.id)}
+                style={({ pressed }) => [styles.miniCard, pressed && styles.cardPressed]}
+              >
+                <AuthenticRestaurantImage uri={r.image} cuisine={r.cuisine} style={styles.miniImage} restaurantId={r.id} />
+                <Text style={styles.miniName} numberOfLines={1}>
+                  {r.name}
+                </Text>
+                <Text style={styles.miniSub} numberOfLines={1}>
+                  {r.routeDistanceMeters} m from {r.nearStationName}
+                </Text>
+                <OpenPill status={restaurantOpenStatus(r, now)} />
+              </Pressable>
+            ))}
           </ScrollView>
         </View>
-      ) : null}
+      )}
 
-      {/* ── Hot Right Now Banner ── */}
-      {hotNow.length > 0 && (
-        <View style={styles.hotSection}>
-          <Text style={styles.sectionTitle}>🔥 Open right now · Top picks</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.hotScroll}
-          >
-            {hotNow.map((r) => {
-              const distMeters =
-                userLocation
-                  ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude)
-                  : null;
-              const isVisited = visitedRestaurants.includes(r.id);
+      {/* Open now near you */}
+      {!onlyOpenNow && openNearby.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🔥 Open now, nearest first</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
+            {openNearby.map((r) => {
+              const d = distanceTo(r);
               return (
                 <Pressable
-                  key={r.id}
+                  key={`open_${r.id}`}
                   onPress={() => openRestaurant(r.id)}
-                  style={({ pressed }) => [
-                    styles.hotCard,
-                    pressed && { transform: [{ scale: 0.97 }] },
-                  ]}
+                  style={({ pressed }) => [styles.miniCard, pressed && styles.cardPressed]}
                 >
-                  <View style={styles.hotCardImageContainer}>
-                    <AuthenticRestaurantImage
-                      uri={r.image}
-                      cuisine={r.cuisine}
-                      style={styles.hotCardImage}
-                    />
-                    {isVisited && (
-                      <View style={styles.visitedBadge}>
-                        <Text style={styles.visitedBadgeText}>✓</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View style={styles.hotCardCuisineTag}>
-                    <Text style={styles.hotCardCuisineText}>
-                      {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.emoji} {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.label}
-                    </Text>
-                  </View>
-                  <Text style={styles.hotCardName} numberOfLines={2}>{r.name}</Text>
-                  <Text style={styles.hotCardMustTry} numberOfLines={1}>⭐ {r.mustTry.dish}</Text>
-                  <View style={styles.hotCardFooter}>
-                    <MiniStars rating={r.rating} />
-                    <Text style={styles.hotCardPrice}>₹{r.mustTry.price}</Text>
-                  </View>
-                  {distMeters && (
-                    <Text style={styles.hotCardDist}>{formatDistance(distMeters)} away</Text>
-                  )}
+                  <AuthenticRestaurantImage uri={r.image} cuisine={r.cuisine} style={styles.miniImage} restaurantId={r.id} />
+                  <Text style={styles.miniName} numberOfLines={1}>
+                    {r.name}
+                  </Text>
+                  <Text style={styles.miniSub} numberOfLines={1}>
+                    {cuisineInfo(r.cuisine).label}
+                    {d !== null ? ` · ${formatDistance(d)}` : ''}
+                  </Text>
+                  <OpenPill status={restaurantOpenStatus(r, now)} />
                 </Pressable>
               );
             })}
@@ -409,173 +385,67 @@ export default function ExploreScreen({ contentPadding }) {
         </View>
       )}
 
-      {/* ── Insider Tip Banner ── */}
+      {/* Price tip */}
       <View style={styles.tipBanner}>
-        <View style={styles.tipDecorCircle} />
-        <Text style={styles.tipBannerLabel}>💡 LOCAL PRICE GUIDE · {currentCity?.shortName || 'BLR'}</Text>
-        <Text style={styles.tipBannerText}>
+        <Text style={styles.tipLabel}>💡 LOCAL PRICE GUIDE · {currentCity?.shortName || 'BLR'}</Text>
+        <Text style={styles.tipText}>
           {currentCity?.id === 'delhi'
-            ? 'Iconic chole bhature or parathas cost ₹60–₹90. Street dahi bhalle ₹50–₹70. In Chandni Chowk & Paharganj, head into inner galis for authentic 100-year-old shops at local rates.'
+            ? 'Chole bhature or parathas typically ₹60–₹90; street dahi bhalle ₹50–₹70. Inner galis of Chandni Chowk are cheaper than the main road.'
             : currentCity?.id === 'mumbai'
-            ? 'A crispy vada pav is ₹20–₹35. Cutting chai is ₹12–₹20, and buttery pav bhaji ₹90–₹150. Near CSMT or Marine Drive, skip tourist traps and pick bustling commuter stalls with hot frying pans.'
-            : 'A darshini breakfast is ₹30–₹90. Filter coffee is ₹15–₹40. Near tourist spots, walk 2 streets inland — same dish, local price. Most of the best ones are cash only and shut before noon.'}
+              ? 'Vada pav typically ₹20–₹35, cutting chai ₹12–₹20, pav bhaji ₹90–₹150. Commuter stalls near stations are cheaper than tourist strips.'
+              : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
         </Text>
+        <Text style={styles.tipFoot}>Typical ranges from the curated guide — not live menu prices.</Text>
       </View>
 
-
-
-      {/* ── All Restaurants List ── */}
-      <View style={styles.listSection}>
-        <View style={styles.listHeaderRow}>
-          <Text style={styles.sectionTitle}>
-            {allRestaurants.length} places found
-          </Text>
-          {userLocation && (
-            <Text style={styles.sortedByText}>Sorted by distance</Text>
-          )}
-        </View>
-
-        <View style={styles.cardsList}>
-          {allRestaurants.map((r) => {
-            const open = isOpenNow(r.openTime, r.closeTime);
-            const isVisited = visitedRestaurants.includes(r.id);
-            const distMeters =
-              userLocation
-                ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude)
-                : null;
-            const tierColors = {
-              1: { bg: '#e8f5e9', text: '#2e7d32' },
-              2: { bg: '#fff8e1', text: '#f57f17' },
-              3: { bg: '#fce4ec', text: '#c62828' },
-            }[r.priceTier];
-
-            return (
-              <Pressable
-                key={r.id}
-                onPress={() => openRestaurant(r.id)}
-                style={({ pressed }) => [
-                  styles.restaurantCard,
-                  isVisited && styles.restaurantCardVisited,
-                  pressed && { transform: [{ translateY: 2 }], opacity: 0.95 },
-                ]}
-              >
-                {/* Left accent bar */}
-                <View style={[
-                  styles.cardAccentBar,
-                  { backgroundColor: open ? '#4caf50' : colors.neutral[300] }
-                ]} />
-
-                <AuthenticRestaurantImage
-                  uri={r.image}
-                  cuisine={r.cuisine}
-                  style={styles.cardThumbnail}
-                />
-
-                <View style={styles.cardBody}>
-                  {/* Top row */}
-                  <View style={styles.cardTopRow}>
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.cardNameRow}>
-                        <Text style={styles.cardName} numberOfLines={1}>{r.name}</Text>
-                        {r.source === 'foursquare' || r.isFsqLive ? (
-                          <View style={styles.fsqLiveBadge}>
-                            <Text style={styles.fsqLiveBadgeText}>⚡ FSQ LIVE</Text>
-                          </View>
-                        ) : r.source === 'google' ? (
-                          <View style={styles.googleLiveBadge}>
-                            <Text style={styles.googleLiveBadgeText}>GOOGLE</Text>
-                          </View>
-                        ) : r.isOsmLive ? (
-                          <View style={styles.osmLivePill}>
-                            <Text style={styles.osmLivePillText}>OSM</Text>
-                          </View>
-                        ) : (
-                          <View style={styles.heritagePill}>
-                            <Text style={styles.heritagePillText}>🏛️ LEGEND</Text>
-                          </View>
-                        )}
-                        {isVisited && (
-                          <View style={styles.visitedPill}>
-                            <Text style={styles.visitedPillText}>✓</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.cardArea} numberOfLines={1}>{r.area}</Text>
-                    </View>
-                    <View style={styles.cardRightCol}>
-                      <View style={[styles.priceTierBadge, { backgroundColor: tierColors.bg }]}>
-                        <Text style={[styles.priceTierText, { color: tierColors.text }]}>
-                          {PRICE_TIER_LABELS[r.priceTier]}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Must try + rating row */}
-                  <View style={styles.cardMidRow}>
-                    <Text style={styles.cardMustTry} numberOfLines={1}>
-                      ⭐ {r.mustTry.dish} · <Text style={styles.cardMustTryPrice}>₹{r.mustTry.price}</Text>
-                    </Text>
-                  </View>
-
-                  {/* Bottom row: cuisine tag, distance, open status, arrow */}
-                  <View style={styles.cardBottomRow}>
-                    <View style={styles.cuisineTag}>
-                      <Text style={styles.cuisineTagText}>
-                        {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.emoji} {CUISINE_CATEGORIES.find((c) => c.id === r.cuisine)?.label}
-                      </Text>
-                    </View>
-                    {distMeters && (
-                      <Text style={styles.cardDist}>{formatDistance(distMeters)}</Text>
-                    )}
-                    <View style={[
-                      styles.openPill,
-                      { backgroundColor: open ? '#e8f5e9' : '#f5f5f5' }
-                    ]}>
-                      <View style={[
-                        styles.openDot,
-                        { backgroundColor: open ? '#4caf50' : '#9e9e9e' }
-                      ]} />
-                      <Text style={[
-                        styles.openText,
-                        { color: open ? '#2e7d32' : '#757575' }
-                      ]}>
-                        {open ? 'Open' : r.openTime}
-                      </Text>
-                    </View>
-                    <MiniStars rating={r.rating} />
-                    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[400]} strokeWidth={2.5} strokeLinecap="round">
-                      <Path d="M9 18l6-6-6-6" />
-                    </Svg>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
+      {/* List */}
+      <View style={styles.listHeader}>
+        <Text style={styles.sectionTitle}>
+          {filteredRestaurants.length} {filteredRestaurants.length === 1 ? 'place' : 'places'}
+          {onlyOpenNow ? ' open now' : ''}
+        </Text>
+        {userLocation && <Text style={styles.sortedBy}>Nearest first</Text>}
       </View>
 
-      {allRestaurants.length === 0 && (
+      <View style={styles.list}>
+        {filteredRestaurants.map((r) => (
+          <RestaurantCard
+            key={r.id}
+            r={r}
+            now={now}
+            distMeters={distanceTo(r)}
+            isVisited={visitedRestaurants.includes(r.id)}
+            onPress={() => openRestaurant(r.id)}
+          />
+        ))}
+      </View>
+
+      {filteredRestaurants.length === 0 && (
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>🍽️</Text>
           <Text style={styles.emptyTitle}>No matches</Text>
-          <Text style={styles.emptyText}>Try changing the cuisine or diet filter.</Text>
+          <Text style={styles.emptyText}>
+            {onlyOpenNow ? 'Nothing with known hours is open right now. Turn off "Open now".' : 'Try a different cuisine or diet filter.'}
+          </Text>
         </View>
       )}
+
+      <Text style={styles.attribution}>
+        Place data © OpenStreetMap contributors (ODbL). Photos are representative, not of the actual restaurant.
+      </Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 8,
     paddingBottom: 90,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    justifyContent: 'space-between',
     gap: 10,
   },
   kicker: {
@@ -583,791 +453,333 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bodyBold,
     letterSpacing: 1.3,
     color: colors.accentRamp[700],
-    textTransform: 'uppercase',
   },
   heading: {
     fontSize: 26,
     fontFamily: fontFamily.heading,
     color: colors.neutral[900],
     marginTop: 3,
-    lineHeight: 31,
+    lineHeight: 34,
   },
   subHeading: {
     fontSize: 13,
     fontFamily: fontFamily.body,
     color: colors.neutral[600],
-    marginTop: 3,
+    marginTop: 2,
   },
-  locationChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+  cityPill: {
     backgroundColor: colors.accentRamp[100],
-    borderRadius: radius.pill,
-    paddingVertical: 6,
-    paddingHorizontal: 11,
-    marginTop: 4,
-  },
-  locationChipText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
-  },
-  // Diet filter strip
-  filterStrip: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 12,
-    paddingBottom: 4,
-  },
-  dietChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: colors.neutral[100],
     borderRadius: radius.pill,
     paddingVertical: 7,
-    paddingHorizontal: 13,
-    ...shadow.sm,
+    paddingHorizontal: 12,
+    marginTop: 2,
   },
-  dietChipActive: {
-    backgroundColor: colors.accentRamp[500],
-  },
-  dietChipEmoji: {
-    fontSize: 13,
-  },
-  dietChipText: {
+  cityPillText: {
     fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
-  },
-  dietChipTextActive: {
-    color: '#fff',
-  },
-  // Cuisine strip
-  cuisineStrip: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 8,
-    paddingBottom: 12,
-  },
-  cuisineChip: {
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: colors.neutral[100],
-    borderRadius: radius.lg,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    ...shadow.sm,
-    minWidth: 70,
-  },
-  cuisineChipActive: {
-    backgroundColor: colors.neutral[900],
-  },
-  cuisineEmoji: {
-    fontSize: 20,
-  },
-  cuisineLabel: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
-    textAlign: 'center',
-  },
-  cuisineLabelActive: {
-    color: '#fff',
-  },
-  // Hot section
-  hotSection: {
-    marginBottom: 8,
-  },
-  hotScroll: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingVertical: 10,
-    paddingRight: 6,
-  },
-  hotCard: {
-    width: 168,
-    backgroundColor: colors.neutral[100],
-    borderRadius: radius.lg,
-    padding: 14,
-    ...shadow.md,
-    position: 'relative',
-  },
-  hotCardImageContainer: {
-    height: 96,
-    borderRadius: radius.md,
-    marginBottom: 8,
-    overflow: 'hidden',
-    backgroundColor: colors.neutral[200],
-    position: 'relative',
-  },
-  hotCardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  visitedBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: colors.accent2Ramp[200],
-    borderRadius: radius.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  visitedBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accent2Ramp[800],
-  },
-  hotCardCuisineTag: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.accentRamp[100],
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginBottom: 8,
-  },
-  hotCardCuisineText: {
-    fontSize: 10,
     fontFamily: fontFamily.bodyBold,
     color: colors.accentRamp[800],
   },
-  hotCardName: {
+  dataCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    padding: 14,
+    marginTop: 14,
+    ...shadow.sm,
+  },
+  dataTitle: {
     fontSize: 15,
-    fontFamily: fontFamily.heading,
+    fontFamily: fontFamily.bodyExtraBold,
     color: colors.neutral[900],
-    lineHeight: 19,
+  },
+  dataLine: {
+    fontSize: 12,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    marginTop: 2,
+  },
+  refreshBtn: {
+    backgroundColor: colors.accentRamp[600],
+    borderRadius: radius.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    minWidth: 72,
+    alignItems: 'center',
+  },
+  refreshText: {
+    color: '#fff',
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+  },
+  chipStrip: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 14,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    paddingVertical: 8,
+    paddingHorizontal: 13,
+  },
+  chipActive: {
+    backgroundColor: colors.accentRamp[600],
+    borderColor: colors.accentRamp[600],
+  },
+  chipEmoji: {
+    fontSize: 12,
+  },
+  chipText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  chipTextActive: {
+    color: '#fff',
+  },
+  section: {
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontFamily: fontFamily.bodyExtraBold,
+    color: colors.neutral[900],
+  },
+  sectionSub: {
+    fontSize: 12,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    marginTop: 2,
+  },
+  hScroll: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 10,
+    paddingRight: 6,
+  },
+  miniCard: {
+    width: 156,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    padding: 10,
+    gap: 4,
+    ...shadow.sm,
+  },
+  miniImage: {
+    width: '100%',
+    height: 86,
+    borderRadius: 10,
+    backgroundColor: colors.neutral[100],
     marginBottom: 4,
   },
-  hotCardMustTry: {
+  miniName: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  miniSub: {
     fontSize: 11.5,
     fontFamily: fontFamily.body,
     color: colors.neutral[600],
-    marginBottom: 8,
   },
-  hotCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  hotCardPrice: {
-    fontSize: 14,
-    fontFamily: fontFamily.heading,
-    color: colors.accentRamp[700],
-  },
-  hotCardDist: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[500],
-    marginTop: 4,
-  },
-  // Tip banner
   tipBanner: {
-    marginTop: 4,
-    marginBottom: 20,
-    backgroundColor: colors.accentRamp[600],
-    borderRadius: radius.lg,
+    backgroundColor: colors.accentRamp[700],
+    borderRadius: radius.md,
     padding: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    ...shadow.md,
+    marginBottom: 18,
   },
-  tipDecorCircle: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    top: -50,
-    right: -30,
-  },
-  tipBannerLabel: {
-    fontSize: 10.5,
+  tipLabel: {
+    fontSize: 11,
     fontFamily: fontFamily.bodyBold,
-    letterSpacing: 1.1,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 7,
+    letterSpacing: 1,
+    color: colors.accentRamp[200],
+    marginBottom: 6,
   },
-  tipBannerText: {
-    fontSize: 13,
-    fontFamily: fontFamily.body,
+  tipText: {
+    fontSize: 14,
+    fontFamily: fontFamily.bodyMedium,
     color: '#fff',
-    lineHeight: 19,
+    lineHeight: 20,
   },
-  // List section
-  listSection: {
-    gap: 0,
-  },
-  listHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
-  },
-  sortedByText: {
+  tipFoot: {
     fontSize: 11,
     fontFamily: fontFamily.body,
+    color: colors.accentRamp[200],
+    marginTop: 6,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sortedBy: {
+    fontSize: 12,
+    fontFamily: fontFamily.body,
     color: colors.neutral[500],
   },
-  cardsList: {
+  list: {
     gap: 10,
   },
-  restaurantCard: {
+  card: {
     flexDirection: 'row',
-    backgroundColor: colors.neutral[100],
-    borderRadius: radius.lg,
-    overflow: 'hidden',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    padding: 12,
     ...shadow.sm,
   },
-  restaurantCardVisited: {
-    backgroundColor: colors.accent2Ramp[50] || '#f0fdf4',
-    borderWidth: 1,
-    borderColor: colors.accent2Ramp[200],
+  cardVisited: {
+    borderWidth: 1.5,
+    borderColor: colors.accentRamp[300],
   },
-  cardAccentBar: {
-    width: 4,
-    borderRadius: 2,
+  cardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.985 }],
   },
-  cardThumbnail: {
-    width: 76,
-    height: 76,
-    borderRadius: radius.md,
-    alignSelf: 'center',
-    marginLeft: 10,
-    backgroundColor: colors.neutral[200],
+  cardThumb: {
+    width: 78,
+    height: 78,
+    borderRadius: 12,
+    backgroundColor: colors.neutral[100],
+  },
+  visitedDot: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.accentRamp[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  visitedDotText: {
+    color: '#fff',
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
   },
   cardBody: {
     flex: 1,
-    padding: 13,
     gap: 4,
   },
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  cardNameRow: {
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flex: 1,
   },
   cardName: {
-    fontSize: 15,
+    flex: 1,
+    fontSize: 15.5,
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[900],
-    flex: 1,
   },
-  visitedPill: {
-    backgroundColor: colors.accent2Ramp[200],
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
-  visitedPillText: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accent2Ramp[800],
-  },
-  cardArea: {
-    fontSize: 11.5,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[600],
-    marginTop: 2,
-  },
-  cardRightCol: {
-    alignItems: 'flex-end',
-  },
-  priceTierBadge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  priceTierText: {
-    fontSize: 11.5,
-    fontFamily: fontFamily.bodyBold,
-  },
-  cardMidRow: {
-    marginTop: 2,
-  },
-  cardMustTry: {
-    fontSize: 12.5,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[700],
-  },
-  cardMustTryPrice: {
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
-  },
-  cardBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    marginTop: 5,
-    flexWrap: 'wrap',
-  },
-  cuisineTag: {
-    backgroundColor: colors.neutral[200],
+  tierPill: {
     borderRadius: radius.pill,
     paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingVertical: 2,
   },
-  cuisineTagText: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
-  },
-  cardDist: {
+  tierText: {
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[500],
+  },
+  cardSub: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   openPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     borderRadius: radius.pill,
-    paddingHorizontal: 7,
+    paddingHorizontal: 8,
     paddingVertical: 3,
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
   },
   openDot: {
-    width: 5,
-    height: 5,
+    width: 6,
+    height: 6,
     borderRadius: 3,
   },
   openText: {
-    fontSize: 10,
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    flexShrink: 1,
+  },
+  distText: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[600],
+  },
+  badge: {
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  badgeText: {
+    fontSize: 10.5,
     fontFamily: fontFamily.bodyBold,
   },
-  // Empty state
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  ratingText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  mustTry: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[700],
+  },
+  mustTryPrice: {
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
+  },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 40,
-    gap: 8,
   },
   emptyEmoji: {
-    fontSize: 48,
+    fontSize: 36,
   },
   emptyTitle: {
-    fontSize: 18,
-    fontFamily: fontFamily.heading,
+    fontSize: 16,
+    fontFamily: fontFamily.bodyBold,
     color: colors.neutral[800],
+    marginTop: 8,
   },
   emptyText: {
     fontSize: 13,
     fontFamily: fontFamily.body,
     color: colors.neutral[600],
+    marginTop: 4,
     textAlign: 'center',
   },
-  // Route Eateries Section
-  routeSection: {
-    marginBottom: 20,
-    backgroundColor: '#fffdf9',
-    borderRadius: radius.lg,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(108, 77, 143, 0.22)',
-    ...shadow.sm,
-  },
-  routeSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  routeHeaderLeft: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  routeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#f3e8ff',
-    borderRadius: radius.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    marginBottom: 4,
-  },
-  routeBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    letterSpacing: 0.8,
-    color: '#6c4d8f',
-  },
-  routeHeading: {
-    fontSize: 16,
-    fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
-  },
-  routeSubHeading: {
-    fontSize: 11,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[600],
-    marginTop: 2,
-  },
-  viewAllRouteBtn: {
-    backgroundColor: colors.neutral[200],
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-  },
-  viewAllRouteBtnActive: {
-    backgroundColor: '#6c4d8f',
-  },
-  viewAllRouteText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
-  },
-  viewAllRouteTextActive: {
-    color: colors.white,
-  },
-  routeScroll: {
-    gap: 12,
-    paddingVertical: 2,
-  },
-  routeCard: {
-    width: 220,
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(46, 43, 37, 0.08)',
-    ...shadow.sm,
-  },
-  routeCardImageContainer: {
-    height: 96,
-    borderRadius: radius.sm,
-    marginBottom: 8,
-    overflow: 'hidden',
-    backgroundColor: colors.neutral[200],
-  },
-  routeCardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  routeCardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  routeDistanceBadge: {
-    backgroundColor: colors.neutral[100],
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    maxWidth: 180,
-  },
-  routeDistanceBadgeText: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
-  },
-  routeVisitedDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.accent2Ramp[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  routeVisitedText: {
-    fontSize: 9,
-    color: colors.white,
-    fontWeight: 'bold',
-  },
-  routeCardName: {
-    fontSize: 14,
-    fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
-  },
-  routeCardArea: {
-    fontSize: 11,
+  attribution: {
+    fontSize: 10.5,
     fontFamily: fontFamily.body,
     color: colors.neutral[500],
-    marginTop: 1,
-    marginBottom: 8,
-  },
-  routeCardDishRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.neutral[100],
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-    marginBottom: 8,
-  },
-  routeCardDishName: {
-    flex: 1,
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
-  },
-  routeCardDishPrice: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
-    marginLeft: 4,
-  },
-  routeCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  routeCardCuisine: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[500],
-  },
-  planRouteBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.white,
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(46, 43, 37, 0.08)',
-    ...shadow.sm,
-  },
-  planRouteIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.accentRamp[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  planRouteBannerTitle: {
-    fontSize: 13.5,
-    fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
-  },
-  planRouteBannerSub: {
-    fontSize: 11,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[600],
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  planRouteBannerArrow: {
-    fontSize: 16,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[600],
-  },
-  osmDiscoveryBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0f172a',
-    borderRadius: radius.lg,
-    padding: 14,
-    marginBottom: 16,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    ...shadow.sm,
-  },
-  osmIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1e293b',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  osmTitle: {
-    fontSize: 13.5,
-    fontFamily: fontFamily.bodyBold,
-    color: '#ffffff',
-  },
-  osmLiveHeaderBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#0284c7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.full,
-  },
-  osmLivePulseDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#38bdf8',
-  },
-  osmLiveHeaderBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#ffffff',
-    letterSpacing: 0.5,
-  },
-  osmSubtitle: {
-    fontSize: 11,
-    fontFamily: fontFamily.body,
-    color: '#94a3b8',
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  osmFetchButton: {
-    backgroundColor: colors.accentRamp[700],
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 80,
-  },
-  osmFetchButtonDisabled: {
-    opacity: 0.7,
-  },
-  osmFetchButtonText: {
-    fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: '#ffffff',
-  },
-  osmLivePill: {
-    backgroundColor: '#e0f2fe',
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: radius.xs,
-    marginLeft: 6,
-  },
-  osmLivePillText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#0369a1',
-  },
-  fsqLiveBadge: {
-    backgroundColor: '#f3e8ff',
-    borderWidth: 1,
-    borderColor: '#d8b4fe',
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: radius.xs,
-    marginLeft: 6,
-  },
-  fsqLiveBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#7e22ce',
-    letterSpacing: 0.3,
-  },
-  googleLiveBadge: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: radius.xs,
-    marginLeft: 6,
-  },
-  googleLiveBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1d4ed8',
-  },
-  heritagePill: {
-    backgroundColor: '#fef3c7',
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    paddingHorizontal: 6,
-    paddingVertical: 1.5,
-    borderRadius: radius.xs,
-    marginLeft: 6,
-  },
-  heritagePillText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#92400e',
-  },
-  sourceBarContainer: {
-    marginBottom: 10,
-  },
-  sourceStrip: {
-    gap: 8,
-    paddingVertical: 2,
-  },
-  sourceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: radius.full,
-    backgroundColor: colors.surface[100],
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-  },
-  sourceChipActive: {
-    backgroundColor: colors.neutral[900],
-    borderColor: colors.neutral[900],
-  },
-  sourceChipText: {
-    fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
-  },
-  sourceChipTextActive: {
-    color: '#ffffff',
-  },
-  sourceChipFsq: {
-    backgroundColor: '#faf5ff',
-    borderColor: '#e9d5ff',
-  },
-  sourceChipFsqActive: {
-    backgroundColor: '#7e22ce',
-    borderColor: '#7e22ce',
-  },
-  sourceChipFsqText: {
-    color: '#6b21a8',
-  },
-  sourceChipFsqTextActive: {
-    color: '#ffffff',
-  },
-  fsqDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#a855f7',
-  },
-  fsqLivePillBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#7e22ce',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: radius.full,
-  },
-  fsqLivePillBadgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#ffffff',
-    letterSpacing: 0.5,
-  },
-  fsqFetchButton: {
-    backgroundColor: '#7e22ce',
-  },
-  exploreCityPill: {
-    backgroundColor: colors.accentRamp[100],
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.accentRamp[300],
-  },
-  exploreCityPillText: {
-    fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[800],
+    textAlign: 'center',
+    marginTop: 18,
   },
 });

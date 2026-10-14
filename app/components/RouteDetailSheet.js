@@ -69,10 +69,11 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
   };
 
   const advisory = route?.autoAdvisory;
-  const directCabFare = advisory?.cabFare || Math.max(140, Math.round(dynamicTotalCost * 5.5));
+  const directCabFare = advisory?.cabFare ?? null;
+  const fareApprox = advisory?.fareDistanceSource === 'estimated' ? '~' : '';
   const directCabMinutes =
     advisory?.cabDurationMinutes || Math.round(dynamicTotalDuration * 1.5 + 10);
-  const moneySaved = Math.max(0, directCabFare - dynamicTotalCost);
+  const moneySaved = directCabFare ? Math.max(0, directCabFare - dynamicTotalCost) : 0;
   const savingsPct = directCabFare > 0 ? Math.round((moneySaved / directCabFare) * 100) : 0;
   const foodEquivalent =
     advisory?.foodEquivalent ||
@@ -187,11 +188,11 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                 <Text style={styles.colEmoji}>🚖</Text>
                 <Text style={styles.colTitle}>Direct Cab</Text>
               </View>
-              <Text style={styles.colSub}>Uber / Ola direct</Text>
-              <Text style={styles.cabFareText}>~₹{directCabFare}</Text>
+              <Text style={styles.colSub}>Official cab fare</Text>
+              <Text style={styles.cabFareText}>{directCabFare ? `${fareApprox}₹${directCabFare}` : 'App price'}</Text>
               <Text style={styles.cabDurationText}>⏱️ {directCabMinutes} min (traffic)</Text>
               <View style={styles.cabRiskBadge}>
-                <Text style={styles.cabRiskText}>Surge + Traffic Block</Text>
+                <Text style={styles.cabRiskText}>App prices may be higher</Text>
               </View>
             </View>
 
@@ -245,8 +246,8 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
             <View style={styles.scamShieldBox}>
               <Text style={styles.scamShieldTitle}>🛡️ LOCAL SCAM SHIELD</Text>
               <Text style={styles.scamShieldText}>
-                Official meter rate: ~₹{advisory.fare || 30}.{' '}
-                {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
+                {advisory.fare ? `Official auto meter fare: ${fareApprox}₹${advisory.fare}. ` : ''}
+                {advisory.scamAlert || 'Ask for the meter.'}
               </Text>
             </View>
           )}

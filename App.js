@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import Constants from 'expo-constants';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -25,6 +26,15 @@ import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
 import { openDatabase } from './src/db';
 import { seedBengaluruPack } from './src/db/seed';
+import DiagnosticsModal from './app/components/DiagnosticsModal';
+import ErrorBoundary from './src/logging/ErrorBoundary';
+import { FEATURES, log, reportIssue, serializeError, setupLogging } from './src/logging';
+
+// Logging starts before anything renders so startup crashes are captured too.
+setupLogging({
+  appVersion: Constants.expoConfig?.version,
+  runtime: Constants.executionEnvironment, // 'storeClient' = Expo Go, 'bare' = dev/release build
+});
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   // Already hidden — nothing to do.
@@ -69,12 +79,14 @@ function Shell() {
 
       {/* Screen Body with Dynamic Safe Insets */}
       <View style={styles.body}>
-        <Screen
-          contentPadding={{
-            paddingTop: topPadding,
-            paddingBottom: bottomPadding,
-          }}
-        />
+        <ErrorBoundary name={tab} resetKey={tab}>
+          <Screen
+            contentPadding={{
+              paddingTop: topPadding,
+              paddingBottom: bottomPadding,
+            }}
+          />
+        </ErrorBoundary>
       </View>
 
       {/* 3-Tab Bottom Navigation with Safe Bottom Inset */}
@@ -110,6 +122,9 @@ function Shell() {
         onClose={closeCitySwitcher}
       />
 
+      {/* Diagnostics & logs (Guide tab → 🐞 Logs, or long-press the Guide tab) */}
+      <DiagnosticsModal />
+
       {/* Popup Notification Toast */}
       <BengaluruToast toast={toast} topInset={insets.top} />
     </View>
@@ -121,11 +136,14 @@ export default function App() {
 
   useEffect(() => {
     async function initDatabase() {
+      const done = log.time(FEATURES.DB, 'db.init');
       try {
         const db = await openDatabase();
         await seedBengaluruPack(db);
-      } catch {
-        // Fallback or web notification
+        done({ ok: true });
+      } catch (err) {
+        done.fail(err);
+        reportIssue('DB_INIT_FAILED', { key: 'open_seed', message: err && err.message, data: serializeError(err) });
       }
     }
     initDatabase();

@@ -690,7 +690,7 @@ export const RESTAURANTS = [
   {
     id: 'r_asha_sweets',
     name: 'Asha Sweets',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'JP Nagar, 5th Phase',
     cuisine: 'desserts',
     rating: 4.3,
@@ -1450,7 +1450,7 @@ export const RESTAURANTS = [
   {
     id: 'r_subbamma_stores',
     name: 'Subbamma Stores',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80',
     area: 'Gandhi Bazaar, Basavanagudi',
     cuisine: 'streetfood',
     rating: 4.7,

@@ -1,0 +1,1453 @@
+{
+  "generatedAt": "2026-10-14T06:16:42.539Z",
+  "method": "Name + location match against OpenStreetMap (Overpass bbox query, Nominatim fallback). verified ≤ 250 m; location_corrected 250 m–3 km (OSM pin used); unverified = no OSM match.",
+  "attribution": "© OpenStreetMap contributors, ODbL 1.0",
+  "summary": {
+    "verified": 20,
+    "location_corrected": 17,
+    "unverified": 36
+  },
+  "restaurants": {
+    "r_vidyarthi": {
+      "name": "Vidyarthi Bhavan",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9432,
+        "lon": 77.5712
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 203,
+      "osm": {
+        "ref": "node/4447135317",
+        "url": "https://www.openstreetmap.org/node/4447135317",
+        "lat": 12.945007,
+        "lon": 77.571472,
+        "tags": {
+          "name": "Vidyarthi Bhavan",
+          "amenity": "restaurant",
+          "cuisine": "regional",
+          "opening_hours": "Mo-Th 06:30-11:30, Mo-Th 14:00-20:00, Sa-Su 06:30-12:00, Sa-Su 14:30-20:00",
+          "diet:vegetarian": "yes",
+          "addr:street": "Gandhi Bazaar Main Road, Basavanagudi",
+          "website": "https://vidyarthibhavan.in"
+        }
+      }
+    },
+    "r_mtr": {
+      "name": "MTR — Mavalli Tiffin Rooms",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.951,
+        "lon": 77.579
+      },
+      "via": "overpass",
+      "nameScore": 0.86,
+      "distanceM": 845,
+      "osm": {
+        "ref": "node/429833271",
+        "url": "https://www.openstreetmap.org/node/429833271",
+        "lat": 12.955168,
+        "lon": 77.585523,
+        "tags": {
+          "name": "Mavalli Tiffin Rooms",
+          "amenity": "restaurant",
+          "opening_hours": "Tu-Su 06:30-11:00, 12:30-21:00",
+          "addr:street": "Lalbagh Road",
+          "website": "https://www.mavallitiffinrooms.com/"
+        }
+      }
+    },
+    "r_ctr": {
+      "name": "CTR / Shri Sagar",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0027,
+        "lon": 77.566
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 622,
+      "osm": {
+        "ref": "node/1289833985",
+        "url": "https://www.openstreetmap.org/node/1289833985",
+        "lat": 12.998257,
+        "lon": 77.569495,
+        "tags": {
+          "name": "Shree Sagar CTR",
+          "amenity": "restaurant",
+          "cuisine": "regional",
+          "diet:vegetarian": "only",
+          "diet:vegan": "yes"
+        }
+      }
+    },
+    "r_brahmin": {
+      "name": "Brahmin's Coffee Bar",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9468,
+        "lon": 77.571
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 829,
+      "osm": {
+        "ref": "node/1617398428",
+        "url": "https://www.openstreetmap.org/node/1617398428",
+        "lat": 12.95394,
+        "lon": 77.56881,
+        "tags": {
+          "name": "Brahmin's Coffee Bar",
+          "amenity": "fast_food",
+          "diet:vegetarian": "only",
+          "addr:street": "2nd Cross Road"
+        }
+      }
+    },
+    "r_airlines": {
+      "name": "Airlines Hotel",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9714,
+        "lon": 77.5961
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 419,
+      "osm": {
+        "ref": "node/1536592062",
+        "url": "https://www.openstreetmap.org/node/1536592062",
+        "lat": 12.972731,
+        "lon": 77.599719,
+        "tags": {
+          "name": "Airlines",
+          "amenity": "restaurant",
+          "cuisine": "indian",
+          "check_date": "2026-09-26"
+        }
+      }
+    },
+    "r_shivaji": {
+      "name": "Shivaji Military Hotel",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9278,
+        "lon": 77.5836
+      }
+    },
+    "r_empire": {
+      "name": "Hotel Empire",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9744,
+        "lon": 77.6087
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 651,
+      "osm": {
+        "ref": "node/1966567931",
+        "url": "https://www.openstreetmap.org/node/1966567931",
+        "lat": 12.975404,
+        "lon": 77.602778,
+        "tags": {
+          "name": "Empire",
+          "amenity": "restaurant",
+          "cuisine": "indian",
+          "addr:street": "Church Street",
+          "check_date": "2025-02-15"
+        }
+      }
+    },
+    "r_vvpuram": {
+      "name": "VV Puram Food Street",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9422,
+        "lon": 77.5747
+      }
+    },
+    "r_koshy": {
+      "name": "Koshy's",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9701,
+        "lon": 77.5995
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 651,
+      "osm": {
+        "ref": "node/349291886",
+        "url": "https://www.openstreetmap.org/node/349291886",
+        "lat": 12.975632,
+        "lon": 77.601476,
+        "tags": {
+          "name": "Koshy's",
+          "amenity": "restaurant",
+          "opening_hours": "09:00 - 23:00",
+          "addr:street": "Saint Mark's Road",
+          "addr:suburb": "Shanthala Nagar",
+          "check_date": "2024-08-19"
+        }
+      }
+    },
+    "r_taazathindi": {
+      "name": "Taaza Thindi",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9279,
+        "lon": 77.5839
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 1167,
+      "osm": {
+        "ref": "way/349513121",
+        "url": "https://www.openstreetmap.org/way/349513121",
+        "lat": 12.922608,
+        "lon": 77.593204,
+        "tags": {
+          "name": "Taaza Thindi",
+          "amenity": "fast_food",
+          "cuisine": "indian",
+          "diet:vegetarian": "yes"
+        }
+      }
+    },
+    "r_veena": {
+      "name": "Veena Stores",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0029,
+        "lon": 77.57
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 317,
+      "osm": {
+        "ref": "node/5008973980",
+        "url": "https://www.openstreetmap.org/node/5008973980",
+        "lat": 13.00567,
+        "lon": 77.569289,
+        "tags": {
+          "name": "Veena Stores",
+          "amenity": "fast_food",
+          "cuisine": "regional",
+          "opening_hours": "Mo-Sa 06:30-12:00, 15:30-21:00; Su 06:30-12:00",
+          "addr:street": "183, 15th Cross, Malleshwaram, Margosa Road, Malleshwaram West, Bengaluru, Karnataka 560003",
+          "check_date": "2025-10-27"
+        }
+      }
+    },
+    "r_thirdwave": {
+      "name": "Third Wave Coffee",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9784,
+        "lon": 77.6408
+      },
+      "rejectedCandidate": {
+        "name": "Third Wave Coffee Roasters",
+        "ref": "node/8758561575",
+        "distanceM": 941,
+        "nameScore": 0.86,
+        "rejectedBecause": "chain: 27 places named \"Third Wave Coffee Roasters\", address does not match curated area"
+      }
+    },
+    "r_meghana": {
+      "name": "Meghana Foods",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.97,
+        "lon": 77.6047
+      },
+      "rejectedCandidate": {
+        "name": "Meghana Foods",
+        "ref": "node/3384450215",
+        "distanceM": 578,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 5 places named \"Meghana Foods\", address does not match curated area"
+      }
+    },
+    "r_sukhniwas": {
+      "name": "Sukh Sagar",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0116,
+        "lon": 77.578
+      }
+    },
+    "r_truffles": {
+      "name": "Truffles",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9297,
+        "lon": 77.6276
+      },
+      "rejectedCandidate": {
+        "name": "Truffles",
+        "ref": "node/3709164638",
+        "distanceM": 1502,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 8 places named \"Truffles\", address does not match curated area"
+      }
+    },
+    "r_asha_sweets": {
+      "name": "Asha Sweets",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9063,
+        "lon": 77.5927
+      }
+    },
+    "r_alco": {
+      "name": "Al's Cafe",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9795,
+        "lon": 77.6082
+      }
+    },
+    "r_toit": {
+      "name": "Toit Brewpub",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9784,
+        "lon": 77.6418
+      },
+      "via": "overpass",
+      "nameScore": 0.67,
+      "distanceM": 170,
+      "osm": {
+        "ref": "node/1923665125",
+        "url": "https://www.openstreetmap.org/node/1923665125",
+        "lat": 12.979411,
+        "lon": 77.640628,
+        "tags": {
+          "name": "Toit",
+          "amenity": "pub",
+          "addr:street": "100 Feet Road",
+          "website": "https://toit.in/",
+          "check_date": "2023-12-30"
+        }
+      }
+    },
+    "r_rameshwaram": {
+      "name": "Rameshwaram Cafe",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9757,
+        "lon": 77.6395
+      },
+      "rejectedCandidate": {
+        "name": "The Rameshwaram Cafe",
+        "ref": "node/9545465489",
+        "distanceM": 697,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 4 places named \"The Rameshwaram Cafe\", address does not match curated area"
+      }
+    },
+    "r_ammemane": {
+      "name": "Ammemane",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9553,
+        "lon": 77.538
+      }
+    },
+    "r_nagarjuna_residency": {
+      "name": "Nagarjuna",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9712,
+        "lon": 77.6062
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 395,
+      "osm": {
+        "ref": "node/3761074634",
+        "url": "https://www.openstreetmap.org/node/3761074634",
+        "lat": 12.97323,
+        "lon": 77.609195,
+        "tags": {
+          "name": "Nagarjuna",
+          "amenity": "restaurant",
+          "cuisine": "andhra",
+          "diet:vegetarian": "yes",
+          "addr:street": "Residency Road",
+          "check_date": "2024-12-14"
+        }
+      }
+    },
+    "r_hole_in_the_wall": {
+      "name": "The Hole in the Wall Cafe",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9341,
+        "lon": 77.6258
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 81,
+      "osm": {
+        "ref": "way/347237497",
+        "url": "https://www.openstreetmap.org/way/347237497",
+        "lat": 12.934761,
+        "lon": 77.625489,
+        "tags": {
+          "name": "The Hole In The Wall Cafe",
+          "amenity": "cafe",
+          "cuisine": "american",
+          "opening_hours": "Tu-Su 08:00-21:00",
+          "addr:street": "8th Main Road",
+          "website": "https://www.theholeinthewallcafe.org/",
+          "check_date": "2025-08-08"
+        }
+      }
+    },
+    "r_glen_bakehouse": {
+      "name": "Glen's Bakehouse",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9721,
+        "lon": 77.6441
+      },
+      "rejectedCandidate": {
+        "name": "Glen's Bakehouse",
+        "ref": "way/331330192",
+        "distanceM": 874,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 12 places named \"Glen's Bakehouse\", address does not match curated area"
+      }
+    },
+    "r_iyer_mess": {
+      "name": "Iyer Mess",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0035,
+        "lon": 77.5685
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 554,
+      "osm": {
+        "ref": "node/4446632053",
+        "url": "https://www.openstreetmap.org/node/4446632053",
+        "lat": 12.998707,
+        "lon": 77.569905,
+        "tags": {
+          "name": "Iyer Mess",
+          "amenity": "restaurant",
+          "cuisine": "regional",
+          "opening_hours": "11:30-15:15,19:15-21:15",
+          "addr:street": "Near Devi Prasad Home Appliances, 7th & 8th Cross, West Park RD, Malleshwaram"
+        }
+      }
+    },
+    "r_new_krishna_bhavan": {
+      "name": "New Krishna Bhavan",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9965,
+        "lon": 77.5714
+      },
+      "rejectedCandidate": {
+        "name": "Udupi Sri Krishna Bhavan",
+        "ref": "node/6419145385",
+        "distanceM": 2780,
+        "nameScore": 0.8
+      }
+    },
+    "r_halli_mane": {
+      "name": "Halli Mane",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9998,
+        "lon": 77.5701
+      },
+      "rejectedCandidate": {
+        "name": "Holige Mane",
+        "ref": "node/4447016309",
+        "distanceM": 290,
+        "nameScore": 0.5
+      }
+    },
+    "r_janatha": {
+      "name": "Janatha Hotel",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0039,
+        "lon": 77.5689
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 580,
+      "osm": {
+        "ref": "node/1813542942",
+        "url": "https://www.openstreetmap.org/node/1813542942",
+        "lat": 12.999143,
+        "lon": 77.571094,
+        "tags": {
+          "name": "Hotel Janatha",
+          "amenity": "restaurant"
+        }
+      }
+    },
+    "r_corner_house_residency": {
+      "name": "Corner House Ice Cream",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9719,
+        "lon": 77.6048
+      }
+    },
+    "r_social_church_st": {
+      "name": "Church Street Social",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9749,
+        "lon": 77.6052
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 297,
+      "osm": {
+        "ref": "node/2937454027",
+        "url": "https://www.openstreetmap.org/node/2937454027",
+        "lat": 12.975762,
+        "lon": 77.602608,
+        "tags": {
+          "name": "Church Street Social",
+          "amenity": "restaurant",
+          "cuisine": "american",
+          "addr:street": "Church Street",
+          "addr:suburb": "Ashok Nagar",
+          "check_date": "2025-02-15"
+        }
+      }
+    },
+    "r_matteo_coffea": {
+      "name": "Matteo Coffea",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9748,
+        "lon": 77.6069
+      },
+      "rejectedCandidate": {
+        "name": "Matteo's Coffee",
+        "ref": "node/2181449422",
+        "distanceM": 53,
+        "nameScore": 0.5
+      }
+    },
+    "r_bobs_bar_indiranagar": {
+      "name": "Bob's Bar",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9765,
+        "lon": 77.6412
+      },
+      "rejectedCandidate": {
+        "name": "Bob's Bar",
+        "ref": "node/3280223481",
+        "distanceM": 1040,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 6 places named \"Bob's Bar\", address does not match curated area"
+      }
+    },
+    "r_chinita": {
+      "name": "Chinita Real Mexican Food",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9798,
+        "lon": 77.6425
+      },
+      "rejectedCandidate": {
+        "name": "Chinita",
+        "ref": "node/3369940349",
+        "distanceM": 603,
+        "nameScore": 0.4
+      }
+    },
+    "r_kota_kachori": {
+      "name": "Kota Kachori",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9348,
+        "lon": 77.619
+      },
+      "rejectedCandidate": {
+        "name": "Kota Kachori",
+        "ref": "node/1474351207",
+        "distanceM": 708,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 4 places named \"Kota Kachori\", address does not match curated area"
+      }
+    },
+    "r_hari_sandwich": {
+      "name": "Hari Super Sandwich",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9298,
+        "lon": 77.5815
+      },
+      "rejectedCandidate": {
+        "name": "Hari Super Sandwich",
+        "ref": "node/6228777904",
+        "distanceM": 1612,
+        "nameScore": 1,
+        "rejectedBecause": "chain: 6 places named \"Hari Super Sandwich\", address does not match curated area"
+      }
+    },
+    "r_mahalakshmi_tiffin": {
+      "name": "Mahalakshmi Tiffin Room (MLTR)",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9439,
+        "lon": 77.5732
+      },
+      "rejectedCandidate": {
+        "name": "Mahalakshmi Sweets",
+        "ref": "node/11178186958",
+        "distanceM": 1866,
+        "nameScore": 0.33
+      }
+    },
+    "r_vb_bakery": {
+      "name": "V.B. Bakery",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9448,
+        "lon": 77.5768
+      }
+    },
+    "r_albert_bakery": {
+      "name": "Albert Bakery",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9981,
+        "lon": 77.6138
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 173,
+      "osm": {
+        "ref": "node/1474195348",
+        "url": "https://www.openstreetmap.org/node/1474195348",
+        "lat": 12.996602,
+        "lon": 77.614216,
+        "tags": {
+          "name": "Albert Bakery",
+          "shop": "bakery",
+          "addr:street": "Mosque Road"
+        }
+      }
+    },
+    "r_rahhams": {
+      "name": "Rahhams",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9995,
+        "lon": 77.6145
+      },
+      "rejectedCandidate": {
+        "name": "Richies Rahhams Families International",
+        "ref": "node/3342219979",
+        "distanceM": 204,
+        "nameScore": 0.4
+      }
+    },
+    "r_karama": {
+      "name": "Karama Restaurant",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9988,
+        "lon": 77.615
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 162,
+      "osm": {
+        "ref": "node/9786123495",
+        "url": "https://www.openstreetmap.org/node/9786123495",
+        "lat": 12.999724,
+        "lon": 77.616152,
+        "tags": {
+          "name": "Karama",
+          "amenity": "restaurant"
+        }
+      }
+    },
+    "r_fanoos": {
+      "name": "Fanoos",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9632,
+        "lon": 77.6045
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 264,
+      "osm": {
+        "ref": "node/1448814112",
+        "url": "https://www.openstreetmap.org/node/1448814112",
+        "lat": 12.964505,
+        "lon": 77.606532,
+        "tags": {
+          "name": "Hotel Fanoos",
+          "amenity": "fast_food",
+          "cuisine": "kebab"
+        }
+      }
+    },
+    "r_anand_sweets_commercial": {
+      "name": "Anand Sweets & Purani Dilli",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9818,
+        "lon": 77.6102
+      },
+      "rejectedCandidate": {
+        "name": "Anand Sweets and Savouries",
+        "ref": "node/9828707239",
+        "distanceM": 49,
+        "nameScore": 0.57
+      }
+    },
+    "r_windmills_whitefield": {
+      "name": "Windmills Craftworks",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9822,
+        "lon": 77.721
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 91,
+      "osm": {
+        "ref": "node/2189204878",
+        "url": "https://www.openstreetmap.org/node/2189204878",
+        "lat": 12.982529,
+        "lon": 77.721768,
+        "tags": {
+          "name": "Windmills Craftworks",
+          "amenity": "restaurant",
+          "cuisine": "spanish;indian;italian",
+          "opening_hours": "Mo-Su 12:00-24:00; Sa-Su 00:00-01:00, 08:00-11:00",
+          "addr:street": "5B Road",
+          "website": "https://windmills-india.com/"
+        }
+      }
+    },
+    "r_udupi_park_whitefield": {
+      "name": "Udupi Park",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.987,
+        "lon": 77.729
+      },
+      "rejectedCandidate": {
+        "name": "Sri Alok Park Veg",
+        "ref": "node/6448154191",
+        "distanceM": 551,
+        "nameScore": 0.4
+      }
+    },
+    "r_maiyas_jayanagar": {
+      "name": "Maiyas",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9288,
+        "lon": 77.5835
+      },
+      "rejectedCandidate": {
+        "name": "Cafe Sangam @ Maiyas",
+        "ref": "node/1474244814",
+        "distanceM": 1539,
+        "nameScore": 0.67
+      }
+    },
+    "r_chikkanna_tiffin": {
+      "name": "Chikkanna Tiffin Room",
+      "cityId": "bengaluru",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9698,
+        "lon": 77.575
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 1036,
+      "osm": {
+        "ref": "node/9140200244",
+        "url": "https://www.openstreetmap.org/node/9140200244",
+        "lat": 12.968372,
+        "lon": 77.584446,
+        "tags": {
+          "name": "Chikkanna Tiffin Room",
+          "amenity": "fast_food",
+          "cuisine": "regional"
+        }
+      }
+    },
+    "r_shanti_sagar_rtnagar": {
+      "name": "Shanti Sagar",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 13.0234,
+        "lon": 77.5948
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 215,
+      "osm": {
+        "ref": "node/1474819330",
+        "url": "https://www.openstreetmap.org/node/1474819330",
+        "lat": 13.023303,
+        "lon": 77.592813,
+        "tags": {
+          "name": "New Shanti Sagar",
+          "amenity": "restaurant",
+          "diet:vegetarian": "only"
+        }
+      }
+    },
+    "r_blossom_cafe": {
+      "name": "Blossom Book Cafe",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9752,
+        "lon": 77.6059
+      }
+    },
+    "r_empire_shivajinagar": {
+      "name": "Hotel Empire — Shivaji Nagar",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9862,
+        "lon": 77.6038
+      },
+      "rejectedCandidate": {
+        "name": "Hotel Empire",
+        "ref": "node/665871279",
+        "distanceM": 716,
+        "nameScore": 0.5
+      }
+    },
+    "r_subbamma_stores": {
+      "name": "Subbamma Stores",
+      "cityId": "bengaluru",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9436,
+        "lon": 77.5724
+      }
+    },
+    "r_cool_joint_jayanagar": {
+      "name": "Cool Joint",
+      "cityId": "bengaluru",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 12.9295,
+        "lon": 77.5841
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 208,
+      "osm": {
+        "ref": "node/1474291159",
+        "url": "https://www.openstreetmap.org/node/1474291159",
+        "lat": 12.928764,
+        "lon": 77.585862,
+        "tags": {
+          "name": "Cool joint",
+          "amenity": "fast_food",
+          "cuisine": "ice_cream"
+        }
+      }
+    },
+    "r_del_sitaram": {
+      "name": "Sita Ram Diwan Chand",
+      "cityId": "delhi",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6433,
+        "lon": 77.214
+      },
+      "rejectedCandidate": {
+        "name": "Chaska Ram",
+        "ref": "node/10969310415",
+        "distanceM": 2163,
+        "nameScore": 0.33
+      }
+    },
+    "r_del_karim": {
+      "name": "Karim's Hotel",
+      "cityId": "delhi",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6508,
+        "lon": 77.2335
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 154,
+      "osm": {
+        "ref": "node/2106101596",
+        "url": "https://www.openstreetmap.org/node/2106101596",
+        "lat": 28.649429,
+        "lon": 77.233741,
+        "tags": {
+          "name": "Karim's",
+          "amenity": "restaurant",
+          "cuisine": "chicken;kebab;curry;indian",
+          "addr:street": "Kalan Mahal Road",
+          "website": "http://www.karimhoteldelhi.com"
+        }
+      }
+    },
+    "r_del_motimahal": {
+      "name": "Moti Mahal Delux (Original)",
+      "cityId": "delhi",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6475,
+        "lon": 77.2405
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 85,
+      "osm": {
+        "ref": "node/2106114484",
+        "url": "https://www.openstreetmap.org/node/2106114484",
+        "lat": 28.646888,
+        "lon": 77.239981,
+        "tags": {
+          "name": "Moti Mahal",
+          "amenity": "restaurant",
+          "diet:vegetarian": "only",
+          "check_date": "2024-12-22"
+        }
+      }
+    },
+    "r_del_gulati": {
+      "name": "Gulati Restaurant",
+      "cityId": "delhi",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.608,
+        "lon": 77.2355
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 531,
+      "osm": {
+        "ref": "node/4628544689",
+        "url": "https://www.openstreetmap.org/node/4628544689",
+        "lat": 28.60785,
+        "lon": 77.230067,
+        "tags": {
+          "name": "Gulati",
+          "amenity": "restaurant",
+          "cuisine": "indian",
+          "opening_hours": "Mo-Su 12:00-24:00",
+          "addr:street": "Pandara Road",
+          "website": "http://www.gulatirestaurant.in/",
+          "check_date": "2026-02-23"
+        }
+      }
+    },
+    "r_del_natraj": {
+      "name": "Natraj Dahi Bhalla Corner",
+      "cityId": "delhi",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6568,
+        "lon": 77.2301
+      },
+      "rejectedCandidate": {
+        "name": "NATRAJ restaurant",
+        "ref": "node/4656714717",
+        "distanceM": 2503,
+        "nameScore": 0.4
+      }
+    },
+    "r_del_kuremal": {
+      "name": "Kuremal Mohan Lal Kulfi",
+      "cityId": "delhi",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.65,
+        "lon": 77.2285
+      },
+      "rejectedCandidate": {
+        "name": "Kuremal's Kulfi",
+        "ref": "node/10579405741",
+        "distanceM": 1782,
+        "nameScore": 0.67
+      }
+    },
+    "r_del_paranthe": {
+      "name": "Pandit Gaya Prasad Shiv Charan",
+      "cityId": "delhi",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6552,
+        "lon": 77.2309
+      },
+      "via": "overpass",
+      "nameScore": 0.8,
+      "distanceM": 105,
+      "osm": {
+        "ref": "node/12592985143",
+        "url": "https://www.openstreetmap.org/node/12592985143",
+        "lat": 28.656017,
+        "lon": 77.230369,
+        "tags": {
+          "name": "Pandit Gaya Prashad Shiv Charan",
+          "amenity": "restaurant",
+          "cuisine": "indian;parantha"
+        }
+      }
+    },
+    "r_del_saravana": {
+      "name": "Saravana Bhavan",
+      "cityId": "delhi",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6291,
+        "lon": 77.2185
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 268,
+      "osm": {
+        "ref": "way/1475265591",
+        "url": "https://www.openstreetmap.org/way/1475265591",
+        "lat": 28.626949,
+        "lon": 77.219745,
+        "tags": {
+          "name": "Saravana Bhavan",
+          "amenity": "fast_food",
+          "cuisine": "indian;south_indian",
+          "opening_hours": "Mo-Su 08:00-23:00",
+          "diet:vegan": "yes",
+          "diet:jain": "limited",
+          "addr:street": "Janpath"
+        }
+      }
+    },
+    "r_del_aslam": {
+      "name": "Aslam Chicken",
+      "cityId": "delhi",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6515,
+        "lon": 77.234
+      }
+    },
+    "r_del_wengers": {
+      "name": "Wenger's Deli & Confectionery",
+      "cityId": "delhi",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.6328,
+        "lon": 77.2185
+      },
+      "via": "overpass",
+      "nameScore": 0.8,
+      "distanceM": 87,
+      "osm": {
+        "ref": "node/13564519122",
+        "url": "https://www.openstreetmap.org/node/13564519122",
+        "lat": 28.633471,
+        "lon": 77.218037,
+        "tags": {
+          "name": "Wenger's Deli",
+          "amenity": "fast_food"
+        }
+      }
+    },
+    "r_del_aljawahar": {
+      "name": "Al Jawahar Restaurant",
+      "cityId": "delhi",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 28.651,
+        "lon": 77.233
+      }
+    },
+    "r_bom_ashok": {
+      "name": "Ashok Vada Pav",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 19.0195,
+        "lon": 72.8315
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 114,
+      "osm": {
+        "ref": "node/5209809870",
+        "url": "https://www.openstreetmap.org/node/5209809870",
+        "lat": 19.02052,
+        "lon": 72.831377,
+        "tags": {
+          "name": "Ashok Vada Pav",
+          "amenity": "fast_food",
+          "opening_hours": "Mo-Sa 11:00-21:30"
+        }
+      }
+    },
+    "r_bom_sardar": {
+      "name": "Sardar Refreshments",
+      "cityId": "mumbai",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.973,
+        "lon": 72.8185
+      },
+      "rejectedCandidate": {
+        "name": "Sardar Pav Phaji",
+        "ref": "node/6816067581",
+        "distanceM": 518,
+        "nameScore": 0.4
+      }
+    },
+    "r_bom_kyani": {
+      "name": "Kyani & Co. Irani Cafe",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9425,
+        "lon": 72.8285
+      },
+      "via": "overpass",
+      "nameScore": 0.67,
+      "distanceM": 181,
+      "osm": {
+        "ref": "node/9574663630",
+        "url": "https://www.openstreetmap.org/node/9574663630",
+        "lat": 18.944107,
+        "lon": 72.828789,
+        "tags": {
+          "name": "Kyani & Co.",
+          "amenity": "cafe",
+          "shop": "bakery",
+          "diet:vegetarian": "yes",
+          "diet:halal": "only",
+          "addr:street": "Jagannath Shankarsheth Marg",
+          "check_date": "2026-08-17"
+        }
+      }
+    },
+    "r_bom_britannia": {
+      "name": "Britannia & Co. Restaurant",
+      "cityId": "mumbai",
+      "status": "location_corrected",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9372,
+        "lon": 72.8402
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 304,
+      "osm": {
+        "ref": "node/4294810192",
+        "url": "https://www.openstreetmap.org/node/4294810192",
+        "lat": 18.934473,
+        "lon": 72.840358,
+        "tags": {
+          "name": "Britannia & Co. Restaurant",
+          "amenity": "restaurant",
+          "opening_hours": "Mo-Sa 11:30-04:00",
+          "addr:street": "Sprott Road"
+        }
+      }
+    },
+    "r_bom_aram": {
+      "name": "Aram Milk Bar & Vada Pav",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9405,
+        "lon": 72.8345
+      },
+      "via": "overpass",
+      "nameScore": 0.4,
+      "distanceM": 113,
+      "osm": {
+        "ref": "node/14102676042",
+        "url": "https://www.openstreetmap.org/node/14102676042",
+        "lat": 18.939481,
+        "lon": 72.834477,
+        "tags": {
+          "name": "Aram",
+          "amenity": "fast_food",
+          "cuisine": "regional",
+          "check_date": "2026-08-18"
+        }
+      }
+    },
+    "r_bom_bademiya": {
+      "name": "Bademiya",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9228,
+        "lon": 72.8335
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 175,
+      "osm": {
+        "ref": "node/3408261570",
+        "url": "https://www.openstreetmap.org/node/3408261570",
+        "lat": 18.92216,
+        "lon": 72.83198,
+        "tags": {
+          "name": "Bademiya Restaurant",
+          "amenity": "fast_food",
+          "addr:street": "Nowroji Ferdonji Street"
+        }
+      }
+    },
+    "r_bom_mahesh": {
+      "name": "Mahesh Lunch Home",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.934,
+        "lon": 72.833
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 64,
+      "osm": {
+        "ref": "node/662459670",
+        "url": "https://www.openstreetmap.org/node/662459670",
+        "lat": 18.934027,
+        "lon": 72.833607,
+        "tags": {
+          "name": "Mahesh Lunch Home",
+          "amenity": "restaurant"
+        }
+      }
+    },
+    "r_bom_bachelorr": {
+      "name": "Bachelorr's",
+      "cityId": "mumbai",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.954,
+        "lon": 72.8125
+      }
+    },
+    "r_bom_cannon": {
+      "name": "Cannon Pav Bhaji",
+      "cityId": "mumbai",
+      "status": "unverified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9408,
+        "lon": 72.835
+      }
+    },
+    "r_bom_cafemadras": {
+      "name": "Café Madras",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 19.0278,
+        "lon": 72.855
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 15,
+      "osm": {
+        "ref": "node/1977933168",
+        "url": "https://www.openstreetmap.org/node/1977933168",
+        "lat": 19.027673,
+        "lon": 72.855047,
+        "tags": {
+          "name": "Cafe Madras",
+          "amenity": "restaurant",
+          "cuisine": "indian",
+          "opening_hours": "Tu-Su 07:00-14:30,16:00-22:30",
+          "addr:street": "Bhau Daji Road"
+        }
+      }
+    },
+    "r_bom_noor": {
+      "name": "Noor Mohammadi Hotel",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9565,
+        "lon": 72.8335
+      },
+      "via": "overpass",
+      "nameScore": 1,
+      "distanceM": 197,
+      "osm": {
+        "ref": "node/5221682037",
+        "url": "https://www.openstreetmap.org/node/5221682037",
+        "lat": 18.957813,
+        "lon": 72.832245,
+        "tags": {
+          "name": "Noor Mohammadi Hotel",
+          "amenity": "restaurant"
+        }
+      }
+    },
+    "r_bom_mondegar": {
+      "name": "Café Mondegar (Mondy’s)",
+      "cityId": "mumbai",
+      "status": "verified",
+      "checkedAt": "2026-10-14",
+      "curated": {
+        "lat": 18.9242,
+        "lon": 72.8322
+      },
+      "via": "overpass",
+      "nameScore": 0.67,
+      "distanceM": 18,
+      "osm": {
+        "ref": "node/669259659",
+        "url": "https://www.openstreetmap.org/node/669259659",
+        "lat": 18.924042,
+        "lon": 72.832179,
+        "tags": {
+          "name": "Cafe Mondegar",
+          "amenity": "cafe",
+          "opening_hours": "Mo-Su 08:00-23:30",
+          "addr:street": "Chhatrapati Shivaji Maharaj Road",
+          "website": "https://www.cafemondegar.com/",
+          "check_date": "2026-07-22"
+        }
+      }
+    }
+  }
+}

@@ -1,37 +1,24 @@
 /**
  * Domain: Transit and Auto Meter Fare Estimation
- * PRD 5.3 & 5.2: Haversine distance * rate + flagfall with minimum floor,
- * and distance band lookup for metro/bus.
+ * Auto meter fares come from the official tariff table (src/domain/tariffs.js);
+ * metro/bus fares use distance-band lookup.
  */
 
-// Bengaluru auto-rickshaw government rates:
-// Base flagfall (first 2 km): ₹30
-// Per km after 2 km: ₹15
-const AUTO_FLAGFALL_DISTANCE_M = 2000;
-const AUTO_FLAGFALL_FARE = 30;
-const AUTO_PER_KM_RATE = 15;
+import { computeOfficialFare } from './tariffs';
 
-export function meterEstimate(distanceM) {
-  if (!distanceM || distanceM <= 0) {
-    return { fair: AUTO_FLAGFALL_FARE, expectedQuote: 60 };
-  }
-
-  let fair = AUTO_FLAGFALL_FARE;
-  if (distanceM > AUTO_FLAGFALL_DISTANCE_M) {
-    const extraKm = (distanceM - AUTO_FLAGFALL_DISTANCE_M) / 1000;
-    fair += Math.round(extraKm * AUTO_PER_KM_RATE);
-  }
-
-  // Fair meter price rounded to nearest ₹5
-  fair = Math.ceil(fair / 5) * 5;
-
-  // Expected tourist quote is typically 1.5x - 2.5x the meter rate
-  const expectedQuote = Math.max(100, Math.round((fair * 2.0) / 50) * 50);
-
+/**
+ * Official daytime auto meter fare for a ROAD distance (Bengaluru by default).
+ */
+export function meterEstimate(distanceM, { cityId = 'bengaluru' } = {}) {
+  const meters = Math.max(0, Number(distanceM) || 0);
+  const result = computeOfficialFare(cityId, 'auto', {
+    roadMeters: meters > 0 ? meters : undefined,
+    straightMeters: 0,
+    date: new Date('2026-01-01T12:00:00'),
+  });
   return {
-    fair,
-    expectedQuote,
-    isShortHop: distanceM <= 1200,
+    fair: result.fare,
+    isShortHop: meters <= 1200,
   };
 }
 

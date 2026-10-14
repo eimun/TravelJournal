@@ -4,81 +4,86 @@ import {
   BENGALURU_RTO_CONFIG,
 } from '../../src/domain/dynamicFare';
 
-describe('Dynamic Auto & Cab Fare Engine', () => {
-  describe('getTimeSurgeContext', () => {
-    it('detects morning peak rush (08:30 to 11:30) with 1.4x-1.6x surge', () => {
-      const morningDate = new Date('2026-09-29T09:30:00');
-      const ctx = getTimeSurgeContext(morningDate);
-
+describe('Fare matrix (official tariffs only)', () => {
+  describe('getTimeSurgeContext (traffic advice, never changes fares)', () => {
+    it('detects morning rush 08:30–11:30', () => {
+      const ctx = getTimeSurgeContext(new Date('2026-09-29T09:30:00'));
       expect(ctx.period).toBe('morning_peak');
-      expect(ctx.surgeMultiplier).toBeGreaterThanOrEqual(1.4);
-      expect(ctx.label || ctx.surgeLabel).toContain('Morning');
+      expect(ctx.label).toContain('Morning');
+      expect(ctx.surgeMultiplier).toBeUndefined();
     });
 
-    it('detects evening peak gridlock (17:00 to 20:30) with highest surge multiplier', () => {
-      const eveningDate = new Date('2026-09-29T18:45:00');
-      const ctx = getTimeSurgeContext(eveningDate);
-
+    it('detects evening rush 17:00–20:30', () => {
+      const ctx = getTimeSurgeContext(new Date('2026-09-29T18:45:00'));
       expect(ctx.period).toBe('evening_peak');
-      expect(ctx.surgeMultiplier).toBeGreaterThanOrEqual(1.6);
-      expect(ctx.label || ctx.surgeLabel).toContain('Evening');
+      expect(ctx.label).toContain('Evening');
     });
 
-    it('enforces legal 1.5x night surcharge from 10:00 PM to 05:00 AM', () => {
-      const nightDate = new Date('2026-09-29T23:15:00');
-      const ctx = getTimeSurgeContext(nightDate);
-
-      expect(ctx.period).toBe('night');
-      expect(ctx.surgeMultiplier).toBe(1.5);
-      expect(ctx.label || ctx.surgeLabel).toContain('Night');
+    it('uses the city night window from the tariff (Bengaluru 22:00–05:00)', () => {
+      expect(getTimeSurgeContext(new Date('2026-09-29T23:15:00')).period).toBe('night');
+      expect(getTimeSurgeContext(new Date('2026-09-29T21:59:00')).period).not.toBe('night');
     });
 
-    it('detects midday off-peak (11:30 to 17:00) with near-base rates', () => {
-      const middayDate = new Date('2026-09-29T14:00:00');
-      const ctx = getTimeSurgeContext(middayDate);
-
-      expect(ctx.period).toBe('midday_normal');
-      expect(ctx.surgeMultiplier).toBeLessThanOrEqual(1.1);
+    it('uses Mumbai night window (00:00–05:00) for Mumbai', () => {
+      expect(getTimeSurgeContext(new Date('2026-09-29T23:15:00'), 'mumbai').period).not.toBe('night');
+      expect(getTimeSurgeContext(new Date('2026-09-30T00:30:00'), 'mumbai').period).toBe('night');
     });
   });
 
   describe('calculateDynamicFareMatrix', () => {
-    it('accurately calculates RTO base flagfall of ₹30 for distances under 2km', () => {
-      const date = new Date('2026-09-29T14:00:00'); // off-peak
-      const matrix = calculateDynamicFareMatrix(1500, date);
+    const noon = new Date('2026-09-29T14:00:00');
 
-      expect(matrix.providers.rtoMeter.fare).toBe(30);
-      expect(matrix.providers.rtoMeter.tag).toBe('OFFICIAL TARIFF');
+    it('applies the Bengaluru minimum fare ₹36 for road trips up to 2 km', () => {
+      const m = calculateDynamicFareMatrix(1000, noon, { roadMeters: 1800 });
+      expect(m.providers.rtoMeter.fare).toBe(36);
+      expect(m.providers.rtoMeter.tag).toBe('OFFICIAL TARIFF');
+      expect(m.distanceSource).toBe('road');
     });
 
-    it('accurately calculates RTO incremental rate (₹15/km) for 5km trip', () => {
-      const date = new Date('2026-09-29T14:00:00');
-      // 5km: 2km flagfall (₹30) + 3km @ ₹15 = ₹75
-      const matrix = calculateDynamicFareMatrix(5000, date);
-
-      expect(matrix.providers.rtoMeter.fare).toBe(75);
+    it('applies ₹18/km after 2 km (5 km road → 36 + 3×18 = ₹90)', () => {
+      const m = calculateDynamicFareMatrix(4000, noon, { roadMeters: 5000 });
+      expect(m.providers.rtoMeter.fare).toBe(90);
     });
 
-    it('calculates provider differentials (Uber surging higher than Namma Yatri and RTO meter)', () => {
-      const eveningRushDate = new Date('2026-09-29T18:30:00');
-      const matrix = calculateDynamicFareMatrix(4000, eveningRushDate);
-
-      const rto = matrix.providers.rtoMeter.fare;
-      const nammaYatri = matrix.providers.nammaYatri.fare;
-      const uberOla = matrix.providers.uberOla.fare;
-      const streetQuote = matrix.providers.streetQuote.fare;
-
-      expect(nammaYatri).toBeGreaterThanOrEqual(rto);
-      expect(uberOla).toBeGreaterThan(nammaYatri);
-      expect(streetQuote).toBeGreaterThan(uberOla);
+    it('applies the 1.5× night tariff after 10 PM', () => {
+      const m = calculateDynamicFareMatrix(4000, new Date('2026-09-29T23:00:00'), { roadMeters: 5000 });
+      expect(m.providers.rtoMeter.fare).toBe(135);
+      expect(m.surge.isNight).toBe(true);
     });
 
-    it('provides Kannada negotiation phrase for commuters and parents', () => {
-      const matrix = calculateDynamicFareMatrix(3000);
+    it('falls back to straight-line × 1.34 when road distance is unknown and marks it', () => {
+      const m = calculateDynamicFareMatrix(5000, noon);
+      expect(m.distanceSource).toBe('estimated');
+      expect(m.distanceKm).toBeCloseTo(6.7, 1);
+      expect(m.providers.rtoMeter.fareText.startsWith('~₹')).toBe(true);
+    });
 
-      expect(matrix.negotiationPhrase).toBeDefined();
-      expect(matrix.negotiationPhrase.kannada).toContain('Meter hakisi banni');
-      expect(matrix.negotiationPhrase.hindi).toContain('मीटर');
+    it('uses the Karnataka uniform cab fare (₹100 first 4 km, ₹24/km)', () => {
+      expect(calculateDynamicFareMatrix(3000, noon, { roadMeters: 3000 }).providers.cab.fare).toBe(100);
+      expect(calculateDynamicFareMatrix(9000, noon, { roadMeters: 10000 }).providers.cab.fare).toBe(244);
+    });
+
+    it('never invents app prices or an unregulated bike-taxi fare', () => {
+      const m = calculateDynamicFareMatrix(3000, noon, { roadMeters: 3500 });
+      expect(m.providers.appAuto.fare).toBeNull();
+      expect(m.providers.appAuto.fareText).toBe('Set by app');
+      expect(m.providers.bike.fare).toBeNull();
+      expect(m.providers.bike.tag).toBe('NO GOVT TARIFF');
+    });
+
+    it('uses the Maharashtra bike-taxi tariff in Mumbai (₹15 first 1.5 km, ₹10.27/km)', () => {
+      const m = calculateDynamicFareMatrix(3000, noon, { cityId: 'mumbai', roadMeters: 3500 });
+      expect(m.providers.bike.fare).toBe(Math.round(15 + 2 * 10.27));
+      expect(m.providers.rtoMeter.fare).toBe(Math.round(27 + 2 * 18.22));
+    });
+
+    it('keeps the backwards-compatible Bengaluru config in sync with the tariff', () => {
+      expect(BENGALURU_RTO_CONFIG.flagfallFare).toBe(36);
+      expect(BENGALURU_RTO_CONFIG.perKmRate).toBe(18);
+    });
+
+    it('provides negotiation phrases', () => {
+      expect(calculateDynamicFareMatrix(3000).negotiationPhrase.kannada).toContain('Meter hakisi banni');
     });
   });
 });

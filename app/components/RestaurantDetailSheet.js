@@ -1,21 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Circle, Polygon } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 import { getDistanceBetween } from '../data/transitData';
 import { formatDistance } from '../services/locationService';
-import { AuthenticRestaurantImage } from '../screens/ExploreScreen';
+import {
+  AuthenticRestaurantImage,
+  cuisineInfo,
+  restaurantOpenStatus,
+  verificationBadge,
+} from '../screens/ExploreScreen';
+import { FEATURES, log, reportIssue } from '../../src/logging';
 
 const PRICE_TIER_LABELS = { 1: '₹', 2: '₹₹', 3: '₹₹₹' };
 const PRICE_TIER_COLORS = {
@@ -24,23 +20,26 @@ const PRICE_TIER_COLORS = {
   3: { bg: '#fce4ec', text: '#c62828' },
 };
 
-function StarRating({ rating }) {
+const REPORT_REASONS = [
+  { id: 'closed', label: 'Permanently closed' },
+  { id: 'location', label: 'Wrong location' },
+  { id: 'hours', label: 'Wrong hours' },
+  { id: 'diet', label: 'Wrong veg / non-veg' },
+  { id: 'price', label: 'Prices wrong' },
+  { id: 'photo', label: 'Photo misleading' },
+];
+
+function StarRating({ rating, count, source }) {
+  if (rating === null || rating === undefined) return null;
   const STAR_POINTS = '12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26';
-  const full = Math.floor(rating);
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Svg key={i} width={13} height={13} viewBox="0 0 24 24">
-          <Polygon
-            points={STAR_POINTS}
-            fill={i <= full ? '#f59e0b' : i === full + 1 && rating - full >= 0.5 ? '#f59e0b' : '#d1d5db'}
-            opacity={i === full + 1 && rating - full >= 0.5 ? 0.55 : 1}
-            stroke="none"
-          />
-        </Svg>
-      ))}
-      <Text style={{ fontSize: 12, fontFamily: fontFamily.bodyBold, color: colors.neutral[700], marginLeft: 3 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+      <Svg width={13} height={13} viewBox="0 0 24 24">
+        <Polygon points={STAR_POINTS} fill="#f59e0b" stroke="none" />
+      </Svg>
+      <Text style={{ fontSize: 12, fontFamily: fontFamily.bodyBold, color: colors.neutral[700] }}>
         {rating.toFixed(1)}
+        {count ? ` (${count})` : ''} · {source}
       </Text>
     </View>
   );
@@ -48,9 +47,11 @@ function StarRating({ rating }) {
 
 function TagPill({ tag }) {
   const tagMap = {
-    veg: { label: '🌿 Veg', bg: '#e8f5e9', text: '#2e7d32' },
+    veg: { label: '🌿 Pure veg', bg: '#e8f5e9', text: '#2e7d32' },
+    veg_options: { label: '🥗 Veg options', bg: '#f1f8e9', text: '#558b2f' },
     nonveg: { label: '🍖 Non-veg', bg: '#fdecea', text: '#c62828' },
     halal: { label: '☪️ Halal', bg: '#e3f2fd', text: '#1565c0' },
+    jain: { label: '🪷 Jain', bg: '#f3e5f5', text: '#6a1b9a' },
     nog: { label: '🧅 No onion-garlic', bg: '#f3e5f5', text: '#6a1b9a' },
     cash: { label: '💵 Cash only', bg: '#fff9c4', text: '#f57f17' },
   };
@@ -63,16 +64,30 @@ function TagPill({ tag }) {
   );
 }
 
-function isOpenNow(openTime, closeTime) {
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const parseTime = (t) => {
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + (m || 0);
-  };
-  const open = parseTime(openTime);
-  const close = parseTime(closeTime);
-  return currentMinutes >= open && currentMinutes < close;
+const DIET_LABELS = {
+  veg: 'Pure veg',
+  veg_options: 'Veg options',
+  nonveg: 'Non-veg',
+  halal: 'Halal',
+  jain: 'Jain',
+  nog: 'No onion-garlic',
+  cash: 'Cash only',
+};
+function dietSummary(tags = []) {
+  const labels = tags.map((t) => DIET_LABELS[t]).filter(Boolean);
+  return labels.length ? labels.join(', ') : 'Not available';
+}
+
+function SourceRow({ label, value, source }) {
+  return (
+    <View style={styles.sourceRow}>
+      <Text style={styles.sourceLabel}>{label}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.sourceValue}>{value}</Text>
+        {!!source && <Text style={styles.sourceFrom}>{source}</Text>}
+      </View>
+    </View>
+  );
 }
 
 export default function RestaurantDetailSheet() {
@@ -86,6 +101,8 @@ export default function RestaurantDetailSheet() {
     setTab,
     fireToast,
   } = useTrip();
+  // Report panel is tied to one restaurant id, so it resets when another restaurant opens.
+  const [reportOpenFor, setReportOpenFor] = useState(null);
 
   const slideAnim = useRef(new Animated.Value(800)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -93,30 +110,13 @@ export default function RestaurantDetailSheet() {
   useEffect(() => {
     if (selectedRestaurant) {
       Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          tension: 65,
-          friction: 11,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        Animated.spring(slideAnim, { toValue: 0, tension: 65, friction: 11, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 800,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backdropOpacity, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        Animated.timing(slideAnim, { toValue: 800, duration: 250, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
       ]).start();
     }
   }, [selectedRestaurant]);
@@ -124,16 +124,30 @@ export default function RestaurantDetailSheet() {
   if (!selectedRestaurant) return null;
 
   const r = selectedRestaurant;
-  const open = isOpenNow(r.openTime, r.closeTime);
+  const showReport = reportOpenFor === r.id;
+  const setShowReport = (open) => setReportOpenFor(open ? r.id : null);
+  const status = restaurantOpenStatus(r);
   const isVisited = visitedRestaurants.includes(r.id);
-  const tierColors = PRICE_TIER_COLORS[r.priceTier];
+  const tierColors = r.priceTier ? PRICE_TIER_COLORS[r.priceTier] : null;
+  const badge = verificationBadge(r);
+  const v = r.verification || {};
+  const cuisine = cuisineInfo(r.cuisine);
 
-  const distanceMeters =
-    userLocation
-      ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude)
-      : null;
+  const distanceMeters = userLocation
+    ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude)
+    : null;
+
+  const verificationText =
+    v.status === 'verified'
+      ? `Matched "${v.osmName}" on OpenStreetMap (${v.distanceM} m from the saved pin).`
+      : v.status === 'location_corrected'
+        ? `Saved pin was ${v.distanceM} m from "${v.osmName}" on OpenStreetMap — map location corrected.`
+        : v.status && v.status.startsWith('live_')
+          ? `Loaded live from ${v.source}.`
+          : 'Could not be matched to OpenStreetMap. Details are from the curated guide and may be outdated.';
 
   const handleGetDirections = () => {
+    log.info(FEATURES.FOOD, 'restaurant.directions', { id: r.id });
     selectDestination({
       id: r.id,
       name: r.name,
@@ -142,185 +156,185 @@ export default function RestaurantDetailSheet() {
       latitude: r.latitude,
       longitude: r.longitude,
       nearestMetro: r.nearestMetro,
-      metroLine: 'purple',
-      estimatedCost: r.mustTry.price,
     });
     closeRestaurant();
     setTab('navigate');
     fireToast(`Getting directions to ${r.name.split(',')[0]}`);
   };
 
-  if (!selectedRestaurant) return null;
+  const handleReport = (reason) => {
+    reportIssue('FOOD_USER_REPORTED', {
+      key: `${r.id}:${reason.id}`,
+      message: `${r.name}: ${reason.label}`,
+      data: {
+        id: r.id,
+        reason: reason.id,
+        verification: v.status,
+        lat: r.latitude,
+        lon: r.longitude,
+        hoursSource: r.hoursSource,
+        dietSource: r.dietSource,
+      },
+    });
+    setShowReport(false);
+    fireToast('Thanks — saved to diagnostics logs');
+  };
 
   const Container = Platform.OS === 'web' ? View : Modal;
-  const containerProps = Platform.OS === 'web'
-    ? { style: [StyleSheet.absoluteFill, { zIndex: 1000 }] }
-    : { transparent: true, visible: true, animationType: 'none', onRequestClose: closeRestaurant };
+  const containerProps =
+    Platform.OS === 'web'
+      ? { style: [StyleSheet.absoluteFill, { zIndex: 1000 }] }
+      : { transparent: true, visible: true, animationType: 'none', onRequestClose: closeRestaurant };
 
   return (
     <Container {...containerProps}>
-      {/* Backdrop */}
       <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={closeRestaurant} />
       </Animated.View>
 
-      {/* Sheet */}
       <Animated.View style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}>
-        {/* Handle */}
         <View style={styles.handle} />
-
-        {/* Close button */}
-        <Pressable
-          onPress={closeRestaurant}
-          style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]}
-          hitSlop={10}
-        >
+        <Pressable onPress={closeRestaurant} style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]} hitSlop={10}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[600]} strokeWidth={2.5} strokeLinecap="round">
             <Path d="M18 6L6 18M6 6l12 12" />
           </Svg>
         </Pressable>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          {/* Hero Image Banner */}
           <View style={styles.heroImageContainer}>
-            <AuthenticRestaurantImage
-              uri={r.image}
-              cuisine={r.cuisine}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
+            <AuthenticRestaurantImage uri={r.image} cuisine={r.cuisine} style={styles.heroImage} resizeMode="cover" restaurantId={r.id} />
             <View style={styles.heroOverlayGradient} />
-            {r.mustTry?.dish && (
+            {r.imageIsRepresentative !== false && (
               <View style={styles.heroMustTryBadge}>
-                <Text style={styles.heroMustTryBadgeText} numberOfLines={1}>
-                  ⭐ Must Try: {r.mustTry.dish}
-                </Text>
+                <Text style={styles.heroMustTryBadgeText}>Representative photo</Text>
               </View>
             )}
           </View>
 
-          {/* Header */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
               <Text style={styles.restaurantName}>{r.name}</Text>
-              <Text style={styles.restaurantArea}>{r.area}</Text>
+              <Text style={styles.restaurantArea}>
+                {cuisine.emoji} {[cuisine.label, r.area].filter(Boolean).join(' · ')}
+              </Text>
               <View style={styles.metaRow}>
-                <StarRating rating={r.rating} />
-                <View style={[styles.priceBadge, { backgroundColor: tierColors.bg }]}>
-                  <Text style={[styles.priceBadgeText, { color: tierColors.text }]}>
-                    {PRICE_TIER_LABELS[r.priceTier]}
+                <View style={[styles.verifyBadge, { backgroundColor: badge.bg }]}>
+                  <Text style={[styles.verifyBadgeText, { color: badge.fg }]}>{badge.label}</Text>
+                </View>
+                {tierColors && (
+                  <View style={[styles.priceBadge, { backgroundColor: tierColors.bg }]}>
+                    <Text style={[styles.priceBadgeText, { color: tierColors.text }]}>{PRICE_TIER_LABELS[r.priceTier]}</Text>
+                  </View>
+                )}
+                <View
+                  style={[
+                    styles.openBadge,
+                    { backgroundColor: status.isOpen === true ? '#e8f5e9' : status.isOpen === false ? '#fdecea' : '#f3f3f3' },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.openDot,
+                      { backgroundColor: status.isOpen === true ? '#4caf50' : status.isOpen === false ? '#f44336' : '#9e9e9e' },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.openBadgeText,
+                      { color: status.isOpen === true ? '#2e7d32' : status.isOpen === false ? '#c62828' : '#616161' },
+                    ]}
+                  >
+                    {status.label}
                   </Text>
                 </View>
-                <View style={[styles.openBadge, { backgroundColor: open ? '#e8f5e9' : '#fdecea' }]}>
-                  <View style={[styles.openDot, { backgroundColor: open ? '#4caf50' : '#f44336' }]} />
-                  <Text style={[styles.openBadgeText, { color: open ? '#2e7d32' : '#c62828' }]}>
-                    {open ? 'Open now' : 'Closed'}
-                  </Text>
-                </View>
+                <StarRating rating={r.rating} count={r.userRatingCount} source={r.ratingSource} />
               </View>
             </View>
           </View>
 
-          {/* Hours + Distance row */}
           <View style={styles.infoStrip}>
-            <View style={styles.infoItem}>
-              <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[600]} strokeWidth={2} strokeLinecap="round">
-                <Circle cx="12" cy="12" r="10" />
-                <Path d="M12 6v6l4 2" />
-              </Svg>
-              <Text style={styles.infoText}>{r.openTime} – {r.closeTime}</Text>
-            </View>
-            {distanceMeters && (
+            {distanceMeters !== null && (
               <View style={styles.infoItem}>
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[600]} strokeWidth={2} strokeLinecap="round">
                   <Path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <Circle cx="12" cy="10" r="3" />
                 </Svg>
-                <Text style={styles.infoText}>{formatDistance(distanceMeters)} away</Text>
+                <Text style={styles.infoText}>{formatDistance(distanceMeters)} away (straight line)</Text>
               </View>
             )}
-            <View style={styles.infoItem}>
-              <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[600]} strokeWidth={2} strokeLinecap="round">
-                <Path d="M3 11l19-9-9 19-2-8-8-2z" />
-              </Svg>
-              <Text style={styles.infoText} numberOfLines={1}>{r.nearestMetro}</Text>
-            </View>
-          </View>
-
-          {/* Tags */}
-          <View style={styles.tagsRow}>
-            {r.source === 'foursquare' || r.isFsqLive ? (
-              <View style={[styles.tagPill, { backgroundColor: '#f3e8ff', borderColor: '#d8b4fe' }]}>
-                <Text style={[styles.tagText, { color: '#7e22ce', fontFamily: fontFamily.bodyBold }]}>
-                  ⚡ Foursquare Live Verified
-                </Text>
-              </View>
-            ) : r.source === 'google' ? (
-              <View style={[styles.tagPill, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
-                <Text style={[styles.tagText, { color: '#1d4ed8', fontFamily: fontFamily.bodyBold }]}>
-                  🔵 Google Places Verified
-                </Text>
-              </View>
-            ) : r.isOsmLive ? (
-              <View style={[styles.tagPill, { backgroundColor: '#e0f2fe', borderColor: '#bae6fd' }]}>
-                <Text style={[styles.tagText, { color: '#0369a1', fontFamily: fontFamily.bodyBold }]}>
-                  🌐 OpenStreetMap Live
-                </Text>
-              </View>
-            ) : (
-              <View style={[styles.tagPill, { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
-                <Text style={[styles.tagText, { color: '#92400e', fontFamily: fontFamily.bodyBold }]}>
-                  🏛️ Bengaluru Heritage Legend
-                </Text>
+            {!!r.nearestMetro && (
+              <View style={styles.infoItem}>
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[600]} strokeWidth={2} strokeLinecap="round">
+                  <Path d="M3 11l19-9-9 19-2-8-8-2z" />
+                </Svg>
+                <Text style={styles.infoText}>{r.nearestMetro}</Text>
               </View>
             )}
-            {r.tags.map((t) => <TagPill key={t} tag={t} />)}
-            <View style={styles.tagPill}>
-              <Text style={[styles.tagText, { color: colors.neutral[600] }]}>📅 {r.established}</Text>
-            </View>
           </View>
 
-          {/* Must Try */}
-          <View style={styles.mustTryCard}>
-            <Text style={styles.mustTryLabel}>⭐ MUST TRY</Text>
-            <View style={styles.mustTryRow}>
-              <Text style={styles.mustTryDish}>{r.mustTry.dish}</Text>
-              <Text style={styles.mustTryPrice}>₹{r.mustTry.price}</Text>
+          {(r.tags || []).length > 0 && (
+            <View style={styles.tagsRow}>
+              {r.tags.map((t) => (
+                <TagPill key={t} tag={t} />
+              ))}
             </View>
-          </View>
+          )}
 
-          {/* Menu items */}
-          <Text style={styles.sectionTitle}>Fair Prices</Text>
-          <View style={styles.dishList}>
-            {r.topDishes.map((dish, i) => (
-              <View key={i} style={styles.dishRow}>
-                <Text style={styles.dishName}>{dish.name}</Text>
-                <Text style={styles.dishPrice}>₹{dish.price}</Text>
+          {r.mustTry?.dish && (
+            <View style={styles.mustTryCard}>
+              <Text style={styles.mustTryLabel}>⭐ KNOWN FOR</Text>
+              <View style={styles.mustTryRow}>
+                <Text style={styles.mustTryDish}>{r.mustTry.dish}</Text>
+                {!!r.mustTry.price && <Text style={styles.mustTryPrice}>~₹{r.mustTry.price}</Text>}
               </View>
-            ))}
-          </View>
-
-          {/* Insider note */}
-          <View style={styles.insiderCard}>
-            <View style={styles.insiderHeader}>
-              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.accentRamp[700]} strokeWidth={2.5} strokeLinecap="round">
-                <Circle cx="12" cy="12" r="10" />
-                <Path d="M12 8v4M12 16h.01" />
-              </Svg>
-              <Text style={styles.insiderTitle}>Local insider tip</Text>
             </View>
-            <Text style={styles.insiderText}>{r.insiderNote}</Text>
+          )}
+
+          {(r.topDishes || []).length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Typical prices</Text>
+              <View style={styles.dishList}>
+                {r.topDishes.map((dish, i) => (
+                  <View key={i} style={styles.dishRow}>
+                    <Text style={styles.dishName}>{dish.name}</Text>
+                    <Text style={styles.dishPrice}>~₹{dish.price}</Text>
+                  </View>
+                ))}
+              </View>
+              <Text style={styles.priceNote}>Approximate, from the curated guide — not a live menu.</Text>
+            </>
+          )}
+
+          {!!r.insiderNote && (
+            <View style={styles.insiderCard}>
+              <View style={styles.insiderHeader}>
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={colors.accentRamp[700]} strokeWidth={2.5} strokeLinecap="round">
+                  <Circle cx="12" cy="12" r="10" />
+                  <Path d="M12 8v4M12 16h.01" />
+                </Svg>
+                <Text style={styles.insiderTitle}>Local tip (curated)</Text>
+              </View>
+              <Text style={styles.insiderText}>{r.insiderNote}</Text>
+            </View>
+          )}
+
+          {/* Where this data comes from */}
+          <Text style={styles.sectionTitle}>About this info</Text>
+          <View style={styles.sourceCard}>
+            <Text style={styles.sourceIntro}>{verificationText}</Text>
+            <SourceRow label="Hours" value={r.hoursText || 'Not available'} source={r.hoursSource} />
+            <SourceRow label="Diet" value={dietSummary(r.tags)} source={r.dietSource} />
+            <SourceRow label="Rating" value={r.rating ? r.rating.toFixed(1) : 'Not shown — no rating source'} source={r.ratingSource} />
+            {v.checkedAt && <SourceRow label="Checked" value={v.checkedAt} />}
+            {!!v.osmUrl && (
+              <Pressable onPress={() => Linking.openURL(v.osmUrl).catch(() => {})}>
+                <Text style={styles.sourceLink}>View on OpenStreetMap ↗</Text>
+              </Pressable>
+            )}
           </View>
 
-          {/* Action Buttons */}
           <View style={styles.actionsRow}>
-            <Pressable
-              onPress={handleGetDirections}
-              style={({ pressed }) => [
-                styles.directionsBtn,
-                pressed && { transform: [{ scale: 0.97 }] },
-              ]}
-            >
+            <Pressable onPress={handleGetDirections} style={({ pressed }) => [styles.directionsBtn, pressed && { transform: [{ scale: 0.97 }] }]}>
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
                 <Path d="M3 11l19-9-9 19-2-8-8-2z" />
               </Svg>
@@ -330,19 +344,33 @@ export default function RestaurantDetailSheet() {
             <Pressable
               onPress={() => {
                 toggleVisitedRestaurant(r.id);
-                fireToast(isVisited ? `Unmarked ${r.name.split(',')[0]}` : `Marked as visited! 🍽️`);
+                log.info(FEATURES.FOOD, 'restaurant.visited_toggle', { id: r.id, visited: !isVisited });
+                fireToast(isVisited ? `Unmarked ${r.name.split(',')[0]}` : 'Marked as visited! 🍽️');
               }}
-              style={({ pressed }) => [
-                styles.visitedBtn,
-                isVisited && styles.visitedBtnActive,
-                pressed && { opacity: 0.8 },
-              ]}
+              style={({ pressed }) => [styles.visitedBtn, isVisited && styles.visitedBtnActive, pressed && { opacity: 0.8 }]}
             >
               <Text style={[styles.visitedBtnText, isVisited && styles.visitedBtnTextActive]}>
                 {isVisited ? '✓ Been here' : '+ Mark visited'}
               </Text>
             </Pressable>
           </View>
+
+          <Pressable onPress={() => setShowReport(!showReport)} style={styles.reportToggle}>
+            <Text style={styles.reportToggleText}>{showReport ? 'Cancel' : '⚑ Report wrong info'}</Text>
+          </Pressable>
+          {showReport && (
+            <View style={styles.reportGrid}>
+              {REPORT_REASONS.map((reason) => (
+                <Pressable
+                  key={reason.id}
+                  onPress={() => handleReport(reason)}
+                  style={({ pressed }) => [styles.reportChip, pressed && { opacity: 0.7 }]}
+                >
+                  <Text style={styles.reportChipText}>{reason.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </Animated.View>
     </Container>
@@ -643,5 +671,92 @@ const styles = StyleSheet.create({
   },
   visitedBtnTextActive: {
     color: colors.accent2Ramp[800],
+  },
+  verifyBadge: {
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  verifyBadgeText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+  },
+  priceNote: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[500],
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  sourceCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    padding: 12,
+    gap: 8,
+    marginBottom: 16,
+  },
+  sourceIntro: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[800],
+    lineHeight: 18,
+  },
+  sourceRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  sourceLabel: {
+    width: 62,
+    fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[500],
+  },
+  sourceValue: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[900],
+  },
+  sourceFrom: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[500],
+    marginTop: 1,
+  },
+  sourceLink: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#1d4ed8',
+  },
+  reportToggle: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  reportToggleText: {
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+    color: '#b3261e',
+  },
+  reportGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  reportChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#f3b4ae',
+    backgroundColor: '#fdecea',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  reportChipText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#8c1d18',
   },
 });

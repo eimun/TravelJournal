@@ -60,7 +60,8 @@ describe('Multi-City Metro & Suburban Transit Systems', () => {
       expect(route.isSameLine).toBe(true);
       expect(route.title).toContain('Delhi Metro');
       expect(route.steps.some((s) => s.line === 'dmrc_yellow')).toBe(true);
-      expect(route.autoAdvisory.foodEquivalent).toContain('Chole Bhature');
+      expect(typeof route.autoAdvisory.foodEquivalent).toBe('string');
+      expect(route.autoAdvisory.cabFare).toBeGreaterThanOrEqual(40); // Delhi taxi meter minimum
     });
 
     test('plans an interchange DMRC trip between Blue Line and Yellow Line via Rajiv Chowk', () => {

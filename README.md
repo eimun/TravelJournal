@@ -292,6 +292,21 @@ Indexed on `trips(user_id, status, start_date)`, `days(trip_id, date)`, `activit
 | Offline            | A written airplane-mode checklist run against every screen                                        | Every screen usable offline     |
 | Performance        | Cold start, transitions, list profiling with 200+ activities                                      | < 3 s cold start, 60 fps scroll |
 
+### Debugging with device logs
+
+Every feature logs structured events and classifies problems as **MAJOR** or **MINOR**. With a phone or emulator connected:
+
+```bash
+npm run logs:start   # before reproducing
+npm run logs:pull    # then open device-logs/<time>/report.md
+```
+
+In the app: Guide tab → **🐞 Diagnostics & logs** → Share report. Details in [`docs/LOGGING.md`](docs/LOGGING.md).
+
+Restaurant data is verified against OpenStreetMap with `npm run verify:restaurants`; fares come only from the sourced tariffs in [`docs/FARE_RELIABILITY_ANALYSIS.md`](docs/FARE_RELIABILITY_ANALYSIS.md).
+
+> On Windows, keep the project in a path without spaces or brackets (e.g. `C:devTravelJournal`). Jest (jest-expo) and the Gradle native build fail in folders like `New folder (7)`.
+
 **Definition of done for a feature:** acceptance criteria pass · unit tests cover its logic and the suite is green · it works in airplane mode where it should · checked on all three devices in the matrix · no ESLint warnings and no file above 300 lines · reviewed by the other teammate · empty, loading, offline and error states all in place.
 
 ---
@@ -354,6 +369,8 @@ Work is split by module and every pull request is reviewed by the other teammate
 ## Documentation
 
 - [`docs/TravelJournal-PRD.pdf`](docs/TravelJournal-PRD.pdf) — the full BRD, TRD, HLD, LLD, API spec, data design, UX, security, testing, CI/CD and deployment set.
+- [`docs/LOGGING.md`](docs/LOGGING.md) — logging, MAJOR/MINOR issue catalog, pulling logs to a PC.
+- [`docs/FARE_RELIABILITY_ANALYSIS.md`](docs/FARE_RELIABILITY_ANALYSIS.md) — official fare sources per city and how fares are calculated.
 - [`docs/design/`](docs/design/) — the Claude Design canvas the interface was designed on, including the Organic design system tokens and both concept directions.
 
 ---
