@@ -4,8 +4,9 @@ import * as migration001 from './migrations/001_initial';
 import * as migration002 from './migrations/002_transit';
 import * as migration003 from './migrations/003_food';
 import * as migration004 from './migrations/004_user';
+import * as migration005 from './migrations/005_passport_savings';
 
-const MIGRATIONS = [migration001, migration002, migration003, migration004];
+const MIGRATIONS = [migration001, migration002, migration003, migration004, migration005];
 
 let dbInstance = null;
 
