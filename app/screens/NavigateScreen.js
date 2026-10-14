@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
+  Animated,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -16,11 +18,13 @@ import SearchBar from '../components/SearchBar';
 import RouteDetailSheet from '../components/RouteDetailSheet';
 import RouteModeSelector from '../components/RouteModeSelector';
 import MilestoneRibbon from '../components/MilestoneRibbon';
+import DepartureTicker from '../components/DepartureTicker';
 import WebRoadMap from '../components/WebRoadMap';
 import StationBlueprintModal from '../components/StationBlueprintModal';
 import BmtcBusScheduleModal from '../components/BmtcBusScheduleModal';
 import CloakroomModal from '../components/CloakroomModal';
 import SafetyPingModal from '../components/SafetyPingModal';
+import CitymapperTransportGrid from '../components/CitymapperTransportGrid';
 
 let MapView, Marker, Polyline;
 try {
@@ -33,7 +37,7 @@ try {
 }
 
 export default function NavigateScreen({ contentPadding }) {
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const isWideScreen = false;
 
   const {
@@ -41,6 +45,7 @@ export default function NavigateScreen({ contentPadding }) {
     destination,
     selectDestination,
     activeRoute,
+    selectedRouteMode,
     activeStepIndex,
     setActiveStepIndex,
     isLocating,
@@ -52,7 +57,7 @@ export default function NavigateScreen({ contentPadding }) {
 
   const [mapMode, setMapMode] = useState(true);
   const [mapExpanded, setMapExpanded] = useState(false);
-  const [scrollY, setScrollY] = useState(0);
+
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showBmtcModal, setShowBmtcModal] = useState(false);
   const [showCloakroom, setShowCloakroom] = useState(false);
@@ -61,12 +66,122 @@ export default function NavigateScreen({ contentPadding }) {
 
   const envAlert = currentCity?.environmentalAlert;
 
+  // Container height dynamically tracked via onLayout to fit MobileDeviceFrame or native screen
+  const [containerHeight, setContainerHeight] = useState(
+    Platform.OS === 'web' ? 720 : (windowHeight || 720)
+  );
+
+  // Citymapper 3-stage interactive bottom sheet snap points:
+  // 1. EXPANDED: covers ~92% of screen (peeks at 54px top, safely below status bar)
+  const SNAP_EXPANDED = 54;
+  // 2. MID: comfortable half view (30% when route is active so cards have ample breathing room; 40% default)
+  const SNAP_MID = Math.round(containerHeight * (destination ? 0.30 : 0.40));
+  // 3. COLLAPSED: leaves peek header visible above the ~68px bottom tab bar
+  const SNAP_COLLAPSED = Math.max(120, containerHeight - 128);
+
+  const [snapState, setSnapState] = useState('mid');
+  const [sheetTopAnim] = useState(() => new Animated.Value(SNAP_MID));
+  const currentTopRef = useRef(SNAP_MID);
+  const startPosRef = useRef(SNAP_MID);
+
+  const snapExpandedRef = useRef(SNAP_EXPANDED);
+  const snapMidRef = useRef(SNAP_MID);
+  const snapCollapsedRef = useRef(SNAP_COLLAPSED);
+  snapExpandedRef.current = SNAP_EXPANDED;
+  snapMidRef.current = SNAP_MID;
+  snapCollapsedRef.current = SNAP_COLLAPSED;
+
+  const animateTo = useCallback(
+    (target) => {
+      currentTopRef.current = target;
+      if (target === snapExpandedRef.current) setSnapState('expanded');
+      else if (target === snapCollapsedRef.current) setSnapState('collapsed');
+      else setSnapState('mid');
+
+      Animated.spring(sheetTopAnim, {
+        toValue: target,
+        damping: 26,
+        stiffness: 200,
+        mass: 0.85,
+        overshootClamping: true,
+        useNativeDriver: false,
+      }).start();
+    },
+    [sheetTopAnim]
+  );
+
+  useEffect(() => {
+    let target = SNAP_MID;
+    if (snapState === 'expanded') target = SNAP_EXPANDED;
+    else if (snapState === 'collapsed') target = SNAP_COLLAPSED;
+
+    currentTopRef.current = target;
+    sheetTopAnim.setValue(target);
+  }, [containerHeight, SNAP_COLLAPSED, SNAP_EXPANDED, SNAP_MID, snapState, sheetTopAnim]);
+
+  // On mount or when destination changes, ensure sheet is in mid position so route planner is immediately visible
+  useEffect(() => {
+    setSnapState('mid');
+    animateTo(SNAP_MID);
+  }, [destination]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onStartShouldSetPanResponderCapture: () => false,
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 3,
+        onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dy) > 3,
+        onPanResponderGrant: () => {
+          startPosRef.current = currentTopRef.current;
+        },
+        onPanResponderMove: (_, g) => {
+          const exp = snapExpandedRef.current;
+          const col = snapCollapsedRef.current;
+          const nextVal = Math.max(exp, Math.min(col, startPosRef.current + g.dy));
+          sheetTopAnim.setValue(nextVal);
+        },
+        onPanResponderRelease: (_, g) => {
+          const exp = snapExpandedRef.current;
+          const mid = snapMidRef.current;
+          const col = snapCollapsedRef.current;
+          // Velocity-aware projected landing position for smooth physics
+          const projectedY = startPosRef.current + g.dy + g.vy * 70;
+
+          let target = mid;
+          if (g.vy < -0.5) {
+            // Fast upward swipe
+            target = startPosRef.current > mid + 20 ? mid : exp;
+          } else if (g.vy > 0.5) {
+            // Fast downward swipe
+            target = startPosRef.current < mid - 20 ? mid : col;
+          } else {
+            // Snap to closest position
+            const distExp = Math.abs(projectedY - exp);
+            const distMid = Math.abs(projectedY - mid);
+            const distCol = Math.abs(projectedY - col);
+            if (distExp <= distMid && distExp <= distCol) target = exp;
+            else if (distMid <= distExp && distMid <= distCol) target = mid;
+            else target = col;
+          }
+
+          animateTo(target);
+        },
+      }),
+    [animateTo, sheetTopAnim]
+  );
+
+  const fullMapHeight = containerHeight;
+
   const mapRef = useRef(null);
   const scrollRef = useRef(null);
 
   // Auto-fit map camera when activeStepIndex or activeRoute changes
   useEffect(() => {
-    if (activeStepIndex !== null && activeRoute?.steps?.[activeStepIndex]?.coordinates?.length > 1) {
+    if (
+      activeStepIndex !== null &&
+      activeRoute?.steps?.[activeStepIndex]?.coordinates?.length > 1
+    ) {
       const stepCoords = activeRoute.steps[activeStepIndex].coordinates;
       mapRef.current?.fitToCoordinates(stepCoords, {
         edgePadding: { top: 45, right: 45, bottom: 45, left: 45 },
@@ -81,6 +196,8 @@ export default function NavigateScreen({ contentPadding }) {
   }, [activeStepIndex, activeRoute]);
 
   const scrollToMap = () => {
+    // With the full-screen map living outside the sheet, "back to map" means
+    // collapsing the sheet's scroll back to its travel-mode row.
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 
@@ -118,39 +235,52 @@ export default function NavigateScreen({ contentPadding }) {
         loadingIndicatorColor={colors.accentRamp[500]}
       >
         {/* Step-by-Step Road & Rail Polylines */}
-        {Polyline && activeRoute?.steps?.map((step, idx) => {
-          if (!step.coordinates || step.coordinates.length < 2) return null;
-          const isSelected = activeStepIndex === idx;
-          const isMetro = step.type === 'metro';
-          const isAuto = step.type === 'auto' || step.selectedMode === 'auto' || step.type === 'direct_auto';
-          const isCab = step.type === 'cab' || step.selectedMode === 'cab' || step.type === 'direct_cab';
-          const isBus = step.type === 'bus' || step.selectedMode === 'bus' || step.type === 'direct_bus';
-          const baseColor = isMetro
-            ? step.line === 'green' ? GREEN_LINE : PURPLE_LINE
-            : isAuto ? '#0284c7' : isCab ? '#0f172a' : isBus ? '#16a34a' : '#d97706';
+        {Polyline &&
+          activeRoute?.steps?.map((step, idx) => {
+            if (!step.coordinates || step.coordinates.length < 2) return null;
+            const isSelected = activeStepIndex === idx;
+            const isMetro = step.type === 'metro';
+            const isAuto =
+              step.type === 'auto' || step.selectedMode === 'auto' || step.type === 'direct_auto';
+            const isCab =
+              step.type === 'cab' || step.selectedMode === 'cab' || step.type === 'direct_cab';
+            const isBus =
+              step.type === 'bus' || step.selectedMode === 'bus' || step.type === 'direct_bus';
+            // Line colors follow tokens.modeColors — the Citymapper language.
+            const baseColor = isMetro
+              ? step.line === 'green'
+                ? GREEN_LINE
+                : PURPLE_LINE
+              : isAuto
+                ? '#c9a227'
+                : isCab
+                  ? '#474238'
+                  : isBus
+                    ? '#728157'
+                    : '#d97706';
 
-          return (
-            <React.Fragment key={step.id || idx}>
-              <Polyline
-                coordinates={step.coordinates}
-                strokeColor={baseColor}
-                strokeWidth={isMetro ? 4.5 : 3.5}
-                lineDashPattern={(!isMetro && !isAuto && !isCab && !isBus) ? [5, 4] : undefined}
-                zIndex={isSelected ? 5 : 2}
-              />
-
-              {isSelected && (
+            return (
+              <React.Fragment key={step.id || idx}>
                 <Polyline
                   coordinates={step.coordinates}
-                  strokeColor={colors.accentRamp[500]}
-                  strokeWidth={7.5}
-                  lineDashPattern={[0]}
-                  zIndex={12}
+                  strokeColor={baseColor}
+                  strokeWidth={isMetro ? 4.5 : 3.5}
+                  lineDashPattern={!isMetro && !isAuto && !isCab && !isBus ? [5, 4] : undefined}
+                  zIndex={isSelected ? 5 : 2}
                 />
-              )}
-            </React.Fragment>
-          );
-        })}
+
+                {isSelected && (
+                  <Polyline
+                    coordinates={step.coordinates}
+                    strokeColor={colors.accentRamp[500]}
+                    strokeWidth={7.5}
+                    lineDashPattern={[0]}
+                    zIndex={12}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
 
         {/* Milestone Markers */}
         {activeRoute?.milestones?.map((m) => {
@@ -174,7 +304,10 @@ export default function NavigateScreen({ contentPadding }) {
                     isOrigin && styles.milestoneBadgeOrigin,
                     isDest && styles.milestoneBadgeDest,
                     isTransfer && styles.milestoneBadgeTransfer,
-                    isStation && (m.line === 'green' ? styles.milestoneBadgeGreen : styles.milestoneBadgePurple),
+                    isStation &&
+                      (m.line === 'green'
+                        ? styles.milestoneBadgeGreen
+                        : styles.milestoneBadgePurple),
                   ]}
                 >
                   <Text style={styles.milestoneBadgeText}>{m.label}</Text>
@@ -189,7 +322,7 @@ export default function NavigateScreen({ contentPadding }) {
   };
 
   const renderVectorMap = (mapHeight) => {
-    const w = isWideScreen ? (windowWidth * 0.46) : (windowWidth - 40);
+    const w = isWideScreen ? windowWidth * 0.46 : windowWidth - 40;
     const h = mapHeight || (mapExpanded ? 420 : 310);
 
     const activeStep = activeStepIndex !== null ? activeRoute?.steps?.[activeStepIndex] : null;
@@ -199,9 +332,30 @@ export default function NavigateScreen({ contentPadding }) {
         <Rect width="100%" height={h} rx={16} fill={colors.neutral[200]} />
 
         {/* City Road Network */}
-        <Line x1={0} y1={h * 0.45} x2={w} y2={h * 0.45} stroke={colors.neutral[300]} strokeWidth={4} />
-        <Line x1={w * 0.35} y1={0} x2={w * 0.35} y2={h} stroke={colors.neutral[300]} strokeWidth={3} />
-        <Line x1={w * 0.65} y1={0} x2={w * 0.65} y2={h} stroke={colors.neutral[300]} strokeWidth={3} />
+        <Line
+          x1={0}
+          y1={h * 0.45}
+          x2={w}
+          y2={h * 0.45}
+          stroke={colors.neutral[300]}
+          strokeWidth={4}
+        />
+        <Line
+          x1={w * 0.35}
+          y1={0}
+          x2={w * 0.35}
+          y2={h}
+          stroke={colors.neutral[300]}
+          strokeWidth={3}
+        />
+        <Line
+          x1={w * 0.65}
+          y1={0}
+          x2={w * 0.65}
+          y2={h}
+          stroke={colors.neutral[300]}
+          strokeWidth={3}
+        />
 
         {/* Purple Line track */}
         <Line
@@ -267,39 +421,58 @@ export default function NavigateScreen({ contentPadding }) {
         <View style={[styles.mapCanvas, { height: currentHeight }]}>
           {mapMode ? renderRealMap() : renderVectorMap(currentHeight)}
 
-          {/* Map Controls (Expand & Mode Toggle) */}
-          <View style={styles.mapControlsRow}>
+          {/* Google-Maps control column: white round FABs on the right edge */}
+          <View style={styles.mapFabColumn} pointerEvents="box-none">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={mapMode ? 'Show transit graph map' : 'Show street map'}
+              onPress={() => setMapMode((prev) => !prev)}
+              style={({ pressed }) => [styles.mapFab, pressed && { transform: [{ scale: 0.92 }] }]}
+            >
+              <Svg
+                width={18}
+                height={18}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={colors.neutral[800]}
+                strokeWidth={2}
+              >
+                {mapMode ? (
+                  <Path d="M9 20l-5.5-2V4L9 6m0 14l6-2m-6 2V6m6 12l5.5 2V8l-5.5-2m0 12V6m0 12c-2-1.5-4-1.5-6 0M15 6c-2-1.5-4-1.5-6 0" />
+                ) : (
+                  <Path d="M9 18l-6-2V4l6 2 6-2 6 2v12l-6-2-6 2zm0-12v12m6-14v14" />
+                )}
+              </Svg>
+            </Pressable>
+
             {!isWideScreen && (
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={mapExpanded ? 'Collapse map' : 'Expand map'}
                 onPress={() => setMapExpanded((prev) => !prev)}
                 style={({ pressed }) => [
-                  styles.mapControlBtn,
-                  pressed && { transform: [{ scale: 0.95 }] },
+                  styles.mapFab,
+                  pressed && { transform: [{ scale: 0.92 }] },
                 ]}
               >
-                <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[800]} strokeWidth={2.5}>
-                  <Path d={mapExpanded ? "M4 14h6v6m10-10h-6V4m0 6l7-7M10 14l-7 7" : "M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"} />
+                <Svg
+                  width={18}
+                  height={18}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={colors.neutral[800]}
+                  strokeWidth={2}
+                >
+                  <Path
+                    d={
+                      mapExpanded
+                        ? 'M4 14h6v6m10-10h-6V4m0 6l7-7M10 14l-7 7'
+                        : 'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7'
+                    }
+                  />
                 </Svg>
-                <Text style={styles.mapControlBtnText}>
-                  {mapExpanded ? 'Collapse' : 'Expand'}
-                </Text>
               </Pressable>
             )}
-
-            <Pressable
-              onPress={() => setMapMode((prev) => !prev)}
-              style={({ pressed }) => [
-                styles.mapControlBtn,
-                pressed && { transform: [{ scale: 0.95 }] },
-              ]}
-            >
-              <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[800]} strokeWidth={2.5}>
-                <Path d="M9 18l6-6-6-6" />
-              </Svg>
-              <Text style={styles.mapControlBtnText}>
-                {mapMode ? 'Transit Graph' : 'Google Map'}
-              </Text>
-            </Pressable>
           </View>
 
           {/* Map legend footer */}
@@ -311,7 +484,7 @@ export default function NavigateScreen({ contentPadding }) {
                   <Text style={styles.legendText}>Yellow</Text>
                 </View>
                 <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#2563eb' }]} />
+                  <View style={[styles.legendDot, { backgroundColor: colors.accent2Ramp[500] }]} />
                   <Text style={styles.legendText}>Blue</Text>
                 </View>
                 <View style={styles.legendItem}>
@@ -347,7 +520,7 @@ export default function NavigateScreen({ contentPadding }) {
               </>
             )}
             <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#2563eb' }]} />
+              <View style={[styles.legendDot, { backgroundColor: colors.accent2Ramp[500] }]} />
               <Text style={styles.legendText}>You</Text>
             </View>
             <View style={styles.legendItem}>
@@ -363,63 +536,51 @@ export default function NavigateScreen({ contentPadding }) {
   const renderEnvironmentalAlert = () => {
     if (!envAlert) return null;
 
+    const aqiColor = envAlert.aqiColor || '#16a34a';
+    const aqiText =
+      envAlert.aqi <= 50 ? 'Clean Air' : envAlert.aqi <= 100 ? 'Moderate Air' : 'High Smog';
+
     return (
-      <View style={styles.envAlertCard}>
-        <Pressable
-          onPress={() => setAlertExpanded((prev) => !prev)}
-          style={({ pressed }) => [
-            styles.envAlertHeaderRow,
-            pressed && { opacity: 0.9 },
-          ]}
-        >
-          <View style={styles.envAlertIconBadge}>
-            <Text style={styles.envAlertIcon}>{envAlert.weatherIcon}</Text>
-          </View>
-
-          <View style={{ flex: 1, paddingRight: 4 }}>
-            <View style={styles.envAlertTitleRow}>
-              <Text style={styles.envAlertHeadline} numberOfLines={1}>
-                {envAlert.headline}
+      <View style={styles.weatherCard}>
+        {/* Main Metric Row: Weather on Left, AQI on Right */}
+        <View style={styles.weatherRow}>
+          {/* Left: Weather condition & temperature */}
+          <View style={styles.weatherInfoLeft}>
+            <View style={styles.weatherIconCircle}>
+              <Text style={styles.weatherEmoji}>{envAlert.weatherIcon || '⛅'}</Text>
+            </View>
+            <View>
+              <Text style={styles.weatherTempText}>{envAlert.temperature || '24°C'}</Text>
+              <Text style={styles.weatherConditionText}>
+                {envAlert.weatherCondition || 'Pleasant & Breezy'}
               </Text>
-              <View style={[styles.envAqiBadge, { backgroundColor: envAlert.aqiColor }]}>
-                <Text style={styles.envAqiBadgeText}>AQI {envAlert.aqi}</Text>
-              </View>
             </View>
-
-            <Text style={styles.envAlertSubtext} numberOfLines={alertExpanded ? undefined : 2}>
-              {envAlert.subtext}
-            </Text>
           </View>
 
-          <Text style={styles.envAlertToggleArrow}>{alertExpanded ? '▲' : '▼'}</Text>
-        </Pressable>
-
-        {/* Dynamic Badge Strip */}
-        <View style={styles.envBadgesRow}>
-          {envAlert.badges?.map((badge, idx) => (
-            <View key={idx} style={styles.envBadgePill}>
-              <Text style={styles.envBadgePillText}>{badge}</Text>
+          {/* Right: AQI Indicator */}
+          <View style={styles.weatherInfoRight}>
+            <View
+              style={[
+                styles.aqiPillBadge,
+                { backgroundColor: `${aqiColor}15`, borderColor: aqiColor },
+              ]}
+            >
+              <View style={[styles.aqiStatusDot, { backgroundColor: aqiColor }]} />
+              <Text style={[styles.aqiNumberText, { color: aqiColor }]}>
+                AQI {envAlert.aqi}
+              </Text>
             </View>
-          ))}
-          <View style={styles.envTempPill}>
-            <Text style={styles.envTempPillText}>{envAlert.weatherCondition} · {envAlert.temperature}</Text>
+            <Text style={styles.aqiLabelText}>{aqiText}</Text>
           </View>
         </View>
 
-        {/* Expandable Notice & Local Commuter Tips */}
-        {alertExpanded && (
-          <View style={styles.envExpandedBox}>
-            <View style={styles.envTransitNoticeBox}>
-              <Text style={styles.envTransitNoticeText}>{envAlert.transitNotice}</Text>
-            </View>
-            {envAlert.tips?.map((tip, idx) => (
-              <View key={idx} style={styles.envTipItem}>
-                <Text style={styles.envTipBullet}>•</Text>
-                <Text style={styles.envTipText}>{tip}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+        {/* Short, simple 1-line commute advisory */}
+        <View style={styles.weatherTipRow}>
+          <Text style={styles.weatherTipIcon}>💡</Text>
+          <Text style={styles.weatherTipText} numberOfLines={1}>
+            {envAlert.tips?.[0] || 'Great weather for walking & outdoor transit.'}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -462,8 +623,12 @@ export default function NavigateScreen({ contentPadding }) {
               <Text style={styles.quickUtilityEmoji}>🧳</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>NDLS Cloakroom</Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>Platform 16 · ₹30</Text>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
+                NDLS Cloakroom
+              </Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
+                Platform 16 · ₹30
+              </Text>
             </View>
             <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
           </Pressable>
@@ -483,7 +648,7 @@ export default function NavigateScreen({ contentPadding }) {
               <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
               <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
             </View>
-            <Text style={[styles.quickUtilityArrow, { color: '#16a34a' }]}>➔</Text>
+            <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
           </Pressable>
         </ScrollView>
       );
@@ -526,8 +691,12 @@ export default function NavigateScreen({ contentPadding }) {
               <Text style={styles.quickUtilityEmoji}>🧳</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>CSMT Cloakroom</Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>Platform 1 · ₹30</Text>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
+                CSMT Cloakroom
+              </Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
+                Platform 1 · ₹30
+              </Text>
             </View>
             <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
           </Pressable>
@@ -547,7 +716,7 @@ export default function NavigateScreen({ contentPadding }) {
               <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
               <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
             </View>
-            <Text style={[styles.quickUtilityArrow, { color: '#16a34a' }]}>➔</Text>
+            <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
           </Pressable>
         </ScrollView>
       );
@@ -589,8 +758,12 @@ export default function NavigateScreen({ contentPadding }) {
             <Text style={styles.quickUtilityEmoji}>🚌</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>BMTC Bus Routes</Text>
-            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>Feeders & Passes</Text>
+            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
+              BMTC Bus Routes
+            </Text>
+            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
+              Feeders & Passes
+            </Text>
           </View>
           <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
         </Pressable>
@@ -607,8 +780,12 @@ export default function NavigateScreen({ contentPadding }) {
             <Text style={styles.quickUtilityEmoji}>🧳</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>Station Cloakrooms</Text>
-            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>KSR & YPR · ₹30</Text>
+            <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
+              Station Cloakrooms
+            </Text>
+            <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
+              KSR & YPR · ₹30
+            </Text>
           </View>
           <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
         </Pressable>
@@ -647,15 +824,12 @@ export default function NavigateScreen({ contentPadding }) {
           style={[
             styles.gpsDot,
             isLocating && { backgroundColor: colors.accentRamp[500] },
-            userLocation?.source === 'gps' && { backgroundColor: '#16a34a' },
+            userLocation?.source === 'gps' && { backgroundColor: colors.accentRamp[600] },
             userLocation?.permissionDenied && { backgroundColor: '#ea580c' },
           ]}
         />
         <Text
-          style={[
-            styles.gpsChipText,
-            userLocation?.source === 'gps' && styles.gpsChipTextActive,
-          ]}
+          style={[styles.gpsChipText, userLocation?.source === 'gps' && styles.gpsChipTextActive]}
         >
           {isLocating
             ? 'Locating...'
@@ -696,125 +870,213 @@ export default function NavigateScreen({ contentPadding }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.wideRightContent}
         >
-          <RouteDetailSheet
-            route={activeRoute}
-            onFocusMap={() => {}}
-          />
+          <RouteDetailSheet route={activeRoute} onFocusMap={() => {}} />
         </ScrollView>
 
         {/* Station Blueprint Modal (Wide Screen - Bengaluru only) */}
         {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
-          <StationBlueprintModal
-            visible={showBlueprint}
-            onClose={() => setShowBlueprint(false)}
-          />
+          <StationBlueprintModal visible={showBlueprint} onClose={() => setShowBlueprint(false)} />
         )}
 
         {/* BMTC Bus Timetable Modal (Wide Screen - Bengaluru only) */}
         {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
-          <BmtcBusScheduleModal
-            visible={showBmtcModal}
-            onClose={() => setShowBmtcModal(false)}
-          />
+          <BmtcBusScheduleModal visible={showBmtcModal} onClose={() => setShowBmtcModal(false)} />
         )}
 
         {/* Station Cloakroom Directory Modal (Wide Screen) */}
-        <CloakroomModal
-          visible={showCloakroom}
-          onClose={() => setShowCloakroom(false)}
-        />
+        <CloakroomModal visible={showCloakroom} onClose={() => setShowCloakroom(false)} />
 
         {/* Safety Ping Modal (Wide Screen) */}
-        <SafetyPingModal
-          visible={showSafetyModal}
-          onClose={() => setShowSafetyModal(false)}
-        />
+        <SafetyPingModal visible={showSafetyModal} onClose={() => setShowSafetyModal(false)} />
       </View>
     );
   }
 
-  // Mobile Screen Layout with Milestone Ribbon & Floating "View Map ⬆️" Button
+  // Google-Maps/Citymapper-style mobile layout: a full-screen map canvas with
+  // top-level city switcher and map control FABs, and a smooth draggable bottom sheet
+  // containing the search bar, transit modes, live departures, and route details.
   return (
-    <View style={styles.mobileRoot}>
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.container, contentPadding]}
-        onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
-      >
-        {headerView}
-        {renderEnvironmentalAlert()}
+    <View
+      style={styles.mobileRoot}
+      onLayout={(e) => {
+        const h = Math.round(e.nativeEvent.layout.height);
+        if (h > 200 && h !== containerHeight) {
+          setContainerHeight(h);
+        }
+      }}
+    >
+      {/* ---------- FULL-SCREEN MAP CANVAS ---------- */}
+      <View style={styles.mapCanvasFullScreen} pointerEvents="box-none">
+        <View style={[styles.mapCard, styles.mapCardFullScreen]}>
+          <View style={[styles.mapCanvas, styles.mapCanvasFullScreenInner]}>
+            {mapMode ? renderRealMap() : renderVectorMap(fullMapHeight)}
 
-        <View style={styles.searchSection}>
-          <SearchBar onSelectDestination={selectDestination} />
+            {/* City header chip pinned to the map's top-left, comfortably below status bar */}
+            <View style={styles.mapHeaderChipWrap} pointerEvents="box-none">
+              <Pressable
+                onPress={openCitySwitcher}
+                style={({ pressed }) => [styles.mapCityChip, pressed && { opacity: 0.85 }]}
+              >
+                <Text style={styles.mapCityChipIcon}>🌐</Text>
+                <Text style={styles.mapCityChipText}>{currentCity?.name || 'Bengaluru'}</Text>
+                <Text style={styles.mapCityChipArrow}>▼</Text>
+              </Pressable>
+            </View>
+
+            {/* Control column: map type + GPS FAB, top-right */}
+            <View style={styles.mapFabColumn} pointerEvents="box-none">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={mapMode ? 'Show transit graph map' : 'Show street map'}
+                onPress={() => setMapMode((prev) => !prev)}
+                style={({ pressed }) => [
+                  styles.mapFab,
+                  pressed && { transform: [{ scale: 0.92 }] },
+                ]}
+              >
+                <Svg
+                  width={18}
+                  height={18}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={colors.neutral[800]}
+                  strokeWidth={2}
+                >
+                  {mapMode ? (
+                    <Path d="M9 20l-5.5-2V4L9 6m0 14l6-2m-6 2V6m6 12l5.5 2V8l-5.5-2m0 12V6m0 12c-2-1.5-4-1.5-6 0M15 6c-2-1.5-4-1.5-6 0" />
+                  ) : (
+                    <Path d="M9 18l-6-2V4l6 2 6-2 6 2v12l-6-2-6 2zm0-12v12m6-14v14" />
+                  )}
+                </Svg>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Refresh GPS location"
+                onPress={refreshUserLocation}
+                style={({ pressed }) => [
+                  styles.mapFab,
+                  pressed && { transform: [{ scale: 0.92 }] },
+                ]}
+              >
+                <Svg
+                  width={18}
+                  height={18}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={colors.neutral[800]}
+                  strokeWidth={2}
+                >
+                  <Circle cx={12} cy={12} r={7} />
+                  <Path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+                </Svg>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* ---------- ANIMATED DRAGGABLE BOTTOM SHEET OVERLAY ---------- */}
+      <Animated.View style={[styles.sheetOverlay, { top: sheetTopAnim }]}>
+        <View
+          {...(panResponder ? panResponder.panHandlers : {})}
+          style={styles.sheetGrabberWrapFull}
+        >
+          <Pressable
+            onPress={() => {
+              if (snapState === 'collapsed') animateTo(SNAP_MID);
+              else if (snapState === 'mid') animateTo(SNAP_EXPANDED);
+              else animateTo(SNAP_MID);
+            }}
+            style={styles.grabberPressable}
+            hitSlop={12}
+          >
+            <View style={styles.sheetGrabber} />
+          </Pressable>
+
+          <View style={styles.grabberHeaderRow}>
+            <Pressable
+              onPress={() => {
+                if (snapState === 'collapsed') animateTo(SNAP_MID);
+                else if (snapState === 'mid') animateTo(SNAP_EXPANDED);
+                else animateTo(SNAP_MID);
+              }}
+              style={{ flex: 1 }}
+            >
+              <Text style={styles.grabberCityTitle}>
+                {destination
+                  ? `Route to ${destination.name?.split(',')[0] || destination.name || 'Destination'}`
+                  : `${currentCity?.name || 'Bengaluru'} Transit`}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                if (snapState === 'collapsed') animateTo(SNAP_MID);
+                else animateTo(SNAP_COLLAPSED);
+              }}
+              style={({ pressed }) => [
+                styles.grabberSnapBadge,
+                pressed && { opacity: 0.8 },
+              ]}
+              hitSlop={8}
+            >
+              <Text style={styles.grabberSnapBadgeText}>
+                {snapState === 'collapsed' ? '▲ Open routes' : '▼ Pull down'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
-        {/* Transit Quick Utilities Row */}
-        {renderQuickUtilities()}
-
-        {/* Multimodal Alternative Mode Selector */}
-        <RouteModeSelector />
-
-        {renderMapBlock()}
-
-        {/* Milestone Quick Navigation Ribbon */}
-        <MilestoneRibbon
-          milestones={activeRoute?.milestones}
-          activeStepIndex={activeStepIndex}
-          onSelectMilestone={(stepIdx) => {
-            setActiveStepIndex(stepIdx);
-          }}
-        />
-
-        {/* Step-by-Step Route Card & Advisories */}
-        <RouteDetailSheet
-          route={activeRoute}
-          onFocusMap={scrollToMap}
-        />
-      </ScrollView>
-
-      {/* Floating "View Map ⬆️" Button when scrolled down */}
-      {scrollY > 280 && (
-        <Pressable
-          onPress={scrollToMap}
-          style={({ pressed }) => [
-            styles.floatingMapBtn,
-            pressed && { transform: [{ scale: 0.94 }] },
-          ]}
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.sheetScrollContent}
+          scrollEventThrottle={16}
         >
-          <Text style={styles.floatingMapIcon}>🗺️</Text>
-          <Text style={styles.floatingMapText}>View Map ⬆️</Text>
-        </Pressable>
-      )}
+          {/* Active From/To search card */}
+          <SearchBar onSelectDestination={selectDestination} />
+
+          {/* Travel-mode buttons (Metro Combo, Auto, Cab) */}
+          <RouteModeSelector />
+
+          {/* Citymapper-style live next-train chips for the active route's metro legs */}
+          {activeRoute && (
+            <DepartureTicker
+              key={selectedRouteMode ?? 'default'}
+              route={activeRoute}
+              activeStepIndex={activeStepIndex}
+              onSelectStep={(stepIdx) => {
+                setActiveStepIndex(stepIdx);
+              }}
+            />
+          )}
+
+          {/* Ambient condition strip */}
+          {renderEnvironmentalAlert()}
+
+          {/* Step-by-Step Route Card & Advisories (bottom sheet) */}
+          {activeRoute && (
+            <RouteDetailSheet route={activeRoute} onFocusMap={scrollToMap} />
+          )}
+        </ScrollView>
+      </Animated.View>
 
       {/* Station Blueprint Modal (Mobile Screen - Bengaluru only) */}
       {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
-        <StationBlueprintModal
-          visible={showBlueprint}
-          onClose={() => setShowBlueprint(false)}
-        />
+        <StationBlueprintModal visible={showBlueprint} onClose={() => setShowBlueprint(false)} />
       )}
 
       {/* BMTC Bus Timetable Modal (Mobile Screen - Bengaluru only) */}
       {(currentCity?.id || 'bengaluru') === 'bengaluru' && (
-        <BmtcBusScheduleModal
-          visible={showBmtcModal}
-          onClose={() => setShowBmtcModal(false)}
-        />
+        <BmtcBusScheduleModal visible={showBmtcModal} onClose={() => setShowBmtcModal(false)} />
       )}
 
       {/* Station Cloakroom Directory Modal (Mobile Screen) */}
-      <CloakroomModal
-        visible={showCloakroom}
-        onClose={() => setShowCloakroom(false)}
-      />
+      <CloakroomModal visible={showCloakroom} onClose={() => setShowCloakroom(false)} />
 
       {/* Safety Ping Modal (Mobile Screen) */}
-      <SafetyPingModal
-        visible={showSafetyModal}
-        onClose={() => setShowSafetyModal(false)}
-      />
+      <SafetyPingModal visible={showSafetyModal} onClose={() => setShowSafetyModal(false)} />
     </View>
   );
 }
@@ -823,6 +1085,156 @@ const styles = StyleSheet.create({
   mobileRoot: {
     flex: 1,
     position: 'relative',
+  },
+  // ---------- FULL-SCREEN MAP CANVAS ----------
+  // RN 0.86 removed absoluteFillObject — spell the four edges out.
+  mapCanvasFullScreen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
+  },
+  mapCardFullScreen: {
+    flex: 1,
+    marginHorizontal: 0,
+    marginTop: 0,
+    borderRadius: 0,
+  },
+  mapCanvasFullScreenInner: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  mapHeaderChipWrap: {
+    position: 'absolute',
+    top: 52,
+    left: 14,
+    zIndex: 15,
+    gap: 4,
+  },
+  mapCityChip: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    ...shadow.md,
+  },
+  mapCityChipIcon: {
+    fontSize: 13,
+  },
+  mapCityChipText: {
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  mapCityChipArrow: {
+    fontSize: 10,
+    color: '#64748b',
+    marginLeft: 1,
+  },
+  mapLiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    alignSelf: 'flex-start',
+    paddingVertical: 3,
+    paddingHorizontal: 9,
+    borderRadius: radius.pill,
+    marginLeft: 2,
+  },
+  mapLiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22c55e',
+  },
+  mapKickerText: {
+    fontSize: 8.5,
+    fontFamily: fontFamily.bodyBold,
+    letterSpacing: 1,
+    color: '#ffffff',
+  },
+  // ---------- BOTTOM SHEET OVERLAY ----------
+  sheetOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.accentRamp[600],
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 20,
+    zIndex: 20,
+    overflow: 'hidden',
+  },
+  sheetGrabberWrapFull: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 16,
+    backgroundColor: colors.accentRamp[600],
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.12)',
+    cursor: 'grab',
+    userSelect: 'none',
+  },
+  grabberPressable: {
+    paddingVertical: 4,
+    paddingHorizontal: 28,
+    alignItems: 'center',
+  },
+  sheetGrabber: {
+    width: 44,
+    height: 4.5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  },
+  grabberHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 4,
+  },
+  grabberCityTitle: {
+    fontSize: 14,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: -0.2,
+  },
+  grabberSnapBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  grabberSnapBadgeText: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
+    letterSpacing: 0.2,
+  },
+  sheetScrollContent: {
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 130,
+    backgroundColor: colors.accentRamp[600],
+    gap: 10,
   },
   wideRoot: {
     flex: 1,
@@ -843,9 +1255,10 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingTop: 8,
     paddingBottom: 150,
+    backgroundColor: colors.accentRamp[600],
   },
   headerRow: {
     flexDirection: 'row',
@@ -857,13 +1270,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
     letterSpacing: 1.2,
-    color: colors.accentRamp[700],
+    color: 'rgba(255,255,255,0.7)',
     textTransform: 'uppercase',
   },
   heading: {
     fontSize: 26,
     fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
+    color: '#ffffff',
     marginTop: 3,
     lineHeight: 30,
   },
@@ -876,88 +1289,86 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: colors.accentRamp[100],
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.accentRamp[300],
+    borderColor: 'rgba(255,255,255,0.3)',
     marginTop: 2,
   },
   cityDotPulse: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentRamp[600],
+    backgroundColor: '#ffffff',
   },
   cityPillBadgeText: {
     fontSize: 10,
     fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[800],
+    color: '#ffffff',
     letterSpacing: 0.5,
   },
   gpsChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.neutral[200],
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: radius.pill,
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
   gpsChipActive: {
-    backgroundColor: colors.accent2Ramp[200],
+    backgroundColor: 'rgba(255,255,255,0.35)',
   },
   gpsDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2563eb',
+    backgroundColor: '#ffffff',
   },
   gpsChipText: {
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[700],
+    color: 'rgba(255,255,255,0.85)',
   },
   gpsChipTextActive: {
-    color: colors.accent2Ramp[800],
+    color: '#ffffff',
   },
   searchSection: {
     marginTop: 14,
   },
+  // Map sits edge-to-edge inside the full-screen canvas layer.
   mapCard: {
-    marginTop: 14,
-    borderRadius: radius.lg,
+    marginTop: 0,
+    marginHorizontal: 0,
+    borderRadius: 0,
     overflow: 'hidden',
     backgroundColor: colors.neutral[200],
-    ...shadow.sm,
+    borderWidth: 0,
+    flex: 1,
   },
   mapCanvas: {
     width: '100%',
     position: 'relative',
   },
-  mapControlsRow: {
+  // Google's white circular map controls, stacked at the right edge, safely below status bar.
+  mapFabColumn: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
-    gap: 6,
+    top: 52,
+    right: 14,
+    alignItems: 'center',
+    gap: 9,
     zIndex: 15,
   },
-  mapControlBtn: {
-    flexDirection: 'row',
+  mapFab: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.white,
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
-    borderRadius: radius.pill,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    ...shadow.sm,
-  },
-  mapControlBtnText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
+    justifyContent: 'center',
+    ...shadow.md,
   },
   quickUtilityScroll: {
     flexDirection: 'row',
@@ -1028,7 +1439,7 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   quickUtilitySubBus: {
-    color: '#16a34a',
+    color: colors.accentRamp[600],
   },
   quickUtilitySubCloakroom: {
     color: '#c2410c',
@@ -1056,6 +1467,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 10,
     zIndex: 10,
+  },
+  mapLegendBarFullScreen: {
+    bottom: 12,
+    left: 14,
   },
   legendItem: {
     flexDirection: 'row',
@@ -1089,7 +1504,7 @@ const styles = StyleSheet.create({
     ...shadow.md,
   },
   milestoneBadgeOrigin: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.accent2Ramp[500],
   },
   milestoneBadgeDest: {
     backgroundColor: colors.accentRamp[600],
@@ -1120,12 +1535,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.accentRamp[700],
+    backgroundColor: colors.accent2Ramp[500],
     borderRadius: radius.pill,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    borderWidth: 0,
     ...shadow.lg,
     zIndex: 99,
   },
@@ -1137,138 +1551,93 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.bodyBold,
     color: colors.white,
   },
-  envAlertCard: {
+  weatherCard: {
     backgroundColor: '#ffffff',
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    padding: 12,
-    marginTop: 10,
-    marginBottom: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginVertical: 4,
     ...shadow.sm,
   },
-  envAlertHeaderRow: {
+  weatherRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  weatherInfoLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  envAlertIconBadge: {
+  weatherIconCircle: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
-  envAlertIcon: {
+  weatherEmoji: {
     fontSize: 20,
   },
-  envAlertTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 6,
-    marginBottom: 2,
-  },
-  envAlertHeadline: {
-    fontSize: 13,
-    fontFamily: fontFamily.bodyBold,
+  weatherTempText: {
+    fontSize: 16,
+    fontFamily: fontFamily.heading,
     color: '#0f172a',
-    flex: 1,
+    lineHeight: 20,
   },
-  envAqiBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-  },
-  envAqiBadgeText: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: '#ffffff',
-    letterSpacing: 0.3,
-  },
-  envAlertSubtext: {
+  weatherConditionText: {
     fontSize: 11.5,
     fontFamily: fontFamily.body,
-    color: '#475569',
-    lineHeight: 16,
+    color: '#64748b',
+    marginTop: 1,
   },
-  envAlertToggleArrow: {
-    fontSize: 10,
-    color: '#94a3b8',
-    marginLeft: 2,
+  weatherInfoRight: {
+    alignItems: 'flex-end',
+    gap: 2,
   },
-  envBadgesRow: {
+  aqiPillBadge: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  aqiStatusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  aqiNumberText: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+  },
+  aqiLabelText: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#64748b',
+    marginRight: 2,
+  },
+  weatherTipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
   },
-  envBadgePill: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-  },
-  envBadgePillText: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.bodyBold,
-    color: '#334155',
-  },
-  envTempPill: {
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: '#dbeafe',
-  },
-  envTempPillText: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1d4ed8',
-  },
-  envExpandedBox: {
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    gap: 6,
-  },
-  envTransitNoticeBox: {
-    backgroundColor: '#f8fafc',
-    borderRadius: radius.sm,
-    padding: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.accentRamp[600],
-  },
-  envTransitNoticeText: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1e293b',
-    lineHeight: 16,
-  },
-  envTipItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    paddingLeft: 4,
-  },
-  envTipBullet: {
+  weatherTipIcon: {
     fontSize: 12,
-    color: colors.accentRamp[700],
-    marginTop: -1,
   },
-  envTipText: {
+  weatherTipText: {
     flex: 1,
     fontSize: 11,
     fontFamily: fontFamily.body,
     color: '#475569',
-    lineHeight: 15,
   },
 });
