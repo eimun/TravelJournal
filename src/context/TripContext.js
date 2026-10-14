@@ -26,6 +26,7 @@ import { FEATURES, log, reportIssue, serializeError, setLogContext, setScreen } 
 import { auditRestaurants, withVerification } from '../../app/services/restaurantAudit';
 import { getOpenStatus } from '../domain/openingHours';
 import { fetchNearbyOsmRestaurants } from '../../app/services/osmRestaurantService';
+import { fetchOlaNearbyRestaurants, OLA_MAPS_KEY } from '../../app/services/olaMapsService';
 import {
   fetchGooglePlacesRestaurants,
   fetchFoursquarePlacesRestaurants,
@@ -397,8 +398,21 @@ export function TripProvider({ children }) {
         let results = [];
         let sourceUsed = 'OpenStreetMap';
 
+        // 0. Ola Maps (India-focused, free tier) when a key is configured
+        if ((preferredProvider === 'ola' || preferredProvider === 'auto') && OLA_MAPS_KEY) {
+          attempted.push('ola');
+          results = await fetchOlaNearbyRestaurants({
+            latitude: lat,
+            longitude: lon,
+            radiusMeters: 2000,
+            limit: 25,
+            cityId: activeCity,
+          });
+          if (results.length > 0) sourceUsed = 'Ola Maps';
+        }
+
         // 1. Try Google Places if key configured
-        if ((preferredProvider === 'google' || preferredProvider === 'auto') && apiKeys.google) {
+        if (results.length === 0 && (preferredProvider === 'google' || preferredProvider === 'auto') && apiKeys.google) {
           attempted.push('google');
           results = await fetchGooglePlacesRestaurants({
             latitude: lat,
@@ -619,8 +633,37 @@ export function TripProvider({ children }) {
 
     const existingIds = new Set(baseRestaurants.map((r) => r.id));
     const existingNames = new Set(baseRestaurants.map((r) => r.name.toLowerCase().trim()));
+    // Live providers name places differently ("Nagarjuna Restaurant - Residency Road" vs
+    // "Nagarjuna"), so also treat a live place as a duplicate when it is within 800 m of a
+    // saved one and shares its first distinctive word. A gap over 150 m means the saved pin
+    // and the live provider disagree — logged so the saved pin can be checked.
+    const firstWord = (n) =>
+      String(n || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9 ]+/g, ' ')
+        .split(/\s+/)
+        .find((w) => w.length >= 4 && !['hotel', 'restaurant', 'cafe', 'the'].includes(w)) || '';
+    const isNearSaved = (r) => {
+      const word = firstWord(r.name);
+      if (!word) return false;
+      for (const b of baseRestaurants) {
+        if (firstWord(b.name) !== word) continue;
+        const gap = getDistanceBetween(b.latitude, b.longitude, r.latitude, r.longitude);
+        if (gap >= 800) continue;
+        if (gap > 150) {
+          reportIssue('FOOD_LOCATION_MISMATCH', {
+            key: `${b.id}:live`,
+            message: `${b.name}: saved pin is ${Math.round(gap)} m from ${r.verification?.source || 'live data'} "${r.name}"`,
+            data: { saved: [b.latitude, b.longitude], live: [r.latitude, r.longitude] },
+          });
+        }
+        return true;
+      }
+      return false;
+    };
     const uniqueLive = cityLive.filter(
-      (r) => !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()),
+      (r) =>
+        !existingIds.has(r.id) && !existingNames.has(r.name.toLowerCase().trim()) && !isNearSaved(r),
     );
     return [...uniqueLive, ...baseRestaurants];
   }, [liveOsmRestaurants, cityId, curatedRestaurants]);

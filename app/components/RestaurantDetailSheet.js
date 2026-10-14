@@ -324,6 +324,7 @@ export default function RestaurantDetailSheet() {
           <Text style={styles.sectionTitle}>About this info</Text>
           <View style={styles.sourceCard}>
             <Text style={styles.sourceIntro}>{verificationText}</Text>
+            {!!r.address && <SourceRow label="Address" value={r.address} source={v.source || null} />}
             <SourceRow
               label="Hours"
               value={r.hoursText ? (r.hoursVerified === false ? `${r.hoursText} (unverified)` : r.hoursText) : 'Not available'}

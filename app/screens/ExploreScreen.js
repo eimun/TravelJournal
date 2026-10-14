@@ -90,6 +90,7 @@ export function verificationBadge(r) {
   const status = r.verification?.status;
   if (status === 'verified') return { label: '✓ Verified', bg: '#e8f5e9', fg: '#1b5e20' };
   if (status === 'location_corrected') return { label: '✓ Location fixed', bg: '#e3f2fd', fg: '#0d47a1' };
+  if (status === 'live_ola') return { label: 'Live · Ola Maps', bg: '#ecfdf5', fg: '#047857' };
   if (status === 'live_osm') return { label: 'Live · OSM', bg: '#e0f2fe', fg: '#0369a1' };
   if (status === 'live_google') return { label: 'Live · Google', bg: '#eff6ff', fg: '#1d4ed8' };
   if (status === 'live_foursquare') return { label: 'Live · Foursquare', bg: '#f3e8ff', fg: '#7e22ce' };

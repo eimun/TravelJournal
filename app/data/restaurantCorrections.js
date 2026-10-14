@@ -77,7 +77,10 @@ export const RESTAURANT_CORRECTIONS = {
   },
   r_meghana: {
     hours: 'Mo-Su 12:00-16:00,19:00-23:00',
-    sources: [EAZY('bengaluru/meghana-foods-residency-road-334874')],
+    // Old pin was ~600 m off; Ola Maps places 57/1 Residency Rd here (checked 2026-10-14).
+    latitude: 12.9728,
+    longitude: 77.6092,
+    sources: [EAZY('bengaluru/meghana-foods-residency-road-334874'), 'Ola Maps place details'],
   },
   r_sukhniwas: {
     remove: true,

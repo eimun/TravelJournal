@@ -97,6 +97,17 @@ npx expo install --fix
 npm start
 ```
 
+### Live restaurant data (optional)
+
+The Food tab loads nearby restaurants live from **Ola Maps** (free tier, no card needed) when a key is set; without one it falls back to OpenStreetMap.
+
+```bash
+cp .env.example .env.local   # .env.local is git-ignored, never commit a key
+# then put your own key in EXPO_PUBLIC_OLA_MAPS_API_KEY and restart npm start
+```
+
+Get a key at cloud.olakrutrim.com → Ola Maps → Maps Credentials → New Credentials. Each teammate uses their own key.
+
 `npm start` prints a QR code. Scan it with **Expo Go** on an Android phone on the same network, or press `a` to launch on a connected device or emulator.
 
 ### Useful scripts
