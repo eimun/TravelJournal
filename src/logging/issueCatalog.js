@@ -108,11 +108,17 @@ export const ISSUE_CATALOG = {
     title: 'Route planning threw an error',
     hint: 'See data.origin / data.destination and the stack.',
   },
-  MAP_API_KEY_MISSING: {
+  MAP_LOAD_FAILED: {
     severity: SEVERITY.MAJOR,
     feature: 'NAV',
-    title: 'Map hidden: no Google Maps Android API key configured',
-    hint: 'Set GOOGLE_MAPS_ANDROID_API_KEY before building (see app.config.js). Without it a native build crashes on the map.',
+    title: 'Map could not load (WebView or Leaflet failed)',
+    hint: 'Usually no internet on first open (Leaflet is loaded from unpkg.com). data.message has the WebView error.',
+  },
+  MAP_TILES_FAILED: {
+    severity: SEVERITY.MINOR,
+    feature: 'NAV',
+    title: 'Some OpenStreetMap map tiles failed to load',
+    hint: 'Slow network, or tile.openstreetmap.org is limiting requests (light use only). Routes and fares still work.',
   },
   NAV_ROAD_GEOMETRY_FAILED: {
     severity: SEVERITY.MINOR,

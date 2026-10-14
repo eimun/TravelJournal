@@ -1,10 +1,39 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { FEATURES, log, reportIssue } from '../../src/logging';
+
+// Native-only; the web build renders the same HTML in an <iframe>.
+const NativeWebView = Platform.OS === 'web' ? null : require('react-native-webview').WebView;
+
+// Sent as the HTTP Referer for tile requests. The OSM tile policy asks apps to
+// identify themselves; a WebView loaded from an HTML string would otherwise send none.
+const MAP_BASE_URL = 'https://github.com/eimun/TravelJournal';
 
 /**
- * High-performance, interactive OpenStreetMap / Leaflet web map
- * Renders real Bengaluru streets, road networks, landmarks, and route polylines.
+ * Interactive OpenStreetMap / Leaflet map (no API key needed).
+ * Used on web, and on Android when no Google Maps key is configured.
+ * Tiles: tile.openstreetmap.org, light use only under the OSM Tile Usage Policy
+ * (https://operations.osmfoundation.org/policies/tiles/).
  */
+function handleMapMessage(event) {
+  let msg = null;
+  try {
+    msg = JSON.parse(event.nativeEvent.data);
+  } catch {
+    return;
+  }
+  if (msg.type === 'tilesloaded') {
+    log.info(FEATURES.NAV, 'map.osm_tiles_loaded');
+  } else if (msg.type === 'tileerror') {
+    reportIssue('MAP_TILES_FAILED', {
+      key: 'osm',
+      message: `${msg.count} OpenStreetMap tile(s) failed to load`,
+    });
+  } else if (msg.type === 'leaflet_missing') {
+    reportIssue('MAP_LOAD_FAILED', { key: 'leaflet', message: 'Leaflet library could not be loaded (offline?)' });
+  }
+}
+
 export default function WebRoadMap({
   userLocation,
   destination,
@@ -12,7 +41,10 @@ export default function WebRoadMap({
   activeStepIndex,
   onSelectStep,
   borderRadius = 0,
+  fitPadding = null,
 }) {
+  const padTop = fitPadding ? Math.round(fitPadding.top) : 35;
+  const padBottom = fitPadding ? Math.round(fitPadding.bottom) : 35;
   const mapHtml = useMemo(() => {
     const centerLat = userLocation?.latitude || 12.9716;
     const centerLng = userLocation?.longitude || 77.5946;
@@ -152,17 +184,31 @@ export default function WebRoadMap({
 <body>
   <div id="map"></div>
   <script>
+    function post(msg) {
+      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+    }
+    if (typeof L === 'undefined') {
+      post({ type: 'leaflet_missing' });
+    }
+  </script>
+  <script>
     const map = L.map('map', {
       zoomControl: false,
       attributionControl: true
     }).setView([${centerLat}, ${centerLng}], 13);
 
-    // High quality OSM street tiles without watermark
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-      subdomains: 'abc'
+    // OSM standard tiles (single host; the a/b/c subdomains are deprecated).
+    // Attribution is required by the ODbL licence.
+    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
     }).addTo(map);
+    let tileErrors = 0;
+    tiles.on('tileerror', () => {
+      tileErrors += 1;
+      if (tileErrors === 1 || tileErrors === 10) post({ type: 'tileerror', count: tileErrors });
+    });
+    tiles.once('load', () => post({ type: 'tilesloaded' }));
 
     const steps = ${serializedSteps};
     const milestones = ${serializedMilestones};
@@ -271,7 +317,11 @@ export default function WebRoadMap({
 
     // Fit map bounds smoothly to the full route
     if (allBounds.length > 1) {
-      map.fitBounds(allBounds, { padding: [35, 35], maxZoom: 16 });
+      map.fitBounds(allBounds, {
+        paddingTopLeft: [35, ${padTop}],
+        paddingBottomRight: [35, ${padBottom}],
+        maxZoom: 16
+      });
     } else {
       map.setView([${centerLat}, ${centerLng}], 13);
     }
@@ -279,7 +329,25 @@ export default function WebRoadMap({
 </body>
 </html>
     `;
-  }, [userLocation, destination, activeRoute, activeStepIndex]);
+  }, [userLocation, destination, activeRoute, activeStepIndex, padTop, padBottom]);
+
+  if (NativeWebView) {
+    return (
+      <View style={[styles.container, { borderRadius }]}>
+        <NativeWebView
+          originWhitelist={['*']}
+          source={{ html: mapHtml, baseUrl: MAP_BASE_URL }}
+          style={styles.webview}
+          javaScriptEnabled
+          domStorageEnabled
+          onMessage={handleMapMessage}
+          onError={(e) =>
+            reportIssue('MAP_LOAD_FAILED', { key: 'webview', message: e.nativeEvent?.description })
+          }
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { borderRadius }]}>
@@ -298,6 +366,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundColor: '#f8f6f0',
     overflow: 'hidden',
+  },
+  webview: {
+    flex: 1,
+    backgroundColor: '#f8f6f0',
   },
   iframe: {
     width: '100%',

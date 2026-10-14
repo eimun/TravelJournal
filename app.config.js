@@ -8,8 +8,8 @@
  *   PowerShell:  $env:GOOGLE_MAPS_ANDROID_API_KEY="AIza..."; npx expo run:android
  *   bash:        GOOGLE_MAPS_ANDROID_API_KEY=AIza... npx expo run:android
  *
- * Without a key the app shows a "map unavailable" panel instead of the map and logs
- * MAP_API_KEY_MISSING (MAJOR) — routes and fares keep working.
+ * Without a key the Navigate screen uses the free OpenStreetMap / Leaflet map
+ * (app/components/WebRoadMap.js) instead of Google Maps.
  */
 module.exports = ({ config }) => {
   const key = process.env.GOOGLE_MAPS_ANDROID_API_KEY || '';
