@@ -69,6 +69,17 @@ const SIGNATURE_DISHES_BY_CUISINE = {
   },
 };
 
+export const CUISINE_AUTHENTIC_IMAGES = {
+  southindian: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=800&q=80',
+  northindian: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=800&q=80',
+  cafe: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80',
+  biryani: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&q=80',
+  streetfood: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&q=80',
+  dessert: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
+  desserts: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=800&q=80',
+  continental: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+};
+
 /**
  * Infer app cuisine category from OSM tags
  */
@@ -232,6 +243,7 @@ export function transformOsmNodeToRestaurant(node) {
     closeTime: tags.opening_hours ? '22:30' : '23:00',
     tags: dietTags,
     nearestMetro,
+    image: CUISINE_AUTHENTIC_IMAGES[cuisine] || CUISINE_AUTHENTIC_IMAGES.southindian,
     mustTry: dishes.mustTry,
     topDishes: dishes.topDishes,
     insiderNote: `Discovered live via OpenStreetMap (${tags.amenity || 'eatery'}). Real-time neighborhood location verified by community mappers.`,
@@ -271,7 +283,7 @@ export async function fetchNearbyOsmRestaurants({
         signal: controller.signal,
         headers: {
           Accept: 'application/json',
-          'User-Agent': 'TravelJournalBengaluruApp/1.0',
+          'User-Agent': 'TravelBuddyBengaluruApp/1.0',
         },
       });
 
