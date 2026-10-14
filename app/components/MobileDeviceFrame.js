@@ -42,7 +42,7 @@ export default function MobileDeviceFrame({ children }) {
       <View style={styles.topControlBar}>
         <View style={styles.brandingRow}>
           <View style={styles.appIconDot} />
-          <Text style={styles.brandTitle}>TravelJournal · Bengaluru Guide</Text>
+          <Text style={styles.brandTitle}>TravelBuddy · Bengaluru Guide</Text>
         </View>
 
         <View style={styles.actionsRow}>

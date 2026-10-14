@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { colors, fontFamily, radius, shadow, space } from '../theme/tokens';
+import { fontFamily, radius, shadow, space } from '../theme/tokens';
 
 const TABS = [
   {
@@ -41,13 +41,15 @@ export default function BengaluruTabBar({ active, onChange, bottomInset = 0 }) {
               pressed && styles.itemPressed,
             ]}
           >
+            {/* Active indicator bar */}
+            {isSelected && <View style={styles.activeIndicator} />}
             <Svg
               width={22}
               height={22}
               viewBox="0 0 24 24"
               fill="none"
-              stroke={isSelected ? colors.accentRamp[800] : colors.neutral[600]}
-              strokeWidth={2.75}
+              stroke={isSelected ? '#16a34a' : '#64748b'}
+              strokeWidth={isSelected ? 2.5 : 2}
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -57,8 +59,8 @@ export default function BengaluruTabBar({ active, onChange, bottomInset = 0 }) {
               style={[
                 styles.label,
                 {
-                  color: isSelected ? colors.accentRamp[800] : colors.neutral[600],
-                  fontFamily: fontFamily.bodyBold,
+                  color: isSelected ? '#16a34a' : '#64748b',
+                  fontFamily: isSelected ? fontFamily.bodyBold : fontFamily.bodyMedium,
                 },
               ]}
             >
@@ -80,30 +82,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: colors.neutral[100],
-    paddingTop: space[2],
-    paddingHorizontal: space[3],
+    backgroundColor: '#ffffff',
+    paddingTop: 8,
+    paddingHorizontal: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(46, 43, 37, 0.08)',
-    ...shadow.md,
+    borderTopColor: '#e2e8f0',
+    zIndex: 30,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 12,
   },
   item: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     borderRadius: radius.md,
-    gap: 4,
+    gap: 3,
+    position: 'relative',
   },
   itemSelected: {
-    backgroundColor: colors.accentRamp[200],
+    backgroundColor: 'rgba(22, 163, 74, 0.08)',
   },
   itemPressed: {
-    transform: [{ translateY: 2 }],
+    transform: [{ translateY: 1 }],
+    opacity: 0.85,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    top: -8,
+    width: 24,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#16a34a',
   },
   label: {
-    fontSize: 11,
+    fontSize: 10.5,
     letterSpacing: 0.2,
   },
 });

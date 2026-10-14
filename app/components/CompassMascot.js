@@ -27,13 +27,18 @@ const NEEDLE = { w: 10, half: 11, top: 5 };
  *
  * Decorative only — hidden from screen readers.
  */
-export default function CompassMascot({ kind = 'rain', animate = true }) {
-  // tj-bob 3.4s and tj-needle 2.6s, both ease-in-out.
-  const bob = useSwing(1700, animate);
-  const needle = useSwing(1300, animate);
+export default function CompassMascot({ kind = 'rain', animate = true, celebrate = false }) {
+  // tj-bob 3.4s and tj-needle 2.6s, both ease-in-out. Celebrating makes the
+  // bob snappier and the needle whip — the mascot visibly reacts to wins
+  // (stamps, savings, Plan B) instead of only weather.
+  const bob = useSwing(celebrate ? 420 : 1700, animate);
+  const needle = useSwing(celebrate ? 350 : 1300, animate);
   const gear = gearFor(kind);
 
-  const translateY = bob.interpolate({ inputRange: [0, 1], outputRange: [0, -7] });
+  const translateY = bob.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, celebrate ? -14 : -7],
+  });
   const rotate = bob.interpolate({ inputRange: [0, 1], outputRange: ['-3deg', '3deg'] });
   const needleRotate = needle.interpolate({
     inputRange: [0, 1],
