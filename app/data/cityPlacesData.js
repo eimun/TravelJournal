@@ -458,7 +458,7 @@ export const DELHI_RESTAURANTS = [
   {
     id: 'r_del_sitaram',
     name: 'Sita Ram Diwan Chand',
-    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80',
     area: 'Paharganj, New Delhi',
     cuisine: 'northindian',
     rating: 4.8,
@@ -713,7 +713,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_ashok',
     name: 'Ashok Vada Pav',
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=800&q=80',
     area: 'Kashinath Dhuru Marg, Dadar West',
     cuisine: 'streetfood',
     rating: 4.9,
@@ -735,7 +735,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_sardar',
     name: 'Sardar Refreshments',
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
     area: 'Tardeo Road, Mumbai Central',
     cuisine: 'streetfood',
     rating: 4.7,
@@ -805,7 +805,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_aram',
     name: 'Aram Milk Bar & Vada Pav',
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=800&q=80',
     area: 'Capitol Cinema Bldg, Opp. CSMT',
     cuisine: 'streetfood',
     rating: 4.7,
@@ -897,7 +897,7 @@ export const MUMBAI_RESTAURANTS = [
   {
     id: 'r_bom_cannon',
     name: 'Cannon Pav Bhaji',
-    image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80',
     area: 'Opp. CSMT Railway Station, Fort',
     cuisine: 'streetfood',
     rating: 4.6,

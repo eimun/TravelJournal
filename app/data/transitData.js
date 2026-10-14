@@ -537,7 +537,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
   const minutesUntilNext = remainder === 0 ? frequency : frequency - remainder;
 
   const departures = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 8; i++) {
     const mins = minutesUntilNext + i * frequency;
     const depDate = new Date(targetDate.getTime() + mins * 60 * 1000);
     const hoursFormatted = depDate.getHours() % 12 || 12;
