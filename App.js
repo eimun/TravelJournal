@@ -132,7 +132,7 @@ function Shell() {
 }
 
 export default function App() {
-  const { fontsReady } = useOrganicFonts();
+  const { fontsReady, fontsError } = useOrganicFonts();
 
   useEffect(() => {
     async function initDatabase() {
@@ -151,9 +151,15 @@ export default function App() {
 
   useEffect(() => {
     if (fontsReady) {
+      if (fontsError) log.warn(FEATURES.UI, 'fonts.load_failed', { error: serializeError(fontsError) });
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsReady]);
+  }, [fontsReady, fontsError]);
+
+  // Render only after the fonts load (the splash screen stays up meanwhile). Text laid
+  // out with the system font and then switched to Figtree gets clipped on Android
+  // ("Navigat", "Foo") because Android does not re-measure it.
+  if (!fontsReady) return null;
 
   return (
     <SafeAreaProvider>
