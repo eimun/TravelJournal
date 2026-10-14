@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "TravelJournal",
+    "name": "TravelBuddy",
     "slug": "TravelJournal",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "traveljournal",
+    "scheme": "travelbuddy",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#f5ead8",
@@ -18,10 +18,10 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.eimun.traveljournal"
+      "bundleIdentifier": "app.travelbuddy.companion"
     },
     "android": {
-      "package": "com.eimun.traveljournal",
+      "package": "app.travelbuddy.companion",
       "versionCode": 1,
       "minSdkVersion": 30,
       "adaptiveIcon": {

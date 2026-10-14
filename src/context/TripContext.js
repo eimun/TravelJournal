@@ -212,10 +212,12 @@ export function TripProvider({ children }) {
   const selectDestination = useCallback((dest) => {
     setDestination(dest);
     setSelectedRouteMode(null); // Reset mode for new destination so recommendation activates
-    setRecentSearches((prev) => {
-      const filtered = prev.filter((d) => d.id !== dest.id);
-      return [dest, ...filtered].slice(0, 6);
-    });
+    if (dest) {
+      setRecentSearches((prev) => {
+        const filtered = prev.filter((d) => d && d.id !== dest.id);
+        return [dest, ...filtered].slice(0, 6);
+      });
+    }
   }, []);
 
   const changeUserLocation = useCallback((newLoc) => {

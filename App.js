@@ -15,6 +15,8 @@ import BengaluruToast from './app/components/BengaluruToast';
 import NavigateScreen from './app/screens/NavigateScreen';
 import ExploreScreen from './app/screens/ExploreScreen';
 import GuideScreen from './app/screens/GuideScreen';
+import TrailWalkScreen from './app/screens/TrailWalkScreen';
+import PassportScreen from './app/screens/PassportScreen';
 import RestaurantDetailSheet from './app/components/RestaurantDetailSheet';
 import SearchModalOverlay from './app/components/SearchModalOverlay';
 import FareReliabilityModal from './app/components/FareReliabilityModal';
@@ -31,6 +33,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 const SCREENS = {
   navigate: NavigateScreen,
   explore: ExploreScreen,
+  trails: TrailWalkScreen,
+  passport: PassportScreen,
   guide: GuideScreen,
   eat: GuideScreen,
   offline: GuideScreen,
