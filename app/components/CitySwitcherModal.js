@@ -13,6 +13,18 @@ import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { getAllCities } from '../data/citiesRegistry';
 import { useTrip } from '../../src/context/TripContext';
 
+const CITY_ICONS = {
+  bengaluru: '🌳',
+  delhi: '🏛️',
+  mumbai: '🌊',
+};
+
+const CITY_TRANSIT_SUBTITLES = {
+  bengaluru: 'Namma Metro & BMTC Bus',
+  delhi: 'Delhi Metro (DMRC) & DTC',
+  mumbai: 'Mumbai Local Rail & Metro',
+};
+
 export default function CitySwitcherModal({ visible, onClose }) {
   const { currentCity, switchCity, fireToast } = useTrip();
 
@@ -26,7 +38,7 @@ export default function CitySwitcherModal({ visible, onClose }) {
       return;
     }
     switchCity(city.id);
-    fireToast(`Switched to ${city.name}! Loaded transit network and local fare cards.`);
+    fireToast(`Switched to ${city.name}!`);
     onClose();
   };
 
@@ -43,25 +55,15 @@ export default function CitySwitcherModal({ visible, onClose }) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </View>
 
-      {/* Main Sheet */}
+      {/* Main Bottom Sheet */}
       <View style={styles.modalCard}>
         <View style={styles.handleBar} />
 
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <View style={styles.headerBadgeRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>MULTI-CITY COMPANION</Text>
-              </View>
-              <View style={styles.activePill}>
-                <Text style={styles.activePillText}>3 Metros Live</Text>
-              </View>
-            </View>
-            <Text style={styles.title}>Select Explorer City</Text>
-            <Text style={styles.subtitle}>
-              Switch transit maps, auto meter cards & cloakrooms instantly
-            </Text>
+            <Text style={styles.title}>Select City</Text>
+            <Text style={styles.subtitle}>Choose your region for local transit & fares</Text>
           </View>
 
           <Pressable
@@ -69,15 +71,30 @@ export default function CitySwitcherModal({ visible, onClose }) {
             style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.6 }]}
             hitSlop={12}
           >
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.neutral[700]} strokeWidth={2.5}>
+            <Svg
+              width={20}
+              height={20}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={colors.neutral[700]}
+              strokeWidth={2.5}
+            >
               <Path d="M18 6L6 18M6 6l12 12" />
             </Svg>
           </Pressable>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Clean City Cards List */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
           {cities.map((city) => {
             const isSelected = currentCity.id === city.id;
+            const emoji = CITY_ICONS[city.id] || '🏙️';
+            const transitLabel =
+              CITY_TRANSIT_SUBTITLES[city.id] || city.transitAgency || 'Metro & Transit';
+
             return (
               <Pressable
                 key={city.id}
@@ -88,63 +105,50 @@ export default function CitySwitcherModal({ visible, onClose }) {
                   pressed && { transform: [{ scale: 0.98 }] },
                 ]}
               >
-                <View style={styles.cityCardTopRow}>
-                  <View style={{ flex: 1 }}>
-                    <View style={styles.cityNameRow}>
-                      <Text style={styles.cityName}>{city.name}</Text>
-                      <View style={[styles.cityBadge, isSelected && styles.cityBadgeSelected]}>
-                        <Text style={[styles.cityBadgeText, isSelected && styles.cityBadgeTextSelected]}>
-                          {city.badge}
-                        </Text>
-                      </View>
+                {/* City Emoji Icon Disc */}
+                <View
+                  style={[
+                    styles.iconDisc,
+                    isSelected ? styles.iconDiscSelected : styles.iconDiscDefault,
+                  ]}
+                >
+                  <Text style={styles.iconEmoji}>{emoji}</Text>
+                </View>
+
+                {/* City Information */}
+                <View style={styles.cityInfo}>
+                  <View style={styles.cityNameRow}>
+                    <Text style={[styles.cityName, isSelected && styles.cityNameSelected]}>
+                      {city.name}
+                    </Text>
+                    <View style={[styles.codeBadge, isSelected && styles.codeBadgeSelected]}>
+                      <Text
+                        style={[
+                          styles.codeBadgeText,
+                          isSelected && styles.codeBadgeTextSelected,
+                        ]}
+                      >
+                        {city.shortName || city.name.substring(0, 3).toUpperCase()}
+                      </Text>
                     </View>
-                    <Text style={styles.cityTagline}>{city.tagline}</Text>
                   </View>
-
-                  <View style={[styles.checkCircle, isSelected && styles.checkCircleSelected]}>
-                    <Text style={[styles.checkText, isSelected && styles.checkTextSelected]}>
-                      {isSelected ? '✓' : '➔'}
-                    </Text>
-                  </View>
+                  <Text style={styles.cityTransitSub}>{transitLabel}</Text>
                 </View>
 
-                {/* Transit Details Grid */}
-                <View style={styles.cityMetaGrid}>
-                  <View style={styles.cityMetaItem}>
-                    <Text style={styles.metaLabel}>TRANSIT AGENCY</Text>
-                    <Text style={styles.metaValue} numberOfLines={1}>{city.transitAgency}</Text>
-                  </View>
-                  <View style={styles.metaDivider} />
-                  <View style={styles.cityMetaItem}>
-                    <Text style={styles.metaLabel}>INTERCHANGE HUB</Text>
-                    <Text style={styles.metaValue} numberOfLines={1}>{city.interchangeHub}</Text>
-                  </View>
-                  <View style={styles.metaDivider} />
-                  <View style={styles.cityMetaItem}>
-                    <Text style={styles.metaLabel}>AUTO BASE RATE</Text>
-                    <Text style={[styles.metaValue, { color: '#16a34a' }]}>
-                      ₹{city.autoFareFormula.baseFare} ({city.autoFareFormula.baseDistanceKm}km)
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Local Phrase Snippet */}
-                <View style={styles.lingoRow}>
-                  <Text style={styles.lingoEmoji}>🗣️</Text>
-                  <Text style={styles.lingoText}>
-                    Say: <Text style={styles.lingoBold}>"{city.autoFareFormula.lingoPhrase}"</Text> ({city.autoFareFormula.hindiMeaning})
+                {/* State Indicator */}
+                <View style={[styles.statusPill, isSelected && styles.statusPillSelected]}>
+                  <Text
+                    style={[
+                      styles.statusPillText,
+                      isSelected && styles.statusPillTextSelected,
+                    ]}
+                  >
+                    {isSelected ? '✓ Active' : 'Switch ➔'}
                   </Text>
                 </View>
               </Pressable>
             );
           })}
-
-          <View style={styles.footerNoteCard}>
-            <Text style={styles.footerNoteTitle}>💡 Seamless Transit Adaptation</Text>
-            <Text style={styles.footerNoteText}>
-              Switching city automatically loads that city’s official gazetted meter tariff formula, railway station cloakrooms, and popular tourist hubs without needing internet or app relaunch.
-            </Text>
-          </View>
         </ScrollView>
       </View>
     </Container>
@@ -153,113 +157,97 @@ export default function CitySwitcherModal({ visible, onClose }) {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(15, 23, 42, 0.60)',
   },
   modalCard: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    maxHeight: '90%',
-    backgroundColor: '#FAF8F5',
+    maxHeight: '80%',
+    backgroundColor: '#ffffff',
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     ...shadow.lg,
     overflow: 'hidden',
   },
   handleBar: {
-    width: 44,
-    height: 5,
-    borderRadius: 2.5,
+    width: 40,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: colors.neutral[300],
     alignSelf: 'center',
     marginTop: 10,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 8,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[200],
-    backgroundColor: '#ffffff',
-  },
-  headerBadgeRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  badge: {
-    backgroundColor: '#eff6ff',
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: radius.xs,
-  },
-  badgeText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1d4ed8',
-    letterSpacing: 0.5,
-  },
-  activePill: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.xs,
-  },
-  activePillText: {
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    color: '#15803d',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
   },
   title: {
     fontSize: 18,
     fontFamily: fontFamily.heading,
-    color: colors.neutral[900],
+    color: '#0f172a',
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: fontFamily.body,
-    color: colors.neutral[500],
-    marginTop: 1,
+    color: '#64748b',
+    marginTop: 2,
   },
   closeBtn: {
-    padding: 6,
+    padding: 7,
     borderRadius: radius.full,
     backgroundColor: colors.neutral[100],
-    marginLeft: 10,
+    marginLeft: 12,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 36,
-    gap: 12,
+    paddingBottom: 32,
+    gap: 10,
   },
   cityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: radius.lg,
     borderWidth: 1.5,
-    borderColor: colors.neutral[200],
-    padding: 14,
-    gap: 10,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 12,
     ...shadow.sm,
   },
   cityCardSelected: {
-    borderColor: colors.accentRamp[700],
-    backgroundColor: '#ffffff',
-    borderWidth: 2,
+    borderColor: '#16a34a',
+    backgroundColor: '#f0fdf4',
   },
-  cityCardTopRow: {
-    flexDirection: 'row',
+  iconDisc: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10,
+    justifyContent: 'center',
+  },
+  iconDiscDefault: {
+    backgroundColor: '#f1f5f9',
+  },
+  iconDiscSelected: {
+    backgroundColor: '#dcfce7',
+  },
+  iconEmoji: {
+    fontSize: 22,
+  },
+  cityInfo: {
+    flex: 1,
   },
   cityNameRow: {
     flexDirection: 'row',
@@ -267,122 +255,52 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cityName: {
-    fontSize: 16,
+    fontSize: 15.5,
     fontFamily: fontFamily.bodyBold,
     color: '#0f172a',
   },
-  cityBadge: {
-    backgroundColor: colors.neutral[100],
-    paddingHorizontal: 7,
+  cityNameSelected: {
+    color: '#15803d',
+  },
+  codeBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: radius.xs,
   },
-  cityBadgeSelected: {
-    backgroundColor: colors.accentRamp[100],
+  codeBadgeSelected: {
+    backgroundColor: '#dcfce7',
   },
-  cityBadgeText: {
-    fontSize: 9.5,
+  codeBadgeText: {
+    fontSize: 10,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[600],
+    color: '#64748b',
+    letterSpacing: 0.5,
   },
-  cityBadgeTextSelected: {
-    color: colors.accentRamp[800],
+  codeBadgeTextSelected: {
+    color: '#166534',
   },
-  cityTagline: {
-    fontSize: 11,
+  cityTransitSub: {
+    fontSize: 12,
     fontFamily: fontFamily.body,
     color: '#64748b',
     marginTop: 2,
   },
-  checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.neutral[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkCircleSelected: {
-    backgroundColor: colors.accentRamp[700],
-  },
-  checkText: {
-    fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[500],
-  },
-  checkTextSelected: {
-    color: '#ffffff',
-  },
-  cityMetaGrid: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderRadius: radius.md,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  cityMetaItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  metaDivider: {
-    width: 1,
-    height: 22,
-    backgroundColor: '#cbd5e1',
-  },
-  metaLabel: {
-    fontSize: 8,
-    fontFamily: fontFamily.bodyBold,
-    color: '#64748b',
-    marginBottom: 2,
-    letterSpacing: 0.5,
-  },
-  metaValue: {
-    fontSize: 10,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1e293b',
-  },
-  lingoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#fdf4ff',
-    borderRadius: radius.sm,
-    paddingHorizontal: 9,
+  statusPill: {
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#f5d0fe',
+    borderRadius: radius.pill,
+    backgroundColor: '#f1f5f9',
   },
-  lingoEmoji: {
-    fontSize: 13,
+  statusPillSelected: {
+    backgroundColor: '#16a34a',
   },
-  lingoText: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.body,
-    color: '#86198f',
-  },
-  lingoBold: {
-    fontFamily: fontFamily.bodyBold,
-  },
-  footerNoteCard: {
-    backgroundColor: '#fffbeb',
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    padding: 12,
-    marginTop: 4,
-  },
-  footerNoteTitle: {
+  statusPillText: {
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
-    color: '#92400e',
-    marginBottom: 4,
+    color: '#64748b',
   },
-  footerNoteText: {
-    fontSize: 11,
-    fontFamily: fontFamily.body,
-    color: '#78350f',
-    lineHeight: 16,
+  statusPillTextSelected: {
+    color: '#ffffff',
   },
 });
