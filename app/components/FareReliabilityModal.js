@@ -171,7 +171,7 @@ export default function FareReliabilityModal({ visible, onClose }) {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
   },
   modalCard: {

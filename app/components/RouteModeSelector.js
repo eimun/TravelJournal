@@ -1,21 +1,12 @@
 import React from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { colors, fontFamily, radius, shadow } from '../theme/tokens';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { colors, fontFamily, modeColors, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
+import { buildSavingsCard, recordSavings } from '../services/savingsService';
+import { FOOD_MENUS } from '../data/bengaluruTrails';
 
 export default function RouteModeSelector() {
-  const {
-    multimodalPlan,
-    selectedRouteMode,
-    setRouteMode,
-    destination,
-  } = useTrip();
+  const { multimodalPlan, selectedRouteMode, setRouteMode, destination, fireToast } = useTrip();
 
   if (!destination || !multimodalPlan || !multimodalPlan.options) {
     return null;
@@ -26,30 +17,22 @@ export default function RouteModeSelector() {
 
   return (
     <View style={styles.container}>
-      {/* Smart Urban Travel Recommendation Banner */}
-      <View style={[
-        styles.recommendationBanner,
-        isShortDistance ? styles.bannerShort : styles.bannerLong,
-      ]}>
-        <Text style={styles.bannerEmoji}>
-          {isShortDistance ? '⚡' : '🛡️'}
-        </Text>
+      {/* Route recommendation banner: White card on green background */}
+      <View style={styles.recommendationBanner}>
+        <View style={[styles.bannerAccentDot, { backgroundColor: colors.accentRamp[600] }]} />
         <View style={{ flex: 1 }}>
-          <Text style={[
-            styles.bannerTitle,
-            isShortDistance ? styles.bannerTitleShort : styles.bannerTitleLong,
-          ]}>
+          <Text style={styles.bannerTitle} numberOfLines={1}>
             {isShortDistance
-              ? `Short Distance (${distanceKm} km) · Direct Auto Recommended`
-              : `Long Distance (${distanceKm} km) · Metro Rail Beats Traffic`}
+              ? `Short hop · ${distanceKm} km — fastest by auto`
+              : `${distanceKm} km across town — metro beats traffic`}
           </Text>
-          <Text style={styles.bannerSubtitle}>
+          <Text style={styles.bannerSubtitle} numberOfLines={1}>
             {recommendationReason}
           </Text>
         </View>
       </View>
 
-      {/* Mode Comparison Scrollable Tabs */}
+      {/* Travel-mode cards horizontal scroll */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -58,69 +41,71 @@ export default function RouteModeSelector() {
         {options.map((opt) => {
           const isSelected = activeMode === opt.id;
           const isRecommended = multimodalPlan.recommendedMode === opt.id;
+          const modeColor = modeColors[opt.id] || colors.accentRamp[600];
 
           return (
             <Pressable
               key={opt.id}
-              onPress={() => setRouteMode(opt.id)}
+              onPress={() => {
+                setRouteMode(opt.id);
+                if (opt.id !== 'cab' && multimodalPlan.routes?.cab?.totalCost) {
+                  const card = buildSavingsCard(
+                    multimodalPlan.routes.cab.totalCost,
+                    opt.cost,
+                    FOOD_MENUS,
+                  );
+                  if (card.hasData && card.savedInr > 0) {
+                    recordSavings({
+                      amountInr: card.savedInr,
+                      label: `${opt.title} to ${destination?.name || 'destination'} instead of cab`,
+                      tripLabel: destination?.name || '',
+                    })
+                      .then((event) => {
+                        if (event) {
+                          fireToast(card.sentence || `💰 Saved ₹${card.savedInr} vs Direct Cab!`);
+                        }
+                      })
+                      .catch(() => {});
+                  }
+                }
+              }}
               style={({ pressed }) => [
                 styles.modeCard,
-                isSelected && styles.modeCardActive,
-                opt.id === 'auto' && isSelected && styles.modeCardAutoActive,
-                opt.id === 'cab' && isSelected && styles.modeCardCabActive,
-                opt.id === 'bus' && isSelected && styles.modeCardBusActive,
-                pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
+                isSelected && styles.modeCardSelected,
+                pressed && { opacity: 0.88, transform: [{ scale: 0.97 }] },
               ]}
             >
-              {/* Top Tag / Pill */}
-              <View style={styles.cardHeaderRow}>
-                <View style={[
-                  styles.tagPill,
-                  isRecommended && styles.tagPillRecommended,
-                  opt.id === 'auto' && isShortDistance && styles.tagPillFastest,
-                ]}>
-                  <Text style={[
-                    styles.tagPillText,
-                    isRecommended && styles.tagPillTextRecommended,
-                    opt.id === 'auto' && isShortDistance && styles.tagPillTextFastest,
-                  ]}>
-                    {opt.tag}
-                  </Text>
+              {isRecommended && (
+                <View style={styles.recommendedBadge}>
+                  <Text style={styles.recommendedBadgeText}>BEST</Text>
                 </View>
+              )}
 
-                {isSelected && (
-                  <View style={styles.activeCheckDot}>
-                    <Text style={styles.activeCheckText}>✓</Text>
-                  </View>
-                )}
+              {/* Mode Icon Disc */}
+              <View
+                style={[
+                  styles.modeIconDisc,
+                  { backgroundColor: isSelected ? modeColor : `${modeColor}18` },
+                ]}
+              >
+                <Text style={styles.modeIconText}>{opt.icon}</Text>
               </View>
 
-              {/* Mode Icon & Name */}
-              <View style={styles.modeIconRow}>
-                <Text style={styles.modeEmoji}>{opt.icon}</Text>
-                <Text style={[
-                  styles.modeTitle,
-                  isSelected && styles.modeTitleActive,
-                ]}>
-                  {opt.title}
-                </Text>
-              </View>
+              {/* Title */}
+              <Text
+                numberOfLines={1}
+                style={[styles.modeTitleText, isSelected && styles.modeTitleTextActive]}
+              >
+                {opt.title}
+              </Text>
 
-              {/* Metric Row: Duration & Cost */}
-              <View style={styles.metricsRow}>
-                <Text style={[
-                  styles.durationText,
-                  isSelected && styles.durationTextActive,
-                ]}>
-                  ~{opt.durationMinutes} min
-                </Text>
-                <Text style={[
-                  styles.costText,
-                  isSelected && styles.costTextActive,
-                ]}>
-                  ₹{opt.cost}
-                </Text>
-              </View>
+              {/* Meta: Duration & Cost */}
+              <Text
+                numberOfLines={1}
+                style={[styles.modeMetaText, isSelected && styles.modeMetaTextActive]}
+              >
+                {opt.durationMinutes}m · ₹{opt.cost}
+              </Text>
             </Pressable>
           );
         })}
@@ -131,162 +116,108 @@ export default function RouteModeSelector() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
-    marginBottom: 6,
+    marginVertical: 4,
+    paddingHorizontal: 0,
   },
   recommendationBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    gap: 8,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: radius.md,
-    marginBottom: 10,
+    marginBottom: 8,
+    backgroundColor: '#ffffff',
     borderWidth: 1,
+    borderColor: '#e2e8f0',
+    ...shadow.sm,
   },
-  bannerShort: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fde68a',
-  },
-  bannerLong: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#bfdbfe',
-  },
-  bannerEmoji: {
-    fontSize: 18,
+  bannerAccentDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   bannerTitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: fontFamily.bodyBold,
-  },
-  bannerTitleShort: {
-    color: '#92400e',
-  },
-  bannerTitleLong: {
-    color: '#1e40af',
+    color: '#0f172a',
   },
   bannerSubtitle: {
     fontSize: 11,
     fontFamily: fontFamily.body,
     color: '#475569',
     marginTop: 1,
-    lineHeight: 15,
   },
   tabsScroll: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     paddingRight: 10,
-    paddingBottom: 4,
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   modeCard: {
-    width: 148,
+    alignItems: 'center',
+    width: 102,
     backgroundColor: '#ffffff',
-    borderRadius: radius.md,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
-    padding: 10,
+    position: 'relative',
     ...shadow.sm,
   },
-  modeCardActive: {
-    borderColor: colors.accentRamp[600],
-    backgroundColor: '#faf5ff',
-    ...shadow.md,
-  },
-  modeCardAutoActive: {
-    borderColor: '#f59e0b',
-    backgroundColor: '#fffdf5',
-  },
-  modeCardCabActive: {
-    borderColor: '#0284c7',
-    backgroundColor: '#f0f9ff',
-  },
-  modeCardBusActive: {
+  modeCardSelected: {
     borderColor: '#16a34a',
     backgroundColor: '#f0fdf4',
+    borderWidth: 2,
+    ...shadow.md,
   },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  tagPill: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 6,
+  recommendedBadge: {
+    position: 'absolute',
+    top: -8,
+    backgroundColor: '#15803d',
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: radius.pill,
+    zIndex: 10,
   },
-  tagPillRecommended: {
-    backgroundColor: '#dbeafe',
-  },
-  tagPillFastest: {
-    backgroundColor: '#fef3c7',
-  },
-  tagPillText: {
-    fontSize: 9.5,
+  recommendedBadgeText: {
+    fontSize: 8.5,
     fontFamily: fontFamily.bodyBold,
-    color: '#475569',
-    letterSpacing: 0.2,
+    color: '#ffffff',
+    letterSpacing: 0.5,
   },
-  tagPillTextRecommended: {
-    color: '#1d4ed8',
-  },
-  tagPillTextFastest: {
-    color: '#b45309',
-  },
-  activeCheckDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.accentRamp[700],
+  modeIconDisc: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  activeCheckText: {
-    color: '#ffffff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  modeIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
     marginBottom: 6,
   },
-  modeEmoji: {
+  modeIconText: {
     fontSize: 18,
   },
-  modeTitle: {
-    fontSize: 12.5,
-    fontFamily: fontFamily.bodyBold,
-    color: '#1e293b',
-    flex: 1,
-  },
-  modeTitleActive: {
-    color: '#0f172a',
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 6,
-  },
-  durationText: {
+  modeTitleText: {
     fontSize: 12,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+    textAlign: 'center',
+  },
+  modeTitleTextActive: {
+    color: '#0f172a',
+    fontFamily: fontFamily.bodyBold,
+  },
+  modeMetaText: {
+    fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
     color: '#64748b',
+    marginTop: 3,
+    textAlign: 'center',
   },
-  durationTextActive: {
-    color: colors.neutral[900],
-  },
-  costText: {
-    fontSize: 12,
+  modeMetaTextActive: {
+    color: '#15803d',
     fontFamily: fontFamily.bodyBold,
-    color: '#059669',
-  },
-  costTextActive: {
-    color: '#047857',
   },
 });

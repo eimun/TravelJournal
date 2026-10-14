@@ -93,13 +93,13 @@ export default function MilestoneRibbon({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.neutral[100],
+    backgroundColor: '#ffffff',
     borderRadius: radius.md,
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(46, 43, 37, 0.08)',
+    borderColor: '#e2e8f0',
     ...shadow.sm,
   },
   headerRow: {

@@ -1,21 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
-import { PURPLE_LINE, GREEN_LINE, getLineColor } from '../data/transitData';
+import { getLineColor } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import ConnectingLegSelector from './ConnectingLegSelector';
 import StationBlueprintModal from './StationBlueprintModal';
 import SafetyPingModal from './SafetyPingModal';
 
 export default function RouteDetailSheet({ route, onFocusMap }) {
-  const { fireToast, activeStepIndex, setActiveStepIndex, seniorMode, toggleSeniorMode, currentCity } = useTrip();
+  const {
+    fireToast,
+    activeStepIndex,
+    setActiveStepIndex,
+    seniorMode,
+    toggleSeniorMode,
+    currentCity,
+  } = useTrip();
   const [expandedStationStep, setExpandedStationStep] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedModes, setSelectedModes] = useState({});
@@ -69,13 +70,17 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
   const advisory = route?.autoAdvisory;
   const directCabFare = advisory?.cabFare || Math.max(140, Math.round(dynamicTotalCost * 5.5));
-  const directCabMinutes = advisory?.cabDurationMinutes || Math.round(dynamicTotalDuration * 1.5 + 10);
+  const directCabMinutes =
+    advisory?.cabDurationMinutes || Math.round(dynamicTotalDuration * 1.5 + 10);
   const moneySaved = Math.max(0, directCabFare - dynamicTotalCost);
   const savingsPct = directCabFare > 0 ? Math.round((moneySaved / directCabFare) * 100) : 0;
-  const foodEquivalent = advisory?.foodEquivalent || (moneySaved > 85 ? `${Math.floor(moneySaved / 85)} Benne Dosas` : '2 Filter Coffees');
+  const foodEquivalent =
+    advisory?.foodEquivalent ||
+    (moneySaved > 85 ? `${Math.floor(moneySaved / 85)} Benne Dosas` : '2 Filter Coffees');
 
   const metroStep = effectiveSteps.find((s) => s.type === 'metro') || effectiveSteps[0];
-  const safetyStation = metroStep?.platformInfo?.originStationName || route?.originName || 'Namma Metro';
+  const safetyStation =
+    metroStep?.platformInfo?.originStationName || route?.originName || 'Namma Metro';
   const safetyGate = metroStep?.platformInfo?.entryGate || 'Gate 1';
   const safetyLine = metroStep?.line === 'green' ? 'Green Line Metro' : 'Purple Line Metro';
   const safetyTowards = metroStep?.platformInfo?.towards || '';
@@ -107,12 +112,17 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
               pressed && { transform: [{ scale: 0.96 }] },
             ]}
           >
-            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={colors.white} strokeWidth={2.5}>
+            <Svg
+              width={14}
+              height={14}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke={colors.white}
+              strokeWidth={2.5}
+            >
               <Path d="M3 11l19-9-9 19-2-8-8-2z" />
             </Svg>
-            <Text style={styles.navStartBtnText}>
-              {isNavigating ? 'Navigating' : 'Start'}
-            </Text>
+            <Text style={styles.navStartBtnText}>{isNavigating ? 'Navigating' : 'Start'}</Text>
           </Pressable>
         </View>
       </View>
@@ -125,7 +135,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
             fireToast(
               !seniorMode
                 ? '🧓 Mom & Dad Mode active! Lifts & minimal walking prioritized.'
-                : 'Standard explorer mode restored.'
+                : 'Standard explorer mode restored.',
             );
           }}
           style={({ pressed }) => [
@@ -142,10 +152,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
         <Pressable
           onPress={() => setShowSavingsBreakdown((prev) => !prev)}
-          style={({ pressed }) => [
-            styles.savingsCompactPill,
-            pressed && { opacity: 0.85 },
-          ]}
+          style={({ pressed }) => [styles.savingsCompactPill, pressed && { opacity: 0.85 }]}
         >
           <Text style={styles.savingsCompactEmoji}>💰</Text>
           <Text style={styles.savingsCompactText}>Save ₹{moneySaved}</Text>
@@ -154,10 +161,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
         <Pressable
           onPress={() => setShowSafetyModal(true)}
-          style={({ pressed }) => [
-            styles.safetyPillBtn,
-            pressed && { opacity: 0.85 },
-          ]}
+          style={({ pressed }) => [styles.safetyPillBtn, pressed && { opacity: 0.85 }]}
         >
           <Text style={styles.safetyPillEmoji}>🛡️</Text>
           <Text style={styles.safetyPillLabel}>Family Ping</Text>
@@ -198,10 +202,22 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
             <View style={styles.transitCol}>
               <View style={styles.colHeaderRow}>
                 <Text style={styles.colEmoji}>
-                  {route.mode === 'auto' ? '🛺' : route.mode === 'cab' ? '🚕' : route.mode === 'bus' ? '🚌' : '🚇'}
+                  {route.mode === 'auto'
+                    ? '🛺'
+                    : route.mode === 'cab'
+                      ? '🚕'
+                      : route.mode === 'bus'
+                        ? '🚌'
+                        : '🚇'}
                 </Text>
                 <Text style={styles.colTitle}>
-                  {route.mode === 'auto' ? 'Direct Auto' : route.mode === 'cab' ? 'Direct Cab' : route.mode === 'bus' ? 'City Bus' : 'Metro + Auto'}
+                  {route.mode === 'auto'
+                    ? 'Direct Auto'
+                    : route.mode === 'cab'
+                      ? 'Direct Cab'
+                      : route.mode === 'bus'
+                        ? 'City Bus'
+                        : 'Metro + Auto'}
                 </Text>
               </View>
               <Text style={styles.colSub}>Step-by-step route</Text>
@@ -217,9 +233,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
           <View style={styles.foodRewardBanner}>
             <Text style={styles.foodRewardEmoji}>🥞</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.foodRewardTitle}>
-                You save ₹{moneySaved} on this ride!
-              </Text>
+              <Text style={styles.foodRewardTitle}>You save ₹{moneySaved} on this ride!</Text>
               <Text style={styles.foodRewardSubtitle}>
                 Equivalent to {foodEquivalent}! Enjoy local delicacies with the money saved.
               </Text>
@@ -231,20 +245,22 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
             <View style={styles.scamShieldBox}>
               <Text style={styles.scamShieldTitle}>🛡️ LOCAL SCAM SHIELD</Text>
               <Text style={styles.scamShieldText}>
-                Official meter rate: ~₹{advisory.fare || 30}. {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
+                Official meter rate: ~₹{advisory.fare || 30}.{' '}
+                {advisory.scamAlert || 'Never pay street quotes over 1.5x meter.'}
               </Text>
             </View>
           )}
         </View>
       )}
 
-      {/* Step-by-Step Stepper with Interactive Map Highlights */}
-      <View style={styles.stepperHeaderRow}>
-        <Text style={styles.stepperSectionHeading}>EXACT STEP-BY-STEP ROUTE</Text>
-        <Text style={styles.stepperHelpText}>Tap any step to see road on map</Text>
-      </View>
+      {/* Step-by-Step Stepper inside clean elevated white card container */}
+      <View style={styles.stepperCard}>
+        <View style={styles.stepperHeaderRow}>
+          <Text style={styles.stepperSectionHeading}>EXACT STEP-BY-STEP ROUTE</Text>
+          <Text style={styles.stepperHelpText}>Tap step to view on map</Text>
+        </View>
 
-      <View style={styles.stepperList}>
+        <View style={styles.stepperList}>
         {effectiveSteps.map((step, idx) => {
           const isLast = idx === effectiveSteps.length - 1;
           const isMetro = step.type === 'metro';
@@ -256,37 +272,45 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
           const stepLineColor = getLineColor(step.line);
 
           return (
-            <Pressable
+            <View
               key={step.id || idx}
-              onPress={() => setActiveStepIndex(isSelected ? null : idx)}
-              style={({ pressed }) => [
+              style={[
                 styles.stepRow,
                 isSelected && styles.stepRowActive,
-                pressed && { opacity: 0.9 },
               ]}
             >
               {/* Stepper Rail and Icons */}
               <View style={styles.railCol}>
-                <View
-                  style={[
+                <Pressable
+                  onPress={() => setActiveStepIndex(isSelected ? null : idx)}
+                  style={({ pressed }) => [
                     styles.stepBadgeCircle,
                     isMetro && { backgroundColor: stepLineColor },
                     isTransfer && { backgroundColor: colors.accentRamp[700] },
                     isAuto && { backgroundColor: '#f59e0b' },
                     isCab && { backgroundColor: '#0f172a' },
                     isBus && { backgroundColor: '#16a34a' },
-                    !isMetro && !isTransfer && !isAuto && !isCab && !isBus && { backgroundColor: colors.neutral[400] },
+                    !isMetro &&
+                      !isTransfer &&
+                      !isAuto &&
+                      !isCab &&
+                      !isBus && { backgroundColor: colors.neutral[400] },
                     isSelected && styles.stepBadgeCircleActive,
+                    pressed && { opacity: 0.8 },
                   ]}
                 >
                   <Text style={styles.stepBadgeNumber}>{idx + 1}</Text>
-                </View>
+                </Pressable>
 
                 {!isLast && (
                   <View
                     style={[
                       styles.railLine,
-                      isMetro && { borderLeftColor: stepLineColor, borderStyle: 'solid', borderLeftWidth: 2.5 },
+                      isMetro && {
+                        borderLeftColor: stepLineColor,
+                        borderStyle: 'solid',
+                        borderLeftWidth: 2.5,
+                      },
                       isSelected && { borderLeftColor: colors.accentRamp[600], borderLeftWidth: 3 },
                     ]}
                   />
@@ -295,34 +319,43 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
               {/* Step Content */}
               <View style={[styles.stepContentCol, !isLast && { paddingBottom: 18 }]}>
-                <View style={styles.stepTitleRow}>
-                  <Text style={[styles.stepTitle, isSelected && styles.stepTitleActive]}>
-                    {step.title}
-                  </Text>
-                  {step.cost > 0 && <Text style={styles.stepFare}>₹{step.cost}</Text>}
-                </View>
+                <Pressable
+                  onPress={() => setActiveStepIndex(isSelected ? null : idx)}
+                  style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+                >
+                  <View style={styles.stepTitleRow}>
+                    <Text style={[styles.stepTitle, isSelected && styles.stepTitleActive]}>
+                      {step.title}
+                    </Text>
+                    {step.cost > 0 && <Text style={styles.stepFare}>₹{step.cost}</Text>}
+                  </View>
 
-                {isSelected && (
-                  <Pressable
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      onFocusMap?.();
-                    }}
-                    style={styles.stepMapActiveBadge}
-                  >
-                    <Text style={styles.stepMapActiveBadgeText}>📍 Highlighted on Map · Tap to View Map ⬆️</Text>
-                  </Pressable>
-                )}
+                  {isSelected && (
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        onFocusMap?.();
+                      }}
+                      style={styles.stepMapActiveBadge}
+                    >
+                      <Text style={styles.stepMapActiveBadgeText}>
+                        📍 Highlighted on Map · Tap to View Map ⬆️
+                      </Text>
+                    </Pressable>
+                  )}
 
-                <Text style={styles.stepMeta}>{step.meta}</Text>
-                <Text style={styles.stepDetails}>{step.details}</Text>
+                  <Text style={styles.stepMeta}>{step.meta}</Text>
+                  <Text style={styles.stepDetails}>{step.details}</Text>
+                </Pressable>
 
                 {/* Metro Platform & Station Gate Guidance */}
                 {step.platformInfo && (
                   <View style={styles.gatePlatformCard}>
                     <View style={styles.gatePlatformHeader}>
                       <View style={styles.platformBadge}>
-                        <Text style={styles.platformBadgeText}>🚉 {step.platformInfo.platform}</Text>
+                        <Text style={styles.platformBadgeText}>
+                          🚉 {step.platformInfo.platform}
+                        </Text>
                       </View>
                       <Text style={styles.platformTowardsText} numberOfLines={1}>
                         {step.platformInfo.towards}
@@ -339,7 +372,8 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                           </View>
                           <View style={styles.metroFreqBadge}>
                             <Text style={styles.metroLiveFreq}>
-                              {step.nextDeparture.frequencyLabel || `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
+                              {step.nextDeparture.frequencyLabel ||
+                                `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
                             </Text>
                           </View>
                         </View>
@@ -348,7 +382,9 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         <View style={styles.nextTrainHeroRow}>
                           <View style={styles.nextTrainHeroLeft}>
                             <Text style={styles.nextTrainHeroLabel}>NEXT TRAIN</Text>
-                            <Text style={styles.nextTrainHeroTime}>{step.nextDeparture.scheduledTime}</Text>
+                            <Text style={styles.nextTrainHeroTime}>
+                              {step.nextDeparture.scheduledTime}
+                            </Text>
                           </View>
                           <View style={styles.nextTrainCountdownPill}>
                             <Text style={styles.nextTrainCountdownPillText}>
@@ -360,28 +396,36 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         </View>
 
                         {/* Consecutive Departures Today */}
-                        {step.nextDeparture.departures && step.nextDeparture.departures.length > 1 && (
-                          <View style={styles.metroUpcomingSection}>
-                            <Text style={styles.metroUpcomingLabel}>Following trains today:</Text>
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerStyle={styles.metroUpcomingScroll}
-                            >
-                              {step.nextDeparture.departures.slice(1, 4).map((d, di) => (
-                                <View key={di} style={styles.metroDepPill}>
-                                  <Text style={styles.metroDepPillTime}>{d.timeFormatted}</Text>
-                                  <View style={styles.pillSubBadge}>
-                                    <Text style={styles.metroDepPillSub}>+{d.inMinutes}m</Text>
+                        {step.nextDeparture.departures &&
+                          step.nextDeparture.departures.length > 1 && (
+                            <View style={styles.metroUpcomingSection}>
+                              <View style={styles.metroUpcomingHeaderRow}>
+                                <Text style={styles.metroUpcomingLabel}>Following trains today:</Text>
+                                <Text style={styles.metroUpcomingSlideHint}>Slide right for more ➔</Text>
+                              </View>
+                              <ScrollView
+                                horizontal
+                                nestedScrollEnabled={true}
+                                directionalLockEnabled={true}
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={styles.metroUpcomingScroll}
+                                style={{ width: '100%' }}
+                              >
+                                {step.nextDeparture.departures.slice(1, 8).map((d, di) => (
+                                  <View key={di} style={styles.metroDepPill}>
+                                    <Text style={styles.metroDepPillTime}>{d.timeFormatted}</Text>
+                                    <View style={styles.pillSubBadge}>
+                                      <Text style={styles.metroDepPillSub}>+{d.inMinutes}m</Text>
+                                    </View>
                                   </View>
-                                </View>
-                              ))}
-                            </ScrollView>
-                          </View>
-                        )}
+                                ))}
+                              </ScrollView>
+                            </View>
+                          )}
 
                         <Text style={styles.metroOperatingFooter}>
-                          Daily Service: {step.nextDeparture.operatingHours || '05:00 AM – 23:15 PM'}
+                          Daily Service:{' '}
+                          {step.nextDeparture.operatingHours || '05:00 AM – 23:15 PM'}
                         </Text>
                       </View>
                     )}
@@ -399,7 +443,10 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                       <View style={styles.gateColDivider} />
                       <View style={styles.gateCol}>
                         <Text style={styles.gateColLabel}>RECOMMENDED EXIT</Text>
-                        <Text style={[styles.gateColValue, { color: colors.accentRamp[700] }]} numberOfLines={1}>
+                        <Text
+                          style={[styles.gateColValue, { color: colors.accentRamp[700] }]}
+                          numberOfLines={1}
+                        >
                           {step.platformInfo.exitGate}
                         </Text>
                         <Text style={styles.gateColSub} numberOfLines={1}>
@@ -410,7 +457,9 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 
                     {step.platformInfo.destGates && step.platformInfo.destGates.length > 0 && (
                       <View style={styles.destGatesTipsList}>
-                        <Text style={styles.destGatesHeader}>Exit Guide for {step.platformInfo.destStationName}:</Text>
+                        <Text style={styles.destGatesHeader}>
+                          Exit Guide for {step.platformInfo.destStationName}:
+                        </Text>
                         {step.platformInfo.destGates.map((g, gi) => (
                           <Text key={gi} style={styles.gateExitItemText} numberOfLines={1}>
                             • <Text style={styles.gateExitItemBold}>{g.id}:</Text> {g.exitFor}
@@ -425,9 +474,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         onPress={(e) => {
                           e.stopPropagation();
                           setBlueprintPathId(
-                            step.type === 'transfer'
-                              ? 'purple_to_green_transfer'
-                              : 'ksr_to_purple',
+                            step.type === 'transfer' ? 'purple_to_green_transfer' : 'ksr_to_purple',
                           );
                           setShowBlueprintModal(true);
                         }}
@@ -509,10 +556,7 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                         {step.intermediateStations.map((stName, stIdx) => (
                           <View key={stIdx} style={styles.stationNameItem}>
                             <View
-                              style={[
-                                styles.smallStationDot,
-                                { backgroundColor: stepLineColor },
-                              ]}
+                              style={[styles.smallStationDot, { backgroundColor: stepLineColor }]}
                             />
                             <Text style={styles.stationNameText}>{stName}</Text>
                           </View>
@@ -522,9 +566,10 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
                   </View>
                 )}
               </View>
-            </Pressable>
+            </View>
           );
         })}
+        </View>
       </View>
 
       {/* Majestic Concourse Blueprint Modal (Bengaluru Only) */}
@@ -551,14 +596,26 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
 }
 
 const styles = StyleSheet.create({
+  // Google Maps bottom-sheet chrome: drag grabber, then a flat header (no
+  // card-in-card boxes) with the blue Start button.
   sheet: {
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 24,
   },
+  sheetGrabber: {
+    alignSelf: 'center',
+    width: 44,
+    height: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.neutral[300],
+    marginBottom: 12,
+  },
   summaryHeader: {
-    backgroundColor: colors.neutral[100],
-    borderRadius: radius.lg,
+    backgroundColor: colors.white,
+    borderRadius: radius.md,
     padding: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
     ...shadow.sm,
   },
   summaryTopRow: {
@@ -567,20 +624,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryBadge: {
-    backgroundColor: colors.accentRamp[100],
+    backgroundColor: colors.neutral[100],
     borderRadius: radius.pill,
     paddingVertical: 4,
     paddingHorizontal: 10,
   },
   categoryBadgeText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[800],
+    color: colors.neutral[700],
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
   costBadge: {
-    backgroundColor: colors.accent2Ramp[200],
+    backgroundColor: colors.neutral[100],
     borderRadius: radius.pill,
     paddingVertical: 4,
     paddingHorizontal: 10,
@@ -588,7 +645,7 @@ const styles = StyleSheet.create({
   costBadgeText: {
     fontSize: 12,
     fontFamily: fontFamily.bodyBold,
-    color: colors.accent2Ramp[800],
+    color: colors.neutral[900],
   },
   metricsRow: {
     flexDirection: 'row',
@@ -612,10 +669,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: colors.accentRamp[500],
+    backgroundColor: colors.accent2Ramp[500],
     borderRadius: radius.pill,
-    paddingVertical: 9,
-    paddingHorizontal: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 20,
     ...shadow.md,
   },
   navStartBtnActive: {
@@ -655,23 +712,31 @@ const styles = StyleSheet.create({
     color: '#1e3a8a',
     marginTop: 2,
   },
+  stepperCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    padding: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    ...shadow.sm,
+  },
   stepperHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
-    marginTop: 20,
     marginBottom: 12,
   },
   stepperSectionHeading: {
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
     letterSpacing: 1.1,
-    color: colors.neutral[600],
+    color: '#64748b',
   },
   stepperHelpText: {
     fontSize: 10.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
+    color: '#16a34a',
   },
   stepperList: {
     marginTop: 4,
@@ -681,47 +746,50 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: radius.md,
     padding: 6,
-    marginHorizontal: -6,
+    marginHorizontal: -4,
   },
   stepRowActive: {
-    backgroundColor: colors.accentRamp[100],
+    backgroundColor: '#f0fdf4',
     borderWidth: 1.5,
-    borderColor: colors.accentRamp[400],
+    borderColor: '#86efac',
   },
   stepMapActiveBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.accentRamp[500],
+    backgroundColor: '#16a34a',
     borderRadius: radius.pill,
     paddingVertical: 2,
-    paddingHorizontal: 7,
+    paddingHorizontal: 8,
     marginTop: 3,
     marginBottom: 4,
   },
   stepMapActiveBadgeText: {
     fontSize: 10,
     fontFamily: fontFamily.bodyBold,
-    color: colors.white,
+    color: '#ffffff',
   },
   railCol: {
-    width: 24,
+    width: 30,
     alignItems: 'center',
   },
   stepBadgeCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2.5,
+    borderColor: 'transparent',
   },
+  // Selected-stop treatment
   stepBadgeCircleActive: {
-    transform: [{ scale: 1.15 }],
+    borderColor: '#16a34a',
     ...shadow.sm,
   },
   stepTitleActive: {
-    color: colors.accentRamp[900],
+    color: '#15803d',
   },
   stepBadgeNumber: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: fontFamily.bodyBold,
     color: colors.white,
   },
@@ -730,8 +798,11 @@ const styles = StyleSheet.create({
     flex: 1,
     borderLeftWidth: 2,
     borderStyle: 'dashed',
-    borderLeftColor: colors.neutral[300],
+    borderLeftColor: '#cbd5e1',
     marginVertical: 4,
+  },
+  railLineSolid: {
+    borderStyle: 'solid',
   },
   stepContentCol: {
     flex: 1,
@@ -744,38 +815,40 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 14.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[900],
+    color: '#0f172a',
     flex: 1,
   },
   stepFare: {
     fontSize: 14,
     fontFamily: fontFamily.heading,
-    color: colors.accentRamp[700],
+    color: '#16a34a',
     marginLeft: 8,
   },
   stepMeta: {
     fontSize: 12,
     fontFamily: fontFamily.body,
-    color: colors.neutral[600],
+    color: '#64748b',
     marginTop: 2,
   },
   stepDetails: {
     fontSize: 12.5,
     fontFamily: fontFamily.body,
-    color: colors.neutral[800],
+    color: '#334155',
     marginTop: 5,
     lineHeight: 18,
   },
   stepTipBox: {
-    backgroundColor: colors.accentRamp[100],
+    backgroundColor: '#f0fdf4',
     borderRadius: radius.sm,
     padding: 8,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
   },
   stepTipText: {
     fontSize: 11.5,
     fontFamily: fontFamily.bodyMedium,
-    color: colors.accentRamp[800],
+    color: '#15803d',
     lineHeight: 16,
   },
   intermediateBox: {
@@ -787,7 +860,7 @@ const styles = StyleSheet.create({
   intermediateToggleText: {
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
+    color: '#16a34a',
   },
   intermediateStationsList: {
     backgroundColor: colors.neutral[100],
@@ -1404,16 +1477,27 @@ const styles = StyleSheet.create({
   metroUpcomingSection: {
     marginBottom: 8,
   },
+  metroUpcomingHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
   metroUpcomingLabel: {
     fontSize: 11,
     fontFamily: fontFamily.bodyMedium,
     color: '#475569',
-    marginBottom: 6,
+  },
+  metroUpcomingSlideHint: {
+    fontSize: 10,
+    fontFamily: fontFamily.bodyBold,
+    color: '#2563eb',
   },
   metroUpcomingScroll: {
     flexDirection: 'row',
     gap: 8,
-    paddingRight: 10,
+    paddingRight: 20,
+    paddingVertical: 2,
   },
   metroDepPill: {
     backgroundColor: '#ffffff',

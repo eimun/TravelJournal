@@ -11,6 +11,7 @@ export default function WebRoadMap({
   activeRoute,
   activeStepIndex,
   onSelectStep,
+  borderRadius = 0,
 }) {
   const mapHtml = useMemo(() => {
     const centerLat = userLocation?.latitude || 12.9716;
@@ -28,7 +29,7 @@ export default function WebRoadMap({
         line: s.line,
         selectedMode: s.selectedMode,
         coordinates: (s.coordinates || []).map((c) => [c.latitude, c.longitude]),
-      }))
+      })),
     );
 
     const serializedMilestones = JSON.stringify(
@@ -40,7 +41,7 @@ export default function WebRoadMap({
         line: m.line,
         stepIndex: m.stepIndex,
         coords: [m.coordinate?.latitude || 0, m.coordinate?.longitude || 0],
-      }))
+      })),
     );
 
     const userCoord = userLocation ? [userLocation.latitude, userLocation.longitude] : null;
@@ -178,6 +179,7 @@ export default function WebRoadMap({
       const isBus = step.type === 'bus' || step.selectedMode === 'bus' || step.type === 'direct_bus';
       const isBike = step.selectedMode === 'bike';
       
+      // Citymapper-style: mode line colors aligned with tokens.modeColors.
       let strokeColor = '#d97706'; // default connecting walk
       if (isMetro) {
         if (step.line === 'green') strokeColor = '#16a34a';
@@ -189,11 +191,11 @@ export default function WebRoadMap({
         else if (step.line === 'mumbai_metro1') strokeColor = '#0284c7';
         else strokeColor = '#7c3aed';
       } else if (isAuto) {
-        strokeColor = '#0284c7';
+        strokeColor = '#c9a227'; // modeColors.auto
       } else if (isCab) {
-        strokeColor = '#0f172a';
+        strokeColor = '#474238'; // modeColors.cab (neutral-800 leaner than #0f172a)
       } else if (isBus) {
-        strokeColor = '#16a34a';
+        strokeColor = '#728157'; // modeColors.bus (accent2Ramp[600])
       } else if (isBike) {
         strokeColor = '#d97706';
       }
@@ -280,11 +282,11 @@ export default function WebRoadMap({
   }, [userLocation, destination, activeRoute, activeStepIndex]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderRadius }]}>
       <iframe
         title="Interactive Road Map"
         srcDoc={mapHtml}
-        style={styles.iframe}
+        style={{ ...styles.iframe, borderRadius }}
         sandbox="allow-scripts allow-same-origin"
       />
     </View>
@@ -295,13 +297,11 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFill,
     backgroundColor: '#f8f6f0',
-    borderRadius: 16,
     overflow: 'hidden',
   },
   iframe: {
     width: '100%',
     height: '100%',
     border: 'none',
-    borderRadius: 16,
   },
 });
