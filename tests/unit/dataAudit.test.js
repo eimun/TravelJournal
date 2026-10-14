@@ -4,6 +4,12 @@ import { PURPLE_STATIONS, GREEN_STATIONS, POPULAR_DESTINATIONS } from '../../app
 import { BMTC_ROUTES } from '../../app/data/bmtcBusData';
 import { ALL_CLOAKROOMS, getCloakroomsForCity } from '../../app/data/cloakroomData';
 import {
+  getTrailsForCity,
+  getTrailById,
+  getHeritageEateriesForCity,
+  FOOD_MENUS,
+} from '../../app/data/bengaluruTrails';
+import {
   DELHI_RESTAURANTS,
   MUMBAI_RESTAURANTS,
   DELHI_SEARCH_HUBS,
@@ -205,5 +211,111 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     expect(rainFare.surge.isRain).toBe(true);
     expect(rainFare.surge.label).toContain('Rain Surcharge');
     expect(rainFare.providers.uberOla.fare).toBeGreaterThan(fare8kmPeak.providers.uberOla.fare);
+  });
+
+  // ------------------------------------------------------------------
+  // Trails & Passport data audit (F-1/F-2) — strict gate per v1 spec
+  // ------------------------------------------------------------------
+
+  test('Audit: every trail is complete, in-bounds and fully cited', () => {
+    const trails = getTrailsForCity('bengaluru');
+    expect(trails.length).toBeGreaterThanOrEqual(3);
+
+    trails.forEach((trail) => {
+      // Schema completeness
+      expect(trail.id).toBeTruthy();
+      expect(trail.cityId).toBe('bengaluru');
+      expect(trail.title).toBeTruthy();
+      expect(trail.summary).toBeTruthy();
+      expect(trail.neighbourhood).toBeTruthy();
+      expect(trail.totalDistanceKm).toBeGreaterThan(0);
+      expect(trail.estDurationMin).toBeGreaterThan(60);
+      expect(trail.estCostInr).toBeGreaterThanOrEqual(0);
+      expect(Array.isArray(trail.stops)).toBe(true);
+      expect(trail.stops.length).toBeGreaterThanOrEqual(3);
+
+      // Stops: ordered, in bounds, complete, cited
+      const seenOrders = new Set();
+      trail.stops.forEach((stop, idx) => {
+        expect(stop.order).toBe(idx + 1);
+        expect(seenOrders.has(stop.order)).toBe(false);
+        seenOrders.add(stop.order);
+
+        expect(stop.name).toBeTruthy();
+        expect(stop.type).toBeTruthy();
+        expect(stop.hours).toBeTruthy();
+        expect(stop.tip).toBeTruthy();
+        expect(stop.spendTimeMin).toBeGreaterThan(0);
+        expect(Array.isArray(stop.citations)).toBe(true);
+        expect(stop.citations.length).toBeGreaterThanOrEqual(1);
+        stop.citations.forEach((url) => expect(url).toMatch(/^https?:\/\//));
+
+        // Bengaluru geo bounds
+        expect(stop.latitude).toBeGreaterThan(12.8);
+        expect(stop.latitude).toBeLessThan(13.4);
+        expect(stop.longitude).toBeGreaterThan(77.4);
+        expect(stop.longitude).toBeLessThan(77.8);
+      });
+
+      // Walk distances plausibility (no 5 km leaps between consecutive stops)
+      for (let i = 1; i < trail.stops.length; i++) {
+        expect(trail.stops[i].walkFromPrevM).toBeLessThanOrEqual(1200);
+      }
+    });
+  });
+
+  test('Audit: eatery stops reference real curated restaurants and carry signature dishes', () => {
+    const restaurantIds = new Set(RESTAURANTS.map((r) => r.id));
+    const trails = getTrailsForCity('bengaluru');
+
+    trails.forEach((trail) => {
+      trail.stops.forEach((stop) => {
+        if (stop.type === 'eatery') {
+          expect(restaurantIds.has(stop.eateryId)).toBe(true);
+          expect(stop.signatureDish).toBeTruthy();
+          expect(stop.signatureDishPriceInr).toBeGreaterThan(0);
+        }
+      });
+    });
+  });
+
+  test('Audit: heritage eatery stamps resolve to curated restaurants', () => {
+    const restaurantIds = new Set(RESTAURANTS.map((r) => r.id));
+    const eateries = getHeritageEateriesForCity('bengaluru');
+    expect(eateries.length).toBeGreaterThanOrEqual(3);
+
+    eateries.forEach((he) => {
+      expect(restaurantIds.has(he.sourceId)).toBe(true);
+      expect(he.title).toBeTruthy();
+      expect(he.year).toBeGreaterThan(1900);
+      expect(he.unlockedLabel).toContain('Unlocked:');
+      expect(he.checkInRadiusM).toBeGreaterThanOrEqual(40);
+      expect(he.checkInRadiusM).toBeLessThanOrEqual(200);
+
+      expect(he.latitude).toBeGreaterThan(12.8);
+      expect(he.latitude).toBeLessThan(13.4);
+      expect(he.longitude).toBeGreaterThan(77.4);
+      expect(he.longitude).toBeLessThan(77.8);
+    });
+  });
+
+  test('Audit: food menus used by the savings meter have sane prices', () => {
+    expect(FOOD_MENUS.length).toBeGreaterThanOrEqual(3);
+    FOOD_MENUS.forEach((item) => {
+      expect(item.name).toBeTruthy();
+      expect(item.priceInr).toBeGreaterThanOrEqual(20);
+      expect(item.priceInr).toBeLessThanOrEqual(300);
+    });
+  });
+
+  test('Audit: rain-mode indoor fallbacks resolve to real indoor trails', () => {
+    const trails = getTrailsForCity('bengaluru');
+    trails.forEach((trail) => {
+      if (trail.indoorTrailId) {
+        const fallback = getTrailById(trail.indoorTrailId);
+        expect(fallback).not.toBeNull();
+        expect(fallback.isIndoor || fallback.weatherRiskTags.includes('covered')).toBe(true);
+      }
+    });
   });
 });
