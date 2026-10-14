@@ -11,6 +11,7 @@
  */
 
 import verification from '../data/restaurantVerification.json';
+import { CORRECTIONS_CHECKED_ON, RESTAURANT_CORRECTIONS } from '../data/restaurantCorrections';
 import { findNearestMetroStation, getLineDisplayName } from '../data/transitData';
 import { CITY_BOUNDS } from './searchService';
 import {
@@ -68,38 +69,60 @@ export function nearestStationText(lat, lon, cityId) {
     : `${st.name} (${getLineDisplayName(st.line)}) · ${dist} — take an auto`;
 }
 
-/** Merges verification + derived fields into a curated restaurant record. */
+/**
+ * Merges verification + researched corrections into a curated restaurant record.
+ *
+ * Hours priority: researched correction > OpenStreetMap > curated guess. Only the
+ * first two count as verified (hoursVerified) and may be shown as "Open/Closed";
+ * a curated guess is shown as "Hours unverified".
+ */
 export function withVerification(r, cityId) {
   const v = VERIFICATION[r.id];
-  const status = v ? v.status : 'not_checked';
+  const fix = RESTAURANT_CORRECTIONS[r.id] || null;
   const osm = v && v.osm ? v.osm : null;
   const tags = osm ? osm.tags || {} : {};
 
-  const useOsmPin = status === 'location_corrected' && osm;
-  const latitude = useOsmPin ? osm.lat : r.latitude;
-  const longitude = useOsmPin ? osm.lon : r.longitude;
+  const researchedPin = fix && Number.isFinite(fix.latitude) && Number.isFinite(fix.longitude);
+  const useOsmPin = !researchedPin && v && v.status === 'location_corrected' && osm;
+  const latitude = researchedPin ? fix.latitude : useOsmPin ? osm.lat : r.latitude;
+  const longitude = researchedPin ? fix.longitude : useOsmPin ? osm.lon : r.longitude;
+  let status = v ? v.status : 'not_checked';
+  if (researchedPin) status = 'location_corrected';
 
-  const osmSchedule = parseOsmOpeningHours(tags.opening_hours);
   let schedule = null;
   let hoursSource = null;
-  if (osmSchedule) {
+  let hoursVerified = false;
+  const fixSchedule = fix && fix.hours ? parseOsmOpeningHours(fix.hours) : null;
+  const osmSchedule = parseOsmOpeningHours(tags.opening_hours);
+  if (fixSchedule) {
+    schedule = fixSchedule;
+    hoursSource = `Checked ${CORRECTIONS_CHECKED_ON} against public listings`;
+    hoursVerified = true;
+  } else if (osmSchedule) {
     schedule = osmSchedule;
     hoursSource = 'OpenStreetMap';
+    hoursVerified = true;
   } else if (r.openTime && r.closeTime) {
     schedule = scheduleFromOpenClose(r.openTime, r.closeTime);
-    hoursSource = 'Curated (not verified)';
+    hoursSource = 'Curated guess — not verified';
   }
 
   const diet = mergeDiet(r.tags || [], tags);
 
   return {
     ...r,
+    cuisine: (fix && fix.cuisine) || r.cuisine,
+    area: (fix && fix.area) || r.area,
     latitude,
     longitude,
     schedule,
     hoursSource,
+    hoursVerified,
     hoursText: describeSchedule(schedule) || (tags.opening_hours ? tags.opening_hours : null),
     rawOsmHours: tags.opening_hours || null,
+    dataNote: fix && fix.note ? fix.note : null,
+    dataSources: fix && fix.sources ? fix.sources : [],
+    removed: Boolean(fix && fix.remove),
     tags: diet.tags,
     dietSource: diet.usedOsm ? 'Curated + OpenStreetMap diet tags' : 'Curated (not verified)',
     dietConflict: diet.conflict,
@@ -120,7 +143,9 @@ export function withVerification(r, cityId) {
       osmUrl: osm ? osm.url : null,
       osmName: tags.name || null,
       distanceM: v ? (v.distanceM ?? null) : null,
-      originalCoords: useOsmPin ? { latitude: r.latitude, longitude: r.longitude } : null,
+      originalCoords:
+        useOsmPin || researchedPin ? { latitude: r.latitude, longitude: r.longitude } : null,
+      pinSource: researchedPin ? 'public listings' : useOsmPin ? 'OpenStreetMap' : null,
     },
   };
 }
@@ -141,7 +166,8 @@ export function auditRestaurants(list, cityId) {
     corrected: 0,
     unverified: 0,
     live: 0,
-    noHours: 0,
+    hoursVerified: 0,
+    hoursUnverified: 0,
   };
   for (const r of list) {
     if (r.isLive || r.isOsmLive) counts.live += 1;
@@ -149,7 +175,9 @@ export function auditRestaurants(list, cityId) {
     if (v.status === 'verified') counts.verified += 1;
     else if (v.status === 'location_corrected') counts.corrected += 1;
     else if (!r.isLive && !r.isOsmLive) counts.unverified += 1;
-    if (!r.schedule) counts.noHours += 1;
+    const live = r.isLive || r.isOsmLive;
+    if (r.hoursVerified || (live && r.schedule)) counts.hoursVerified += 1;
+    else counts.hoursUnverified += 1;
 
     const key = `${cityId}:${r.id}`;
     if (audited.has(key)) continue;
@@ -174,7 +202,10 @@ export function auditRestaurants(list, cityId) {
     if (v.status === 'location_corrected') {
       reportIssue('FOOD_LOCATION_MISMATCH', {
         key: r.id,
-        message: `${r.name}: curated pin was ${v.distanceM} m from OSM "${v.osmName}" — OSM pin used`,
+        message:
+          v.pinSource === 'public listings'
+            ? `${r.name}: curated pin/area was wrong — corrected from public listings`
+            : `${r.name}: curated pin was ${v.distanceM} m from OSM "${v.osmName}" — OSM pin used`,
         data: { osm: v.osmUrl, original: v.originalCoords },
       });
     } else if (!r.isLive && !r.isOsmLive && v.status !== 'verified') {
@@ -186,10 +217,10 @@ export function auditRestaurants(list, cityId) {
         message: `${r.name}: ${r.dietConflict}`,
       });
     }
-    if (!r.schedule && !r.rawOsmHours) {
+    if (!live && !r.hoursVerified) {
       reportIssue('FOOD_FIELD_MISSING', {
         key: `${r.id}:hours`,
-        message: `${r.name}: no opening hours`,
+        message: `${r.name}: opening hours not verified (shown as unverified)`,
       });
     }
   }

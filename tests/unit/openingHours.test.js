@@ -44,6 +44,18 @@ describe('openingHours', () => {
     expect(getOpenStatus(s, at('12:00', '2026-10-13')).isOpen).toBe(false);
   });
 
+  it('handles comma-separated additional rules (Vidyarthi Bhavan on OSM)', () => {
+    const s = parseOsmOpeningHours(
+      'Mo-Th 06:30-11:30, Mo-Th 14:00-20:00, Sa-Su 06:30-12:00, Sa-Su 14:30-20:00',
+    );
+    expect(s[1]).toEqual([
+      [390, 690],
+      [840, 1200],
+    ]);
+    expect(s[5]).toEqual([]); // Friday: no rule → closed
+    expect(getOpenStatus(s, at('15:00')).isOpen).toBe(true); // Wednesday afternoon
+  });
+
   it('returns null for syntax it does not understand instead of guessing', () => {
     expect(parseOsmOpeningHours('Jan-Mar Mo-Fr 08:00-12:00')).toBeNull();
     expect(parseOsmOpeningHours('sunrise-sunset')).toBeNull();

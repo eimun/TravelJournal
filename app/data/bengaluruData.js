@@ -336,6 +336,8 @@ export const CUISINE_CATEGORIES = [
   { id: 'cafe',      label: 'Cafe',          emoji: '☕' },
   { id: 'northindian',label: 'North Indian', emoji: '🫓' },
   { id: 'desserts',  label: 'Desserts',      emoji: '🍮' },
+  { id: 'bakery',    label: 'Bakery',        emoji: '🥐' },
+  { id: 'bar',       label: 'Pub & bar',     emoji: '🍺' },
 ];
 
 // Price tiers: 1 = ₹ (under ₹100), 2 = ₹₹ (₹100–₹300), 3 = ₹₹₹ (above ₹300)

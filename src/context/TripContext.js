@@ -582,7 +582,11 @@ export function TripProvider({ children }) {
   }, [selectedPlaceId]);
 
   const curatedRestaurants = useMemo(
-    () => getRestaurantsForCity(cityId).map((r) => withVerification(r, cityId)),
+    () =>
+      getRestaurantsForCity(cityId)
+        .map((r) => withVerification(r, cityId))
+        // Places that could not be found anywhere (see restaurantCorrections.js) are hidden.
+        .filter((r) => !r.removed),
     [cityId],
   );
 
@@ -709,7 +713,12 @@ export function TripProvider({ children }) {
 
     if (onlyOpenNow) {
       const now = new Date();
-      list = list.filter((r) => getOpenStatus(r.schedule, now).isOpen === true || r.isOpenFromProvider === true);
+      // Only verified hours count; a guessed schedule is never treated as "open".
+      list = list.filter(
+        (r) =>
+          (r.hoursVerified !== false && getOpenStatus(r.schedule, now).isOpen === true) ||
+          r.isOpenFromProvider === true,
+      );
     }
 
     // sort by distance if location known

@@ -122,6 +122,7 @@ export function transformOsmNodeToRestaurant(node, cityId) {
     hoursText: describeSchedule(schedule) || tags.opening_hours || null,
     rawOsmHours: tags.opening_hours || null,
     hoursSource: tags.opening_hours ? 'OpenStreetMap' : null,
+    hoursVerified: Boolean(schedule),
     tags: inferDietaryTags(tags),
     dietSource: 'OpenStreetMap',
     nearestMetro: nearestStationText(lat, lon, cityId),

@@ -67,7 +67,18 @@ export function parseOsmOpeningHours(value) {
   ALL_DAYS.forEach((d) => (schedule[d] = []));
   let sawRule = false;
 
-  for (const rawRule of text.split(';')) {
+  // ';' starts a normal rule (replaces earlier rules for its days). A ',' that follows
+  // a time or "off" and precedes a weekday starts an *additional* rule, which adds to
+  // the days it names, e.g. "Mo-Th 06:30-11:30, Mo-Th 14:00-20:00".
+  const rules = [];
+  for (const part of text.split(';')) {
+    part
+      .replace(/(\d|off|closed)\s*,\s*(?=(?:Mo|Tu|We|Th|Fr|Sa|Su)\b)/g, '$1\u0000')
+      .split('\u0000')
+      .forEach((r, i) => rules.push({ text: r, additional: i > 0 }));
+  }
+
+  for (const { text: rawRule, additional } of rules) {
     const rule = rawRule.trim();
     if (!rule) continue;
     const m =
@@ -84,8 +95,12 @@ export function parseOsmOpeningHours(value) {
       return null; // day selector without times — ambiguous
     else ranges = parseTimes(rest);
     if (!ranges) return null;
-    // OSM semantics: a later rule replaces earlier rules for the days it names.
-    days.forEach((d) => (schedule[d] = ranges.map((r) => [...r])));
+    // OSM semantics: a later normal rule replaces earlier rules for the days it names;
+    // an additional rule adds to them.
+    days.forEach((d) => {
+      const next = ranges.map((r) => [...r]);
+      schedule[d] = additional ? [...schedule[d], ...next].sort((a, b) => a[0] - b[0]) : next;
+    });
     sawRule = true;
   }
   return sawRule ? schedule : null;

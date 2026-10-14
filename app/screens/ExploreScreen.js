@@ -70,8 +70,14 @@ function getMealContext() {
   return { label: 'Late night eats', sub: 'Places still open for you', emoji: '🌙' };
 }
 
-/** Open status from the restaurant's schedule (or provider "open now" flag). */
+/**
+ * Open status from the restaurant's schedule (or provider "open now" flag).
+ * Hours that were never verified are not turned into "Open/Closed".
+ */
 export function restaurantOpenStatus(r, now = new Date()) {
+  if (r.schedule && r.hoursVerified === false) {
+    return { known: false, isOpen: null, label: 'Hours unverified' };
+  }
   if (r.schedule) return getOpenStatus(r.schedule, now);
   if (typeof r.isOpenFromProvider === 'boolean') {
     return { known: true, isOpen: r.isOpenFromProvider, label: r.isOpenFromProvider ? 'Open now' : 'Closed now' };
@@ -182,8 +188,7 @@ function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
 
         {r.mustTry?.dish ? (
           <Text style={styles.mustTry} numberOfLines={1}>
-            Try: {r.mustTry.dish}
-            {r.mustTry.price ? <Text style={styles.mustTryPrice}> · ~₹{r.mustTry.price}</Text> : null}
+            Known for: {r.mustTry.dish}
           </Text>
         ) : null}
       </View>
@@ -221,8 +226,9 @@ export default function ExploreScreen({ contentPadding }) {
   const now = new Date();
 
   const counts = useMemo(() => {
-    const c = { verified: 0, corrected: 0, unverified: 0, live: 0 };
+    const c = { verified: 0, corrected: 0, unverified: 0, live: 0, hoursOk: 0 };
     for (const r of allRestaurants || []) {
+      if (restaurantOpenStatus(r).known) c.hoursOk += 1;
       const s = r.verification?.status;
       if (s === 'verified') c.verified += 1;
       else if (s === 'location_corrected') c.corrected += 1;
@@ -280,7 +286,10 @@ export default function ExploreScreen({ contentPadding }) {
         <View style={{ flex: 1 }}>
           <Text style={styles.dataTitle}>{(allRestaurants || []).length} places</Text>
           <Text style={styles.dataLine}>
-            ✓ {counts.verified + counts.corrected} checked on OpenStreetMap · {counts.unverified} unverified
+            ✓ {counts.verified + counts.corrected} location-checked · {counts.unverified} unverified
+          </Text>
+          <Text style={styles.dataLine}>
+            🕒 Verified hours for {counts.hoursOk} of {(allRestaurants || []).length}
           </Text>
           <Text style={styles.dataLine}>
             {isFetchingOsm
@@ -750,10 +759,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamily.bodyMedium,
     color: colors.neutral[700],
-  },
-  mustTryPrice: {
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
   },
   emptyState: {
     alignItems: 'center',

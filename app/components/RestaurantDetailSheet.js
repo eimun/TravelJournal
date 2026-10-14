@@ -292,7 +292,7 @@ export default function RestaurantDetailSheet() {
 
           {(r.topDishes || []).length > 0 && (
             <>
-              <Text style={styles.sectionTitle}>Typical prices</Text>
+              <Text style={styles.sectionTitle}>Reported prices</Text>
               <View style={styles.dishList}>
                 {r.topDishes.map((dish, i) => (
                   <View key={i} style={styles.dishRow}>
@@ -301,7 +301,9 @@ export default function RestaurantDetailSheet() {
                   </View>
                 ))}
               </View>
-              <Text style={styles.priceNote}>Approximate, from the curated guide — not a live menu.</Text>
+              <Text style={styles.priceNote}>
+                From the curated guide — not verified, may be outdated. Check the menu at the restaurant.
+              </Text>
             </>
           )}
 
@@ -322,10 +324,25 @@ export default function RestaurantDetailSheet() {
           <Text style={styles.sectionTitle}>About this info</Text>
           <View style={styles.sourceCard}>
             <Text style={styles.sourceIntro}>{verificationText}</Text>
-            <SourceRow label="Hours" value={r.hoursText || 'Not available'} source={r.hoursSource} />
+            <SourceRow
+              label="Hours"
+              value={r.hoursText ? (r.hoursVerified === false ? `${r.hoursText} (unverified)` : r.hoursText) : 'Not available'}
+              source={r.hoursSource}
+            />
+            {!!r.dataNote && <Text style={styles.sourceNote}>{r.dataNote}</Text>}
             <SourceRow label="Diet" value={dietSummary(r.tags)} source={r.dietSource} />
             <SourceRow label="Rating" value={r.rating ? r.rating.toFixed(1) : 'Not shown — no rating source'} source={r.ratingSource} />
             {v.checkedAt && <SourceRow label="Checked" value={v.checkedAt} />}
+            {(r.dataSources || [])
+              .filter((u) => /^https?:\/\//.test(u) && !u.includes(' '))
+              .slice(0, 3)
+              .map((u) => (
+                <Pressable key={u} onPress={() => Linking.openURL(u).catch(() => {})}>
+                  <Text style={styles.sourceLink} numberOfLines={1}>
+                    Source: {u.replace(/^https?:\/\/(www\.)?/, '')}
+                  </Text>
+                </Pressable>
+              ))}
             {!!v.osmUrl && (
               <Pressable onPress={() => Linking.openURL(v.osmUrl).catch(() => {})}>
                 <Text style={styles.sourceLink}>View on OpenStreetMap ↗</Text>
@@ -723,6 +740,15 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.body,
     color: colors.neutral[500],
     marginTop: 1,
+  },
+  sourceNote: {
+    fontSize: 12,
+    fontFamily: fontFamily.bodyMedium,
+    color: '#92400e',
+    backgroundColor: '#fffbeb',
+    borderRadius: 8,
+    padding: 8,
+    lineHeight: 17,
   },
   sourceLink: {
     fontSize: 12.5,
