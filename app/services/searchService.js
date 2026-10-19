@@ -36,6 +36,15 @@ export const CITY_BOUNDS = {
     maxLon: 73.2,
     suffix: 'Mumbai',
   },
+  kolkata: {
+    lat: 22.5697,
+    lon: 88.3500,
+    minLat: 22.3,
+    maxLat: 22.8,
+    minLon: 88.1,
+    maxLon: 88.6,
+    suffix: 'Kolkata',
+  },
 };
 
 /**
