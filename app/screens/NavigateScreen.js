@@ -517,6 +517,17 @@ export default function NavigateScreen({ contentPadding }) {
                   <Text style={styles.legendText}>Metro 1</Text>
                 </View>
               </>
+            ) : currentCity?.id === 'kolkata' ? (
+              <>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#1d4ed8' }]} />
+                  <Text style={styles.legendText}>Blue</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#15803d' }]} />
+                  <Text style={styles.legendText}>Green (Underwater)</Text>
+                </View>
+              </>
             ) : (
               <>
                 <View style={styles.legendItem}>
@@ -706,6 +717,74 @@ export default function NavigateScreen({ contentPadding }) {
               </Text>
               <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
                 Platform 1 · ₹30
+              </Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowSafetyModal(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnSafety,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
+              <Text style={styles.quickUtilityEmoji}>🛡️</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
+          </Pressable>
+        </ScrollView>
+      );
+    }
+
+    if (currentCity?.id === 'kolkata') {
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickUtilityScroll}
+        >
+          <Pressable
+            onPress={() => openFareReliability && openFareReliability()}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnCcu,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#dbeafe' }]}>
+              <Text style={styles.quickUtilityEmoji}>🚇</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, { color: '#1e40af' }]}>Underwater Metro</Text>
+              <Text style={[styles.quickUtilitySub, { color: '#2563eb' }]}>Hooghly River Tunnel</Text>
+            </View>
+            <Text style={[styles.quickUtilityArrow, { color: '#2563eb' }]}>➔</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setShowCloakroom(true)}
+            style={({ pressed }) => [
+              styles.quickUtilityBtn,
+              styles.quickUtilityBtnCloakroom,
+              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+            ]}
+          >
+            <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
+              <Text style={styles.quickUtilityEmoji}>🧳</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
+                Howrah Cloakroom
+              </Text>
+              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
+                Platform 8/9 & 17 · ₹30
               </Text>
             </View>
             <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
@@ -1416,6 +1495,10 @@ const styles = StyleSheet.create({
   quickUtilityBtnBom: {
     borderColor: '#bae6fd',
     backgroundColor: '#f0f9ff',
+  },
+  quickUtilityBtnCcu: {
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
   },
   quickUtilityBtnSafety: {
     borderColor: '#bbf7d0',

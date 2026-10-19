@@ -17,12 +17,14 @@ const CITY_ICONS = {
   bengaluru: '🌳',
   delhi: '🏛️',
   mumbai: '🌊',
+  kolkata: '🚋',
 };
 
 const CITY_TRANSIT_SUBTITLES = {
   bengaluru: 'Namma Metro & BMTC Bus',
   delhi: 'Delhi Metro (DMRC) & DTC',
   mumbai: 'Mumbai Local Rail & Metro',
+  kolkata: 'Metro, Trams & Yellow Taxis',
 };
 
 export default function CitySwitcherModal({ visible, onClose }) {

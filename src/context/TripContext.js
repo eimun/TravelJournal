@@ -59,7 +59,7 @@ export function TripProvider({ children }) {
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [addedPlaces, setAddedPlaces] = useState([]);
 
-  // Multi-City Explorer state ('bengaluru' | 'delhi' | 'mumbai')
+  // Multi-City Explorer state ('bengaluru' | 'delhi' | 'mumbai' | 'kolkata')
   const [cityId, setCityId] = useState('bengaluru');
   const [isCitySwitcherOpen, setIsCitySwitcherOpen] = useState(false);
   const currentCity = useMemo(() => getCityConfig(cityId), [cityId]);

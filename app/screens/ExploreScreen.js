@@ -393,7 +393,9 @@ export default function ExploreScreen({ contentPadding }) {
             ? 'Chole bhature or parathas typically ₹60–₹90; street dahi bhalle ₹50–₹70. Inner galis of Chandni Chowk are cheaper than the main road.'
             : currentCity?.id === 'mumbai'
               ? 'Vada pav typically ₹20–₹35, cutting chai ₹12–₹20, pav bhaji ₹90–₹150. Commuter stalls near stations are cheaper than tourist strips.'
-              : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
+              : currentCity?.id === 'kolkata'
+                ? 'Kathi rolls typically ₹50–₹90, street puchkas ₹20–₹40, Kolkata biryani with aloo ₹180–₹320, Bhar-er cha ₹10. Sweet shops (mishti) are plentiful in every para.'
+                : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
         </Text>
         <Text style={styles.tipFoot}>Typical ranges from the curated guide — not live menu prices.</Text>
       </View>

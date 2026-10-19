@@ -66,6 +66,8 @@ export default function CloakroomModal({ visible, onClose }) {
                 ? 'Hands-free exploration · New Delhi, Old Delhi & Nizamuddin'
                 : currentCity?.id === 'mumbai'
                 ? 'Hands-free exploration · CSMT, Dadar & Mumbai Central'
+                : currentCity?.id === 'kolkata'
+                ? 'Hands-free exploration · Howrah, Sealdah & NSCBI Airport'
                 : 'Hands-free exploration · KSR Majestic, Yesvantpur & Airport'}
             </Text>
           </View>
@@ -93,6 +95,8 @@ export default function CloakroomModal({ visible, onClose }) {
                   ? '✈️ IGI Airport (T3)'
                   : currentCity?.id === 'mumbai'
                   ? '✈️ Mumbai Airport (T2)'
+                  : currentCity?.id === 'kolkata'
+                  ? '✈️ NSCBI Airport (T2)'
                   : '✈️ Airport (KIA)',
             },
           ].map((tab) => {
