@@ -32,7 +32,7 @@ const CORRECTABLE_MAX_M = 3000; // matched, but curated pin is off → use OSM p
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const { RESTAURANTS } = await import(pathToUrl('app/data/bengaluruData.js'));
-const { DELHI_RESTAURANTS, MUMBAI_RESTAURANTS } = await import(
+const { DELHI_RESTAURANTS, MUMBAI_RESTAURANTS, KOLKATA_RESTAURANTS } = await import(
   pathToUrl('app/data/cityPlacesData.js')
 );
 
@@ -281,6 +281,9 @@ const ADDRESS_GENERIC = new Set([
   'delhi',
   'new',
   'mumbai',
+  'kolkata',
+  'calcutta',
+  'bengal',
   'central',
   'area',
   'west',
@@ -434,6 +437,7 @@ const cities = [
   ['bengaluru', 'Bengaluru', RESTAURANTS],
   ['delhi', 'Delhi', DELHI_RESTAURANTS],
   ['mumbai', 'Mumbai', MUMBAI_RESTAURANTS],
+  ['kolkata', 'Kolkata', KOLKATA_RESTAURANTS],
 ];
 
 const all = {};

@@ -5,17 +5,22 @@ import {
   MUMBAI_WESTERN_STATIONS,
   MUMBAI_CENTRAL_STATIONS,
   MUMBAI_METRO1_STATIONS,
+  KOLKATA_BLUE_STATIONS,
+  KOLKATA_GREEN_STATIONS,
   findNearestMetroStation,
   calculateMetroFare,
   getNextMetroDeparture,
   getRajivChowkInterchangeGuide,
   getDadarInterchangeGuide,
+  getEsplanadeInterchangeGuide,
   getLineColor,
   getLineDisplayName,
   DMRC_YELLOW,
   DMRC_BLUE,
   MUMBAI_WESTERN,
   MUMBAI_CENTRAL,
+  KOLKATA_BLUE,
+  KOLKATA_GREEN,
 } from '../../app/data/transitData';
 import { planTransitRoute } from '../../app/services/directionsService';
 
@@ -134,15 +139,77 @@ describe('Multi-City Metro & Suburban Transit Systems', () => {
     });
   });
 
+  describe('Kolkata Metro Network (Underwater & North-South)', () => {
+    test('contains comprehensive Blue Line and Green Line (Underwater) stations', () => {
+      expect(KOLKATA_BLUE_STATIONS.length).toBeGreaterThanOrEqual(24);
+      expect(KOLKATA_GREEN_STATIONS.length).toBeGreaterThanOrEqual(10);
+
+      const esplanadeBlue = KOLKATA_BLUE_STATIONS.find((s) => s.name.includes('Esplanade'));
+      const esplanadeGreen = KOLKATA_GREEN_STATIONS.find((s) => s.name.includes('Esplanade'));
+      expect(esplanadeBlue?.isInterchange).toBe(true);
+      expect(esplanadeGreen?.isInterchange).toBe(true);
+    });
+
+    test('calculates accurate Kolkata Metro fare slabs', () => {
+      expect(calculateMetroFare(2, 'kolkata')).toBe(5);
+      expect(calculateMetroFare(4, 'kolkata')).toBe(10);
+      expect(calculateMetroFare(8, 'kolkata')).toBe(15);
+      expect(calculateMetroFare(15, 'kolkata')).toBe(20);
+      expect(calculateMetroFare(22, 'kolkata')).toBe(25);
+    });
+
+    test('provides exact Esplanade interchange guidance between Blue and Green lines', () => {
+      const bToG = getEsplanadeInterchangeGuide('kolkata_blue', 'kolkata_green');
+      expect(bToG.title).toContain('Esplanade');
+      expect(bToG.steps.some((s) => s.includes('GREEN Line') || s.includes('Howrah'))).toBe(true);
+
+      const gToB = getEsplanadeInterchangeGuide('kolkata_green', 'kolkata_blue');
+      expect(gToB.steps.some((s) => s.includes('BLUE Line') || s.includes('Dakshineswar'))).toBe(true);
+    });
+
+    test('plans a direct Kolkata Blue Line trip (Dum Dum to Park Street)', () => {
+      const origin = { latitude: 22.6218, longitude: 88.3934, name: 'Dum Dum Station' };
+      const destination = { latitude: 22.5511, longitude: 88.3524, name: 'Park Street Metro' };
+
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'kolkata' });
+      expect(route).toBeDefined();
+      expect(route.type).toBe('transit_metro');
+      expect(route.isSameLine).toBe(true);
+      expect(route.title).toContain('Kolkata Metro');
+      expect(route.steps.some((s) => s.line === 'kolkata_blue')).toBe(true);
+      expect(route.autoAdvisory.foodEquivalent).toContain('Kathi Roll');
+      expect(route.autoAdvisory.cabFare).toBeGreaterThanOrEqual(30);
+    });
+
+    test('plans an interchange trip via Esplanade crossing the underwater Hooghly tunnel', () => {
+      // Origin near Howrah Railway Station (Green Line) -> Destination near Kalighat (Blue Line)
+      const origin = { latitude: 22.5841, longitude: 88.3429, name: 'Howrah Railway Station' };
+      const destination = { latitude: 22.5186, longitude: 88.3468, name: 'Kalighat Metro' };
+
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'kolkata' });
+      expect(route).toBeDefined();
+      expect(route.isSameLine).toBe(false);
+      expect(route.title).toContain('Esplanade');
+
+      const transferStep = route.steps.find((s) => s.type === 'transfer');
+      expect(transferStep).toBeDefined();
+      expect(transferStep.title).toContain('Esplanade');
+    });
+  });
+
   describe('Line Colors and Names', () => {
     test('returns exact line branding colors and names', () => {
       expect(getLineColor('dmrc_yellow')).toBe(DMRC_YELLOW);
       expect(getLineColor('dmrc_blue')).toBe(DMRC_BLUE);
       expect(getLineColor('mumbai_western')).toBe(MUMBAI_WESTERN);
       expect(getLineColor('mumbai_central')).toBe(MUMBAI_CENTRAL);
+      expect(getLineColor('kolkata_blue')).toBe(KOLKATA_BLUE);
+      expect(getLineColor('kolkata_green')).toBe(KOLKATA_GREEN);
 
       expect(getLineDisplayName('dmrc_yellow')).toContain('Yellow Line');
       expect(getLineDisplayName('mumbai_western')).toContain('Western Line');
+      expect(getLineDisplayName('kolkata_blue')).toContain('Blue Line');
+      expect(getLineDisplayName('kolkata_green')).toContain('Green Line');
     });
   });
 
@@ -167,6 +234,21 @@ describe('Multi-City Metro & Suburban Transit Systems', () => {
       const origin = { latitude: 18.9400, longitude: 72.8353, name: 'CSMT Station' };
       const destination = { latitude: 19.0544, longitude: 72.8402, name: 'Bandra Bandstand' };
       const route = planTransitRoute(origin, destination, new Date(), { cityId: 'mumbai' });
+
+      expect(route).toBeDefined();
+      expect(route.title.toLowerCase()).not.toContain('majestic');
+      route.steps.forEach((step) => {
+        expect(step.title.toLowerCase()).not.toContain('majestic');
+        if (step.description) {
+          expect(step.description.toLowerCase()).not.toContain('majestic');
+        }
+      });
+    });
+
+    test('strictly excludes Majestic references from Kolkata interchange routes', () => {
+      const origin = { latitude: 22.5841, longitude: 88.3429, name: 'Howrah Station' };
+      const destination = { latitude: 22.5186, longitude: 88.3468, name: 'Kalighat Temple' };
+      const route = planTransitRoute(origin, destination, new Date(), { cityId: 'kolkata' });
 
       expect(route).toBeDefined();
       expect(route.title.toLowerCase()).not.toContain('majestic');

@@ -2,14 +2,15 @@ import { SUPPORTED_CITIES, getCityConfig, getAllCities } from '../../app/data/ci
 import { getCloakroomsForCity } from '../../app/data/cloakroomData';
 
 describe('Multi-City Registry & Multi-Metro Support', () => {
-  test('supports Bengaluru, Delhi NCR, and Mumbai with complete transit configs', () => {
+  test('supports Bengaluru, Delhi NCR, Mumbai, and Kolkata with complete transit configs', () => {
     const cities = getAllCities();
-    expect(cities.length).toBe(3);
+    expect(cities.length).toBe(4);
 
     const cityIds = cities.map((c) => c.id);
     expect(cityIds).toContain('bengaluru');
     expect(cityIds).toContain('delhi');
     expect(cityIds).toContain('mumbai');
+    expect(cityIds).toContain('kolkata');
   });
 
   test('validates city auto-meter formulas match legal gazetted rates', () => {
@@ -30,6 +31,12 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(bom.autoFareFormula.baseDistanceKm).toBe(1.5);
     expect(bom.autoFareFormula.perKm).toBe(18.22);
     expect(bom.transitAgency).toContain('Suburban');
+
+    const ccu = getCityConfig('kolkata');
+    expect(ccu.autoFareFormula.baseFare).toBe(30);
+    expect(ccu.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(ccu.autoFareFormula.perKm).toBe(15);
+    expect(ccu.transitAgency).toContain('Metro');
   });
 
   test('returns iconic landmarks and local food legends for each city with complete name and area', () => {
@@ -53,6 +60,10 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     const bom = getCityConfig('mumbai');
     expect(bom.popularDestinations.some((d) => d.title.includes('Marine Drive'))).toBe(true);
     expect(bom.iconicFoods.some((f) => f.name.includes('Vada Pav'))).toBe(true);
+
+    const ccu = getCityConfig('kolkata');
+    expect(ccu.popularDestinations.some((d) => d.title.includes('Victoria Memorial') || d.title.includes('Howrah Bridge'))).toBe(true);
+    expect(ccu.iconicFoods.some((f) => f.name.includes('Kathi Roll') || f.name.includes('Rosogolla'))).toBe(true);
   });
 
   test('falls back gracefully to Bengaluru when unknown city ID is passed', () => {
@@ -71,9 +82,13 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
 
     const blrCloakrooms = getCloakroomsForCity('bengaluru');
     expect(blrCloakrooms.some((c) => c.name.includes('Majestic'))).toBe(true);
+
+    const ccuCloakrooms = getCloakroomsForCity('kolkata');
+    expect(ccuCloakrooms.length).toBeGreaterThanOrEqual(2);
+    expect(ccuCloakrooms.some((c) => c.name.includes('Howrah'))).toBe(true);
   });
 
-  test('returns city-specific restaurants and dishes for Delhi and Mumbai', () => {
+  test('returns city-specific restaurants and dishes for Delhi, Mumbai, and Kolkata', () => {
     const {
       getRestaurantsForCity,
       getDishesForCity,
@@ -108,6 +123,20 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
 
     const bomHubs = getSearchHubsForCity('mumbai');
     expect(bomHubs.some((h) => h.name.includes('Gateway of India'))).toBe(true);
+
+    // Kolkata
+    const ccuRestaurants = getRestaurantsForCity('kolkata');
+    expect(ccuRestaurants.length).toBeGreaterThanOrEqual(5);
+    expect(ccuRestaurants.some((r) => r.name.includes('Peter Cat') || r.name.includes('Arsalan'))).toBe(true);
+
+    const ccuDishes = getDishesForCity('kolkata');
+    expect(ccuDishes.some((d) => d.id === 'kathi_roll' || d.id === 'biryani')).toBe(true);
+
+    const ccuEateries = getEateriesDbForCity('kolkata');
+    expect(ccuEateries.kathi_roll.length).toBeGreaterThan(0);
+
+    const ccuHubs = getSearchHubsForCity('kolkata');
+    expect(ccuHubs.some((h) => h.name.includes('Park Street') || h.name.includes('Howrah'))).toBe(true);
   });
 
   test('searches city-accurate locations via searchCityLocations', async () => {
@@ -124,6 +153,10 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     const blrResults = await searchCityLocations('', 'bengaluru');
     expect(blrResults.length).toBeGreaterThan(0);
     expect(blrResults.some((r) => r.name.includes('Cubbon Park') || r.name.includes('Majestic'))).toBe(true);
+
+    const ccuResults = await searchCityLocations('', 'kolkata');
+    expect(ccuResults.length).toBeGreaterThan(0);
+    expect(ccuResults.some((r) => r.name.includes('Park Street') || r.name.includes('Howrah'))).toBe(true);
   });
 
   test('provides live environmental and local hazard advisories for all cities', () => {
@@ -147,9 +180,14 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(bomAlert.headline).toContain('High Tide Alert');
     expect(bomAlert.subtext).toContain('Suburban locals');
     expect(bomAlert.badges).toContain('🌊 High Tide 4.2m');
+
+    const ccuAlert = getCityEnvironmentalAlert('kolkata');
+    expect(ccuAlert.aqi).toBe(78);
+    expect(ccuAlert.headline).toContain('Hooghly Tide');
+    expect(ccuAlert.subtext).toContain('ferries');
   });
 
-  test('strictly isolates restaurants so Bengaluru eateries never pollute Delhi or Mumbai', () => {
+  test('strictly isolates restaurants so Bengaluru eateries never pollute Delhi, Mumbai, or Kolkata', () => {
     const { getRestaurantsForCity } = require('../../app/data/cityPlacesData');
     const { CITY_BOUNDS } = require('../../app/services/searchService');
 
@@ -191,7 +229,26 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
       expect(r.area.toLowerCase()).not.toContain('bangalore');
     });
 
-    // 3. Simulated live filter correctly rejects Bengaluru venues for Delhi and Mumbai
+    // 3. Kolkata restaurants
+    const ccuRestaurants = getRestaurantsForCity('kolkata');
+    const ccuBounds = CITY_BOUNDS.kolkata;
+    expect(ccuRestaurants.length).toBeGreaterThanOrEqual(10);
+
+    ccuRestaurants.forEach((r) => {
+      // Must NOT be in Bengaluru coordinates
+      expect(r.latitude).toBeGreaterThan(20);
+      expect(r.longitude).toBeGreaterThan(85);
+      // Must be within Kolkata bounds
+      expect(r.latitude).toBeGreaterThanOrEqual(ccuBounds.minLat);
+      expect(r.latitude).toBeLessThanOrEqual(ccuBounds.maxLat);
+      expect(r.longitude).toBeGreaterThanOrEqual(ccuBounds.minLon);
+      expect(r.longitude).toBeLessThanOrEqual(ccuBounds.maxLon);
+      // No Bengaluru keywords
+      expect(r.area.toLowerCase()).not.toContain('bengaluru');
+      expect(r.area.toLowerCase()).not.toContain('bangalore');
+    });
+
+    // 4. Simulated live filter correctly rejects Bengaluru venues for Delhi, Mumbai, and Kolkata
     const mockBengaluruLiveVenue = {
       id: 'live_blr_123',
       name: 'Nagarjuna Andhra Meals',
@@ -211,5 +268,11 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
       (mockBengaluruLiveVenue.latitude >= bomBounds.minLat &&
         mockBengaluruLiveVenue.latitude <= bomBounds.maxLat);
     expect(isWithinMumbai).toBe(false);
+
+    const isWithinKolkata =
+      mockBengaluruLiveVenue.cityId === 'kolkata' ||
+      (mockBengaluruLiveVenue.latitude >= ccuBounds.minLat &&
+        mockBengaluruLiveVenue.latitude <= ccuBounds.maxLat);
+    expect(isWithinKolkata).toBe(false);
   });
 });

@@ -12,8 +12,10 @@ import {
 import {
   DELHI_RESTAURANTS,
   MUMBAI_RESTAURANTS,
+  KOLKATA_RESTAURANTS,
   DELHI_SEARCH_HUBS,
   MUMBAI_SEARCH_HUBS,
+  KOLKATA_SEARCH_HUBS,
 } from '../../app/data/cityPlacesData';
 import {
   calculateDynamicFareMatrix,
@@ -43,6 +45,13 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     expect(bom.autoFareFormula.baseDistanceKm).toBe(1.5);
     expect(bom.autoFareFormula.perKm).toBe(18.22);
     expect(bom.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
+
+    // Kolkata: WB Transport Dept (base ₹30 / 2 km, ₹15/km)
+    const ccu = getCityConfig('kolkata');
+    expect(ccu.autoFareFormula.baseFare).toBe(30);
+    expect(ccu.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(ccu.autoFareFormula.perKm).toBe(15);
+    expect(ccu.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
   });
 
   test('Audit 2: Bengaluru geo-coordinates accuracy', () => {
@@ -85,6 +94,17 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     });
   });
 
+  test('Audit 4b: Kolkata geo-coordinates accuracy', () => {
+    // Kolkata coordinates fall accurately in 22.4°N - 22.75°N, 88.25°E - 88.5°E
+    const allCcuItems = [...KOLKATA_RESTAURANTS, ...KOLKATA_SEARCH_HUBS];
+    allCcuItems.forEach((item) => {
+      expect(item.latitude).toBeGreaterThanOrEqual(22.4);
+      expect(item.latitude).toBeLessThanOrEqual(22.75);
+      expect(item.longitude).toBeGreaterThanOrEqual(88.25);
+      expect(item.longitude).toBeLessThanOrEqual(88.5);
+    });
+  });
+
   test('Audit 5: Namma Metro station sequences and interchange integrity', () => {
     // Majestic interchange exists on both Purple & Green lines
     const purpleMajestic = PURPLE_STATIONS.find((s) => s.isInterchange && s.name.includes('Majestic'));
@@ -120,6 +140,9 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
 
     const bomCloakrooms = getCloakroomsForCity('mumbai');
     expect(bomCloakrooms.some((c) => c.name.includes('CSMT'))).toBe(true);
+
+    const ccuCloakrooms = getCloakroomsForCity('kolkata');
+    expect(ccuCloakrooms.some((c) => c.name.includes('Howrah'))).toBe(true);
   });
 
   test('Audit 7: BMTC Bus routes match real Bengaluru corridors', () => {
@@ -134,8 +157,8 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
   });
 
   test('Audit 8: All restaurants have realistic pricing tiers, images and operational hours', () => {
-    const allRestaurants = [...RESTAURANTS, ...DELHI_RESTAURANTS, ...MUMBAI_RESTAURANTS];
-    expect(allRestaurants.length).toBeGreaterThanOrEqual(70);
+    const allRestaurants = [...RESTAURANTS, ...DELHI_RESTAURANTS, ...MUMBAI_RESTAURANTS, ...KOLKATA_RESTAURANTS];
+    expect(allRestaurants.length).toBeGreaterThanOrEqual(80);
 
     allRestaurants.forEach((r) => {
       // Rating 3.5 to 5.0
@@ -191,6 +214,11 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     const mum = calculateDynamicFareMatrix(4000, noon, { cityId: 'mumbai', roadMeters: 5000 });
     expect(mum.providers.rtoMeter.fare).toBe(Math.round(27 + 3.5 * 18.22));
     expect(mum.providers.cab.fare).toBe(Math.round(33 + 3.5 * 21.9));
+
+    // Kolkata auto ₹30 first 2 km + ₹15/km; taxi ₹30 first 2 km + ₹15/km (WB Gazette)
+    const ccu = calculateDynamicFareMatrix(4000, noon, { cityId: 'kolkata', roadMeters: 5000 });
+    expect(ccu.providers.rtoMeter.fare).toBe(Math.round(30 + 3 * 15));
+    expect(ccu.providers.cab.fare).toBe(Math.round(30 + 3 * 15));
 
     // Unpublished prices are never invented
     expect(blr3.providers.appAuto.fare).toBeNull();
