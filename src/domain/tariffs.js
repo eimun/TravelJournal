@@ -178,6 +178,56 @@ export const TARIFFS = {
       appNote: 'Rates were due for review after one year; no revision found as of Oct 2026.',
     },
   },
+
+  kolkata: {
+    auto: {
+      regulated: true,
+      label: 'Auto meter (Kolkata)',
+      baseFare: 30,
+      baseKm: 2,
+      perKm: 15,
+      night: { multiplier: 1.25, from: 23, to: 5, label: '+25% from 11 PM to 5 AM' },
+      waiting: '₹1.50 per 2 minutes',
+      effectiveFrom: '2023-01-01',
+      verifiedOn: '2026-10-14',
+      authority: 'West Bengal Transport Department',
+      scope: 'Kolkata Metropolitan Area',
+      sources: [
+        'https://transport.wb.gov.in',
+      ],
+      appNote:
+        'Most Kolkata autos run on fixed shared routes (₹10–₹25 per seat). Standalone hiring is rare; use the Yatri Sathi app or yellow taxis for door-to-door trips.',
+    },
+    cab: {
+      regulated: true,
+      label: 'Yellow taxi meter (Kolkata)',
+      baseFare: 30,
+      baseKm: 2,
+      perKm: 15,
+      night: { multiplier: 1.25, from: 23, to: 5, label: '+25% from 11 PM to 5 AM' },
+      tiers: [
+        { label: 'Non-AC Yellow Taxi', baseFare: 30, baseKm: 2, perKm: 15 },
+        { label: 'AC Blue-and-White Taxi', baseFare: 30, baseKm: 2, perKm: 18.75 },
+      ],
+      effectiveFrom: '2023-01-01',
+      verifiedOn: '2026-10-14',
+      authority: 'West Bengal Transport Department',
+      scope: 'Metered Yellow & Blue-and-White Taxis in Kolkata',
+      sources: [
+        'https://transport.wb.gov.in',
+      ],
+      appNote:
+        'Official prepaid taxi booths operate at Howrah Station, Sealdah Station, and Airport. The Yatri Sathi app (Govt. of WB open mobility) offers transparent government meter pricing.',
+    },
+    bike: {
+      regulated: false,
+      label: 'Bike taxi',
+      verifiedOn: '2026-10-14',
+      legalStatus: 'Operational via aggregators (Rapido, Yatri Sathi, Uber Moto). No state-mandated bike tariff.',
+      sources: [],
+      appNote: 'Price is set by the app (Yatri Sathi / Rapido / Uber Moto). Check the app before booking.',
+    },
+  },
 };
 
 export function getTariff(cityId, vehicle) {

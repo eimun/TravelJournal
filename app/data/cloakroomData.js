@@ -253,18 +253,90 @@ export const MUMBAI_CLOAKROOMS = [
   },
 ];
 
+export const KOLKATA_CLOAKROOMS = [
+  {
+    id: 'howrah_railway',
+    cityId: 'kolkata',
+    name: 'Howrah Junction Railway Station Cloakroom',
+    hub: 'Howrah / Riverfront Hub',
+    category: 'railway',
+    operator: 'Indian Railways (Eastern & South Eastern Railway)',
+    locationDetails: 'Old Complex Platform 8/9 concourse & New Complex Platform 17',
+    metroProximity: 'Direct underground connection to Howrah Metro Station (Green Line Exit 1)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+      lockerOption: '₹40 / 24 hrs for steel locker box',
+    },
+    rules: [
+      'External padlock on bag zippers is strictly mandatory.',
+      'Valid Government Photo ID (Aadhaar, Passport, Voter ID) required.',
+      'Valid Indian Railways Train Ticket (PNR) or confirmed journey slip required.',
+      'Do not leave laptops, jewelry, or cash inside cloakroom luggage.',
+    ],
+    verifiedPhone: '+91 33 2660 2581',
+    insiderTip: 'Drop heavy bags here on Platform 8 or 17, then take the 5-min ₹6 ferry across to Fairlie Place or the underwater metro into Esplanade!',
+  },
+  {
+    id: 'sealdah_railway',
+    cityId: 'kolkata',
+    name: 'Sealdah Railway Station Cloakroom',
+    hub: 'Sealdah Transit Hub',
+    category: 'railway',
+    operator: 'Indian Railways (Eastern Railway)',
+    locationDetails: 'Sealdah Main Concourse, adjacent to PRS Reservation Office & Platform 1',
+    metroProximity: 'Direct skywalk to Sealdah Green Line Metro Station',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+    },
+    rules: [
+      'Padlock mandatory on all zipper bags.',
+      'Govt Photo ID and valid train ticket required.',
+    ],
+    verifiedPhone: '+91 33 2350 3535',
+    insiderTip: 'Leave luggage safely before heading out to College Street book lanes, Bowbazar or North Kolkata food strolls.',
+  },
+  {
+    id: 'kolkata_airport_t2',
+    cityId: 'kolkata',
+    name: 'Netaji Subhash Chandra Bose Airport (CCU T2) Left-Luggage',
+    hub: 'Kolkata Airport (CCU)',
+    category: 'airport',
+    operator: 'AAI Kolkata Airport / Left Luggage Service',
+    locationDetails: 'Terminal 2 Arrivals level, near Gate 1 exit concourse',
+    metroProximity: 'Connected via WBTC AC Volvo Airport Express buses (V1, AC-4B)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹400 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Boarding pass or flight itinerary mandatory.',
+      'Passport or National ID required.',
+      'Mandatory X-Ray baggage screening before deposit.',
+    ],
+    verifiedPhone: '+91 33 2511 8036',
+    insiderTip: 'Long layover at CCU? Store bags at T2 Arrivals and take the AC Volvo bus straight to Victoria Memorial or Park Street.',
+  },
+];
+
 export const ALL_CLOAKROOMS = [
   ...BENGALURU_CLOAKROOMS,
   ...DELHI_CLOAKROOMS,
   ...MUMBAI_CLOAKROOMS,
+  ...KOLKATA_CLOAKROOMS,
 ];
 
 /**
  * Returns cloakrooms filtered by city ID.
- * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai'
+ * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai' | 'kolkata'
  * @returns {Array}
  */
 export function getCloakroomsForCity(cityId = 'bengaluru') {
+  if (cityId === 'kolkata') return KOLKATA_CLOAKROOMS;
   if (cityId === 'delhi') return DELHI_CLOAKROOMS;
   if (cityId === 'mumbai') return MUMBAI_CLOAKROOMS;
   return BENGALURU_CLOAKROOMS;

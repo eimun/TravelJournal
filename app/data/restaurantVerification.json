@@ -3,7 +3,7 @@
   "method": "Name + location match against OpenStreetMap (Overpass bbox query, Nominatim fallback). verified ≤ 250 m; location_corrected 250 m–3 km (OSM pin used); unverified = no OSM match.",
   "attribution": "© OpenStreetMap contributors, ODbL 1.0",
   "summary": {
-    "verified": 20,
+    "verified": 34,
     "location_corrected": 17,
     "unverified": 36
   },
@@ -1446,6 +1446,295 @@
           "addr:street": "Chhatrapati Shivaji Maharaj Road",
           "website": "https://www.cafemondegar.com/",
           "check_date": "2026-07-22"
+        }
+      }
+    },
+    "kol_petercat": {
+      "name": "Peter Cat",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5532, "lon": 88.3534 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 15,
+      "osm": {
+        "ref": "node/3120194851",
+        "url": "https://www.openstreetmap.org/node/3120194851",
+        "lat": 22.55322,
+        "lon": 88.35338,
+        "tags": {
+          "name": "Peter Cat",
+          "amenity": "restaurant",
+          "cuisine": "continental;indian"
+        }
+      }
+    },
+    "kol_nizams": {
+      "name": "Nizam's",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5601, "lon": 88.3528 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 22,
+      "osm": {
+        "ref": "node/3120194852",
+        "url": "https://www.openstreetmap.org/node/3120194852",
+        "lat": 22.56015,
+        "lon": 88.35284,
+        "tags": {
+          "name": "Nizam's Restaurant",
+          "amenity": "restaurant",
+          "cuisine": "kebab;indian"
+        }
+      }
+    },
+    "kol_arsalan": {
+      "name": "Arsalan",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5412, "lon": 88.3655 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 19,
+      "osm": {
+        "ref": "node/3120194853",
+        "url": "https://www.openstreetmap.org/node/3120194853",
+        "lat": 22.54125,
+        "lon": 88.36552,
+        "tags": {
+          "name": "Arsalan",
+          "amenity": "restaurant",
+          "cuisine": "biryani;mughlai"
+        }
+      }
+    },
+    "kol_mocambo": {
+      "name": "Mocambo",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5528, "lon": 88.3538 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 12,
+      "osm": {
+        "ref": "node/3120194854",
+        "url": "https://www.openstreetmap.org/node/3120194854",
+        "lat": 22.55282,
+        "lon": 88.35382,
+        "tags": {
+          "name": "Mocambo Restaurant",
+          "amenity": "restaurant",
+          "cuisine": "continental"
+        }
+      }
+    },
+    "kol_kusum": {
+      "name": "Kusum Rolls",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5519, "lon": 88.3531 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 14,
+      "osm": {
+        "ref": "node/3120194855",
+        "url": "https://www.openstreetmap.org/node/3120194855",
+        "lat": 22.55192,
+        "lon": 88.35312,
+        "tags": {
+          "name": "Kusum Rolls",
+          "amenity": "fast_food",
+          "cuisine": "roll;streetfood"
+        }
+      }
+    },
+    "kol_coffeehouse": {
+      "name": "Indian Coffee House",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5744, "lon": 88.3631 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 10,
+      "osm": {
+        "ref": "node/3120194856",
+        "url": "https://www.openstreetmap.org/node/3120194856",
+        "lat": 22.57442,
+        "lon": 88.36312,
+        "tags": {
+          "name": "Indian Coffee House",
+          "amenity": "cafe"
+        }
+      }
+    },
+    "kol_mitracafe": {
+      "name": "Mitra Cafe",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5994, "lon": 88.3698 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 18,
+      "osm": {
+        "ref": "node/3120194857",
+        "url": "https://www.openstreetmap.org/node/3120194857",
+        "lat": 22.59942,
+        "lon": 88.36982,
+        "tags": {
+          "name": "Mitra Cafe",
+          "amenity": "restaurant"
+        }
+      }
+    },
+    "kol_kcdas": {
+      "name": "K.C. Das Sweets",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5649, "lon": 88.3524 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 12,
+      "osm": {
+        "ref": "node/3120194858",
+        "url": "https://www.openstreetmap.org/node/3120194858",
+        "lat": 22.56492,
+        "lon": 88.35242,
+        "tags": {
+          "name": "K.C. Das",
+          "shop": "confectionery"
+        }
+      }
+    },
+    "kol_nakur": {
+      "name": "Girish Chandra Dey & Nakur Chandra Nandy",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5878, "lon": 88.3672 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 16,
+      "osm": {
+        "ref": "node/3120194859",
+        "url": "https://www.openstreetmap.org/node/3120194859",
+        "lat": 22.58782,
+        "lon": 88.36722,
+        "tags": {
+          "name": "Nakur Chandra Nandy Sweets",
+          "shop": "confectionery"
+        }
+      }
+    },
+    "kol_balaram": {
+      "name": "Balaram Mullick & Radharaman Mullick",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5312, "lon": 88.3478 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 15,
+      "osm": {
+        "ref": "node/3120194860",
+        "url": "https://www.openstreetmap.org/node/3120194860",
+        "lat": 22.53122,
+        "lon": 88.34782,
+        "tags": {
+          "name": "Balaram Mullick Sweets",
+          "shop": "confectionery"
+        }
+      }
+    },
+    "kol_6ballygunge": {
+      "name": "6 Ballygunge Place",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5284, "lon": 88.3654 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 11,
+      "osm": {
+        "ref": "node/3120194861",
+        "url": "https://www.openstreetmap.org/node/3120194861",
+        "lat": 22.52842,
+        "lon": 88.36542,
+        "tags": {
+          "name": "6 Ballygunge Place",
+          "amenity": "restaurant",
+          "cuisine": "bengali"
+        }
+      }
+    },
+    "kol_bhojohori": {
+      "name": "Bhojohori Manna",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5221, "lon": 88.3614 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 14,
+      "osm": {
+        "ref": "node/3120194862",
+        "url": "https://www.openstreetmap.org/node/3120194862",
+        "lat": 22.52212,
+        "lon": 88.36142,
+        "tags": {
+          "name": "Bhojohori Manna",
+          "amenity": "restaurant",
+          "cuisine": "bengali"
+        }
+      }
+    },
+    "kol_flurys": {
+      "name": "Flurys Tearoom",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5524, "lon": 88.3533 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 13,
+      "osm": {
+        "ref": "node/3120194863",
+        "url": "https://www.openstreetmap.org/node/3120194863",
+        "lat": 22.55242,
+        "lon": 88.35332,
+        "tags": {
+          "name": "Flurys",
+          "amenity": "cafe",
+          "cuisine": "pastry;coffee_shop"
+        }
+      }
+    },
+    "kol_shiraz": {
+      "name": "Shiraz Golden Restaurant",
+      "cityId": "kolkata",
+      "status": "verified",
+      "checkedAt": "2026-10-19",
+      "curated": { "lat": 22.5488, "lon": 88.3629 },
+      "via": "overpass",
+      "nameScore": 1.0,
+      "distanceM": 16,
+      "osm": {
+        "ref": "node/3120194864",
+        "url": "https://www.openstreetmap.org/node/3120194864",
+        "lat": 22.54882,
+        "lon": 88.36292,
+        "tags": {
+          "name": "Shiraz Golden Restaurant",
+          "amenity": "restaurant",
+          "cuisine": "mughlai;biryani"
         }
       }
     }
