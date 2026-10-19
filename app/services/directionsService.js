@@ -397,6 +397,12 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
       foodEquivalent = vadaCount > 0 ? `${vadaCount} Ashok Vada Pavs + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
       scamAlert = `Mumbai taxis and autos strictly run by meter by law! Never agree to fixed street quotes.`;
       tip = `Auto meter fare: ₹${legitAutoMeter}. Kaali-peeli taxi meter: ₹${directCab}. Suburban local trains are much cheaper.`;
+    } else if (cityId === 'kolkata') {
+      const rollCount = Math.floor(savings / 70);
+      const chaiCount = Math.max(1, Math.floor((savings % 70) / 10));
+      foodEquivalent = rollCount > 0 ? `${rollCount} Kathi Rolls + ${chaiCount} Bhar-er Chais` : `${chaiCount} Bhar-er Chais`;
+      scamAlert = `Official yellow taxi meter fare here is ₹${legitAutoMeter}. Station touts ask ₹400+; walk to the Kolkata Police Prepaid Taxi Booth or use Yatri Sathi.`;
+      tip = `Yellow taxi meter fare: ₹${legitAutoMeter}. AC taxi: ₹${directCab}. Metro Green Line underwater saves ~45 mins across river.`;
     } else {
       const dosaCount = Math.floor(savings / 85);
       const coffeeCount = Math.max(1, Math.floor((savings % 85) / 20));
@@ -793,6 +799,11 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     const vadaCount = Math.floor(moneySaved / 25);
     const chaiCount = Math.max(1, Math.floor((moneySaved % 25) / 15));
     foodEquivalent = vadaCount > 0 ? `${vadaCount} Ashok Vada Pavs + ${chaiCount} Cutting Chais` : `${chaiCount} Cutting Chais`;
+  } else if (cityId === 'kolkata') {
+    agencyName = 'Kolkata Metro (Blue & Underwater Green)';
+    const rollCount = Math.floor(moneySaved / 70);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 70) / 10));
+    foodEquivalent = rollCount > 0 ? `${rollCount} Nizam's Kathi Rolls + ${chaiCount} Bhar-er Chais` : `${chaiCount} Bhar-er Chais`;
   } else {
     const dosaCount = Math.floor(moneySaved / 85);
     const coffeeCount = Math.max(1, Math.floor((moneySaved % 85) / 20));
@@ -805,7 +816,9 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     ? `Via Delhi Metro (${isSameLine ? 'Direct' : `1 Interchange at ${interchangeName}`})`
     : cityId === 'mumbai'
       ? `Via Mumbai Local (${isSameLine ? 'Direct' : `1 Interchange at ${interchangeName}`})`
-      : `Via Namma Metro (${isSameLine ? 'Direct' : '1 Interchange at Majestic'})`;
+      : cityId === 'kolkata'
+        ? `Via Kolkata Metro (${isSameLine ? 'Direct' : '1 Interchange at Esplanade'})`
+        : `Via Namma Metro (${isSameLine ? 'Direct' : '1 Interchange at Majestic'})`;
 
   return {
     type: 'transit_metro',
@@ -838,7 +851,9 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
         ? `Mumbai autos and taxis must run by meter. Auto meter fare: ₹${legitAutoFare}.`
         : cityId === 'delhi'
           ? `Official auto meter fare: ₹${legitAutoFare}. Insist on the meter at railway stations.`
-          : `Official auto meter fare: ₹${legitAutoFare}. Insist on the meter or take the metro.`,
+          : cityId === 'kolkata'
+            ? `Official yellow taxi meter: ₹${legitAutoFare}. Use Yatri Sathi app or prepaid booths at Howrah/Sealdah.`
+            : `Official auto meter fare: ₹${legitAutoFare}. Insist on the meter or take the metro.`,
     },
   };
 }
@@ -1038,6 +1053,9 @@ export function planDirectBusRoute(origin, destination, distanceMeters, cityId =
   } else if (cityId === 'mumbai') {
     agencyName = 'BEST Bus';
     busFare = Math.min(20, Math.max(6, Math.round(6 + distanceKm * 1.2)));
+  } else if (cityId === 'kolkata') {
+    agencyName = 'WBTC Bus';
+    busFare = Math.min(25, Math.max(10, Math.round(10 + distanceKm * 1.2)));
   } else {
     // Bengaluru
     agencyName = 'BMTC Bus';
@@ -1173,7 +1191,7 @@ export function planMultimodalRoutes(origin, destination, departureTime = new Da
   // Short trip (< 4.5km): Direct Auto is fastest
   const isShortDistance = totalDirectDistance < 4500;
   const recommendedMode = isShortDistance ? 'auto' : 'metro';
-  const busName = cityId === 'delhi' ? 'DTC Bus' : cityId === 'mumbai' ? 'BEST Bus' : 'BMTC Bus';
+  const busName = cityId === 'delhi' ? 'DTC Bus' : cityId === 'mumbai' ? 'BEST Bus' : cityId === 'kolkata' ? 'WBTC Bus' : 'BMTC Bus';
 
   const options = [
     {

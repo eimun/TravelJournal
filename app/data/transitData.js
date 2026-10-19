@@ -16,6 +16,12 @@ export const DMRC_AIRPORT = '#ea580c';
 export const MUMBAI_WESTERN = '#dc2626';
 export const MUMBAI_CENTRAL = '#991b1b';
 export const MUMBAI_METRO1 = '#0284c7';
+export const KOLKATA_BLUE = '#1d4ed8';
+export const KOLKATA_GREEN = '#15803d';
+export const KOLKATA_PURPLE = '#7e22ce';
+export const KOLKATA_ORANGE = '#ea580c';
+export const KOLKATA_TRAM = '#0891b2';
+export const KOLKATA_FERRY = '#0284c7';
 
 // Namma Metro Purple Line (Challaghatta <-> Whitefield)
 export const PURPLE_STATIONS = [
@@ -232,6 +238,52 @@ export const MUMBAI_METRO1_STATIONS = [
   { id: 'mum_m12', name: 'Ghatkopar Metro (Central Interchange)', latitude: 19.0863, longitude: 72.9081, isInterchange: true },
 ];
 
+// Kolkata Metro Blue Line 1 (Dakshineswar <-> Dum Dum <-> Esplanade <-> Kavi Subhash)
+export const KOLKATA_BLUE_STATIONS = [
+  { id: 'kol_b1', name: 'Dakshineswar (Skywalk to Kali Temple & Ferry)', latitude: 22.6552, longitude: 88.3575 },
+  { id: 'kol_b2', name: 'Baranagar', latitude: 22.6416, longitude: 88.3694 },
+  { id: 'kol_b3', name: 'Noapara (Depot Hub)', latitude: 22.6338, longitude: 88.3842 },
+  { id: 'kol_b4', name: 'Dum Dum (Suburban Rail Interchange)', latitude: 22.6219, longitude: 88.3932, isInterchange: true },
+  { id: 'kol_b5', name: 'Belgachia', latitude: 22.6072, longitude: 88.3822 },
+  { id: 'kol_b6', name: 'Shyambazar (5-Point Crossing)', latitude: 22.6011, longitude: 88.3718 },
+  { id: 'kol_b7', name: 'Shobhabazar Sutanuti (Kumartuli Heritage)', latitude: 22.5961, longitude: 88.3662 },
+  { id: 'kol_b8', name: 'Girish Park', latitude: 22.5862, longitude: 88.3598 },
+  { id: 'kol_b9', name: 'Mahatma Gandhi Road (Burrabazar Market)', latitude: 22.5815, longitude: 88.3585 },
+  { id: 'kol_b10', name: 'Central (College St / Bowbazar)', latitude: 22.5735, longitude: 88.3572 },
+  { id: 'kol_b11', name: 'Chandni Chowk (Electronics Market)', latitude: 22.5684, longitude: 88.3548 },
+  { id: 'kol_b12', name: 'Esplanade (Mega Interchange with Green Line)', latitude: 22.5645, longitude: 88.3516, isInterchange: true },
+  { id: 'kol_b13', name: 'Park Street (Dining & Flurys / Allen Park)', latitude: 22.5535, longitude: 88.3524 },
+  { id: 'kol_b14', name: 'Maidan (Brigade Ground / Victoria View)', latitude: 22.5482, longitude: 88.3499 },
+  { id: 'kol_b15', name: 'Rabindra Sadan (Nandan & Academy of Fine Arts)', latitude: 22.5398, longitude: 88.3483 },
+  { id: 'kol_b16', name: 'Netaji Bhavan (Bose Memorial)', latitude: 22.5338, longitude: 88.3475 },
+  { id: 'kol_b17', name: 'Jatin Das Park (Hazra Crossing)', latitude: 22.5248, longitude: 88.3468 },
+  { id: 'kol_b18', name: 'Kalighat (Temple & Rashbehari Crossing)', latitude: 22.5186, longitude: 88.3458 },
+  { id: 'kol_b19', name: 'Rabindra Sarobar (Southern Lakes)', latitude: 22.5098, longitude: 88.3462 },
+  { id: 'kol_b20', name: 'Mahanayak Uttam Kumar (Tollygunge)', latitude: 22.4975, longitude: 88.3452, isInterchange: true },
+  { id: 'kol_b21', name: 'Netaji (Kudghat)', latitude: 22.4878, longitude: 88.3465 },
+  { id: 'kol_b22', name: 'Masterda Surya Sen (Bansdroni)', latitude: 22.4789, longitude: 88.3524 },
+  { id: 'kol_b23', name: 'Gitanjali (Naktala)', latitude: 22.4715, longitude: 88.3612 },
+  { id: 'kol_b24', name: 'Kavi Nazrul (Garia Bazar)', latitude: 22.4665, longitude: 88.3745 },
+  { id: 'kol_b25', name: 'Shahid Khudiram (Briji)', latitude: 22.4632, longitude: 88.3842 },
+  { id: 'kol_b26', name: 'Kavi Subhash (New Garia Terminal)', latitude: 22.4608, longitude: 88.3989, isInterchange: true },
+];
+
+// Kolkata Metro Green Line 2 (Howrah Underwater <-> Sealdah <-> Salt Lake Sector V)
+export const KOLKATA_GREEN_STATIONS = [
+  { id: 'kol_g1', name: 'Howrah Maidan (Terminal)', latitude: 22.5862, longitude: 88.3288 },
+  { id: 'kol_g2', name: 'Howrah Railway Station (Underwater Metro Interchange)', latitude: 22.5839, longitude: 88.3426, isInterchange: true },
+  { id: 'kol_g3', name: 'Mahakaran (BBD Bagh / Riverfront)', latitude: 22.5744, longitude: 88.3488 },
+  { id: 'kol_g4', name: 'Esplanade Green Line (Interchange with Blue Line)', latitude: 22.5645, longitude: 88.3516, isInterchange: true },
+  { id: 'kol_g5', name: 'Sealdah Railway Station (Eastern Rail Interchange)', latitude: 22.5670, longitude: 88.3712, isInterchange: true },
+  { id: 'kol_g6', name: 'Phoolbagan', latitude: 22.5712, longitude: 88.3892 },
+  { id: 'kol_g7', name: 'Salt Lake Stadium (Yuva Bharati)', latitude: 22.5701, longitude: 88.4055 },
+  { id: 'kol_g8', name: 'Bengal Chemical', latitude: 22.5772, longitude: 88.4124 },
+  { id: 'kol_g9', name: 'City Centre (Salt Lake)', latitude: 22.5878, longitude: 88.4129 },
+  { id: 'kol_g10', name: 'Central Park', latitude: 22.5902, longitude: 88.4208 },
+  { id: 'kol_g11', name: 'Karunamoyee (Bus Terminus)', latitude: 22.5872, longitude: 88.4285 },
+  { id: 'kol_g12', name: 'Salt Lake Sector V (IT Tech Corridor)', latitude: 22.5735, longitude: 88.4331, isInterchange: true },
+];
+
 // Curated Popular Destinations across Bengaluru for instant offline search & quick picks
 export const POPULAR_DESTINATIONS = [
   {
@@ -403,6 +455,8 @@ export function getLineColor(line) {
     case 'mumbai_western': return MUMBAI_WESTERN;
     case 'mumbai_central': return MUMBAI_CENTRAL;
     case 'mumbai_metro1': return MUMBAI_METRO1;
+    case 'kolkata_blue': return KOLKATA_BLUE;
+    case 'kolkata_green': return KOLKATA_GREEN;
     default: return PURPLE_LINE;
   }
 }
@@ -420,6 +474,8 @@ export function getLineDisplayName(line) {
     case 'mumbai_western': return 'Western Line (Local)';
     case 'mumbai_central': return 'Central Line (Local)';
     case 'mumbai_metro1': return 'Metro Line 1 (Versova-Ghatkopar)';
+    case 'kolkata_blue': return 'Blue Line 1 (Dakshineswar - Kavi Subhash)';
+    case 'kolkata_green': return 'Green Line 2 (Underwater Howrah - Sector V)';
     default: return 'Transit Line';
   }
 }
@@ -437,6 +493,8 @@ export function getStationListForLine(line) {
     case 'mumbai_western': return MUMBAI_WESTERN_STATIONS;
     case 'mumbai_central': return MUMBAI_CENTRAL_STATIONS;
     case 'mumbai_metro1': return MUMBAI_METRO1_STATIONS;
+    case 'kolkata_blue': return KOLKATA_BLUE_STATIONS;
+    case 'kolkata_green': return KOLKATA_GREEN_STATIONS;
     default: return PURPLE_STATIONS;
   }
 }
@@ -447,6 +505,7 @@ export function getStationListForLine(line) {
 export function detectCityFromCoord(lat, lon) {
   if (lat > 26) return 'delhi';
   if (lat > 18 && lon < 74) return 'mumbai';
+  if (lon > 85) return 'kolkata';
   return 'bengaluru';
 }
 
@@ -460,6 +519,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
 
   const isDelhi = cityId === 'delhi' || line.startsWith('dmrc');
   const isMumbai = cityId === 'mumbai' || line.startsWith('mumbai');
+  const isKolkata = cityId === 'kolkata' || line.startsWith('kolkata');
 
   let isOperating = false;
   let opensAt = '05:00 AM';
@@ -477,6 +537,11 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
     opensAt = '04:00 AM';
     closesAt = '01:30 AM';
     isOperating = hour >= 4 || hour === 0 || (hour === 1 && minute <= 30);
+  } else if (isKolkata) {
+    // Kolkata Metro: 06:50 AM to 22:45 PM
+    opensAt = '06:50 AM';
+    closesAt = '22:45 PM';
+    isOperating = (hour > 6 || (hour === 6 && minute >= 50)) && (hour < 22 || (hour === 22 && minute <= 45));
   } else {
     // Bengaluru Namma Metro: 05:00 to 23:15
     opensAt = '05:00 AM';
@@ -522,6 +587,17 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
     } else {
       frequency = 6;
       frequencyLabel = 'Regular frequency: every 6 mins';
+    }
+  } else if (isKolkata) {
+    if ((hour >= 9 && hour < 12) || (hour >= 17 && hour < 20)) {
+      frequency = 5;
+      frequencyLabel = 'Peak rush: every 5 mins (Metro Express)';
+    } else if (hour < 8 || hour >= 21) {
+      frequency = 10;
+      frequencyLabel = 'Late evening: every 10 mins';
+    } else {
+      frequency = 7;
+      frequencyLabel = 'Regular frequency: every 7 mins';
     }
   } else {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
@@ -569,6 +645,13 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
  * Calculates fare in Indian Rupees between two station indices
  */
 export function calculateMetroFare(stopCount, cityId = 'bengaluru') {
+  if (cityId === 'kolkata') {
+    if (stopCount <= 2) return 5;
+    if (stopCount <= 5) return 10;
+    if (stopCount <= 10) return 15;
+    if (stopCount <= 20) return 20;
+    return 25;
+  }
   if (cityId === 'mumbai') {
     if (stopCount <= 3) return 5;
     if (stopCount <= 8) return 10;
@@ -619,7 +702,22 @@ export function findNearestMetroStation(lat, lon, cityId = null) {
   let best = null;
   let minDistance = Infinity;
 
-  if (city === 'delhi') {
+  if (city === 'kolkata') {
+    for (const st of KOLKATA_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kolkata_blue', city: 'kolkata', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of KOLKATA_GREEN_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kolkata_green', city: 'kolkata', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'delhi') {
     for (const st of DMRC_YELLOW_STATIONS) {
       const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
       if (d < minDistance) {
@@ -787,9 +885,44 @@ export function getDadarInterchangeGuide(fromLine, toLine) {
 }
 
 /**
+ * Returns exact transfer instructions at Esplanade Interchange (Kolkata)
+ */
+export function getEsplanadeInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'kolkata_blue' && toLine === 'kolkata_green') {
+    return {
+      title: 'Interchange at Esplanade (Blue Line ⇄ Green Line)',
+      steps: [
+        'Step off Blue Line (North-South) train at Esplanade Island Platform',
+        'Follow GREEN Line underwater metro overhead arrows down to the subterranean interchange concourse',
+        'Descend via escalators to Green Line platforms (towards Howrah / Salt Lake Sector V)',
+        'Platform 1 heads West under Hooghly river to Mahakaran & Howrah Railway Station',
+        'Platform 2 heads East towards Sealdah Railway Station & Salt Lake Sector V',
+        'Allow 3 minutes walking time inside the paid concourse',
+      ],
+      tip: 'Do NOT exit through token gates! Transfers between Blue & Green lines are within the paid concourse.',
+    };
+  }
+  return {
+    title: 'Interchange at Esplanade (Green Line ⇄ Blue Line)',
+    steps: [
+      'Step off Green Line train at Esplanade East-West platform level',
+      'Follow BLUE LINE directional signage towards North-South concourse escalators',
+      'Take escalators up to Blue Line platforms',
+      'Platform 1 heads North to Dum Dum & Dakshineswar; Platform 2 heads South to Kalighat & Kavi Subhash',
+      'Allow 3 minutes transfer time',
+    ],
+    tip: 'Keep your smart card or paper QR ticket for exit scanning at your final destination.',
+  };
+}
+
+/**
  * General multi-city interchange guide router
  */
 export function getInterchangeGuide(cityId, fromLine, toLine) {
+  if (cityId === 'kolkata' || fromLine?.startsWith('kolkata') || toLine?.startsWith('kolkata')) {
+    return getEsplanadeInterchangeGuide(fromLine, toLine);
+  }
   if (cityId === 'delhi' || fromLine?.startsWith('dmrc') || toLine?.startsWith('dmrc')) {
     return getRajivChowkInterchangeGuide(fromLine, toLine);
   }
@@ -999,6 +1132,57 @@ export const STATION_GATES = {
     ],
     defaultExit: 'Gate 1',
   },
+  // Kolkata Key Stations
+  kol_g2: {
+    stationName: 'Howrah Railway Station (Metro)',
+    gates: [
+      { id: 'Gate 1', name: 'Old Complex Platforms 1–15', exitFor: 'Direct subway into Howrah Old Station concourse & cloakroom' },
+      { id: 'Gate 2', name: 'New Complex Platforms 17–23', exitFor: 'South Eastern Railway trains & Yatri Sathi / Prepaid Taxi' },
+      { id: 'Gate 3', name: 'Howrah Ferry Ghat Exit', exitFor: 'Direct riverwalk to Hooghly Ferry Ghat (to Fairlie Place / Babughat)' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_b12: {
+    stationName: 'Esplanade (Metro Interchange)',
+    gates: [
+      { id: 'Gate 1', name: 'JL Nehru Road / New Market', exitFor: 'New Market, Hogg Market, Grand Hotel & Curzon Park' },
+      { id: 'Gate 2', name: 'Dharmatala / Tram Terminus', exitFor: 'Esplanade Tram Terminus, CTC Bus Stand & Rani Rashmoni Ave' },
+      { id: 'Gate 3', name: 'Green Line Subterranean Link', exitFor: 'Underground interchange to Green Line (Howrah / Sector V)' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_g5: {
+    stationName: 'Sealdah Railway Station (Metro)',
+    gates: [
+      { id: 'Gate 1', name: 'Sealdah Main & North Concourse', exitFor: 'Direct footbridge into Sealdah Main Train Platforms 1–14' },
+      { id: 'Gate 2', name: 'Sealdah South & Koley Market', exitFor: 'South section local trains, Beliaghata Road & auto stand' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_b13: {
+    stationName: 'Park Street',
+    gates: [
+      { id: 'Gate 1', name: 'Park Street & Allen Park', exitFor: 'Peter Cat, Mocambo, Flurys, Stephen Court & nightlife' },
+      { id: 'Gate 2', name: 'Asiatic Society / Park Hotel', exitFor: 'Asiatic Society museum, Park Hotel, Camac Street link' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_g12: {
+    stationName: 'Salt Lake Sector V',
+    gates: [
+      { id: 'Gate 1', name: 'College More & Wipro Junction', exitFor: 'Tech parks, IT companies, College More food street' },
+      { id: 'Gate 2', name: 'Sector V Ring Road', exitFor: 'Technopolis, Ring Road feeder buses & shared autos' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_b1: {
+    stationName: 'Dakshineswar',
+    gates: [
+      { id: 'Gate 1', name: 'Temple Elevated Skywalk', exitFor: 'Direct 350m covered pedestrian skywalk to Dakshineswar Kali Temple' },
+      { id: 'Gate 2', name: 'Railway & Ferry Ghat Link', exitFor: 'Dakshineswar Railway Station & Belur Math Ferry Pier' },
+    ],
+    defaultExit: 'Gate 1',
+  },
 };
 
 /**
@@ -1071,6 +1255,22 @@ export function getMetroPlatformAndGateInfo({ stationId, line, fromIdx = 0, toId
     } else {
       platformNum = 2;
       towardsHeadsign = 'Towards Versova (Westbound Metro)';
+    }
+  } else if (line === 'kolkata_blue') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Kavi Subhash / Garia (Southbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Dakshineswar / Dum Dum (Northbound)';
+    }
+  } else if (line === 'kolkata_green') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Salt Lake Sector V (Eastbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Howrah Maidan / Underwater (Westbound)';
     }
   }
 
