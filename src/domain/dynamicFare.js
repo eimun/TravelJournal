@@ -149,8 +149,8 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
       },
       appAuto: {
         id: 'app_auto',
-        name: 'App autos (Uber / Ola / Rapido / Namma Yatri)',
-        subtitle: auto.tariff?.appNote || 'Estimated app fare range with platform fee & surge',
+        name: 'App autos (Uber / Ola / Rapido)',
+        subtitle: 'Uber, Ola, Rapido & Namma Yatri',
         fare: null,
         fareRange: appAutoRange,
         fareText: appAutoRange.fareText,
@@ -161,7 +161,7 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
       cab: {
         id: 'cab_official',
         name: cab.tariff?.label || 'Cab',
-        subtitle: cab.tariff?.appNote || '',
+        subtitle: 'Uber, Ola & local city cabs',
         fare: cab.fare,
         fareText: fareText(cab),
         tag: cab.regulated ? 'OFFICIAL TARIFF' : 'NOT REGULATED',
@@ -171,9 +171,7 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
       bike: {
         id: 'bike',
         name: bike.tariff?.label || 'Bike taxi (Rapido / Uber Moto)',
-        subtitle: bike.regulated
-          ? bike.tariff?.appNote
-          : (bike.tariff?.legalStatus || 'Standard app bike-taxi estimate (~₹20 base + ₹8/km)'),
+        subtitle: 'Rapido, Uber Moto & Ola Bike',
         fare: bike.fare,
         fareRange: bike.regulated && bike.fare !== null ? null : bikeRange,
         fareText: bikeFareText,

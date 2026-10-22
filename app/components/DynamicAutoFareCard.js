@@ -52,7 +52,11 @@ export default function DynamicAutoFareCard({ dynamicFare }) {
                     <Text style={[styles.tagPillText, { color: p.tagColor }]}>{p.tag}</Text>
                   </View>
                 )}
-                {!!p.subtitle && <Text style={styles.providerSub}>{p.subtitle}</Text>}
+                {!!p.subtitle && (
+                  <Text style={styles.providerSub} numberOfLines={1}>
+                    {p.subtitle}
+                  </Text>
+                )}
               </View>
               <View style={styles.providerRightCol}>
                 <Text style={[styles.providerFare, hasRange && styles.providerFareRange, !hasFare && !hasRange && styles.providerFareMuted]}>
