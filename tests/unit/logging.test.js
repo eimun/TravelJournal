@@ -99,7 +99,7 @@ describe('runtime audits', () => {
   });
 
   it('reports a MAJOR issue when a city has no tariff', () => {
-    getOfficialFare('chennai', 'auto', { straightMeters: 3000 }, 'x');
+    getOfficialFare('pune', 'auto', { straightMeters: 3000 }, 'x');
     expect(getIssues({ severity: SEVERITY.MAJOR })[0].code).toBe('FARE_TARIFF_MISSING');
   });
 

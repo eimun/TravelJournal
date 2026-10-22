@@ -46,7 +46,7 @@ describe('official tariffs', () => {
     const bike = computeOfficialFare('bengaluru', 'bike', { roadMeters: 3000, date: noon });
     expect(bike.regulated).toBe(false);
     expect(bike.fare).toBeNull();
-    const missing = computeOfficialFare('chennai', 'auto', { roadMeters: 3000 });
+    const missing = computeOfficialFare('pune', 'auto', { roadMeters: 3000 });
     expect(missing.missing).toBe(true);
     expect(missing.fare).toBeNull();
   });
