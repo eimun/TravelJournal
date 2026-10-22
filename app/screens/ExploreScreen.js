@@ -134,9 +134,7 @@ function FilterChip({ label, emoji, active, onPress }) {
 
 function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
   const status = restaurantOpenStatus(r, now);
-  const badge = verificationBadge(r);
   const cuisine = cuisineInfo(r.cuisine);
-  const tier = r.priceTier ? PRICE_TIER_COLORS[r.priceTier] : null;
   const subtitle = [cuisine.label, r.area].filter(Boolean).join(' · ');
 
   return (
@@ -158,11 +156,6 @@ function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
           <Text style={styles.cardName} numberOfLines={1}>
             {r.name}
           </Text>
-          {tier && (
-            <View style={[styles.tierPill, { backgroundColor: tier.bg }]}>
-              <Text style={[styles.tierText, { color: tier.text }]}>{PRICE_TIER_LABELS[r.priceTier]}</Text>
-            </View>
-          )}
         </View>
         <Text style={styles.cardSub} numberOfLines={1}>
           {cuisine.emoji} {subtitle}
@@ -171,12 +164,6 @@ function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
         <View style={styles.metaRow}>
           <OpenPill status={status} />
           {distMeters !== null && <Text style={styles.distText}>{formatDistance(distMeters)}</Text>}
-        </View>
-
-        <View style={styles.metaRow}>
-          <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-            <Text style={[styles.badgeText, { color: badge.fg }]}>{badge.label}</Text>
-          </View>
           <StarRating rating={r.rating} count={r.userRatingCount} source={r.ratingSource} />
         </View>
 
