@@ -45,6 +45,24 @@ export const CITY_BOUNDS = {
     maxLon: 88.6,
     suffix: 'Kolkata',
   },
+  hyderabad: {
+    lat: 17.3850,
+    lon: 78.4867,
+    minLat: 17.2,
+    maxLat: 17.6,
+    minLon: 78.2,
+    maxLon: 78.7,
+    suffix: 'Hyderabad',
+  },
+  chennai: {
+    lat: 13.0827,
+    lon: 80.2707,
+    minLat: 12.85,
+    maxLat: 13.35,
+    minLon: 80.05,
+    maxLon: 80.45,
+    suffix: 'Chennai',
+  },
 };
 
 /**
