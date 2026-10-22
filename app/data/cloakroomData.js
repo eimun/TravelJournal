@@ -323,19 +323,161 @@ export const KOLKATA_CLOAKROOMS = [
   },
 ];
 
+export const HYDERABAD_CLOAKROOMS = [
+  {
+    id: 'secunderabad_railway',
+    cityId: 'hyderabad',
+    name: 'Secunderabad Junction (SC) Cloakroom',
+    hub: 'Secunderabad Hub / Rail Terminal',
+    category: 'railway',
+    operator: 'Indian Railways (South Central Railway)',
+    locationDetails: 'Platform 1 Concourse (near PRS Reservation Complex) & Platform 10 Exit',
+    metroProximity: 'Direct covered skywalk to Secunderabad East Metro (Blue Line Gate 1)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+      lockerOption: '₹50 / 24 hrs for smart electronic DigiLocker facility',
+    },
+    rules: [
+      'Padlock on bag zippers is strictly mandatory.',
+      'Government Photo ID (Aadhaar / Passport / Voter ID) mandatory.',
+      'Confirmed or waiting list railway PNR ticket required.',
+    ],
+    verifiedPhone: '+91 40 2778 6170',
+    insiderTip: 'Platform 1 cloakroom is closest to the Blue Line Metro skywalk. Drop bags and take the Blue Line straight to Hitec City or Charminar.',
+  },
+  {
+    id: 'hyderabad_deccan_railway',
+    cityId: 'hyderabad',
+    name: 'Hyderabad Deccan Nampally (HYB) Cloakroom',
+    hub: 'Nampally / Abids / Moazzam Jahi Market',
+    category: 'railway',
+    operator: 'Indian Railways (South Central Railway)',
+    locationDetails: 'Platform 1 Main Building, near 1st Class Waiting Hall',
+    metroProximity: '300m walk to Nampally Metro Station (Red Line Gate 2)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+    },
+    rules: [
+      'Padlocks mandatory on all bags.',
+      'Government Photo ID & Train Ticket required.',
+    ],
+    verifiedPhone: '+91 40 2778 2222',
+    insiderTip: 'Very convenient for tourists exploring Moazzam Jahi Market, Famous Ice Cream, and the Salar Jung Museum.',
+  },
+  {
+    id: 'hyderabad_airport_rgia',
+    cityId: 'hyderabad',
+    name: 'Rajiv Gandhi International Airport (RGIA HYD) Left-Luggage',
+    hub: 'Shamshabad Airport (HYD)',
+    category: 'airport',
+    operator: 'GMR Hyderabad International Airport Left Luggage',
+    locationDetails: 'Ground Floor, Arrivals Concourse near Airport Village / Car Park link',
+    metroProximity: 'TSRTC Pushpak AC Volvo Express departures bay right outside',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹300 – ₹500 per bag',
+      subsequentDay: '₹250 per bag / day',
+    },
+    rules: [
+      'Boarding pass or flight itinerary mandatory.',
+      'Passport or National ID required.',
+      'Mandatory X-Ray baggage screening before deposit.',
+    ],
+    verifiedPhone: '+91 40 6654 6370',
+    insiderTip: 'Long layover at RGIA? Leave luggage here, catch the Pushpak AC bus to Charminar, enjoy Biryani at Shadab, and return comfortably.',
+  },
+];
+
+export const CHENNAI_CLOAKROOMS = [
+  {
+    id: 'chennai_central_railway',
+    cityId: 'chennai',
+    name: 'Puratchi Thalaivar Dr. MGR Central (MAS) Cloakroom',
+    hub: 'Chennai Central / Park Town Hub',
+    category: 'railway',
+    operator: 'Indian Railways (Southern Railway)',
+    locationDetails: 'Moore Market Complex entrance & Main Concourse Platform 1',
+    metroProximity: 'Direct underground walkway to Chennai Central Metro (Blue & Green Lines Gate 1)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+      lockerOption: '₹50 / 24 hrs for smart electronic lockers',
+    },
+    rules: [
+      'Padlock on bag zippers is strictly mandatory.',
+      'Government Photo ID (Aadhaar / Passport / Voter ID) mandatory.',
+      'Confirmed or waiting list railway PNR ticket required.',
+    ],
+    verifiedPhone: '+91 44 2535 3545',
+    insiderTip: 'Direct connection to the underground Metro. Store bags and take the Blue Line straight to Airport or Marina Beach.',
+  },
+  {
+    id: 'chennai_egmore_railway',
+    cityId: 'chennai',
+    name: 'Chennai Egmore (MS) Cloakroom',
+    hub: 'Egmore / Kilpauk / Government Museum',
+    category: 'railway',
+    operator: 'Indian Railways (Southern Railway)',
+    locationDetails: 'Platform 1 Concourse, near Gandhi Irwin Road Entrance',
+    metroProximity: 'Direct skywalk to Chennai Egmore Metro Station (Green Line Gate 1)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+    },
+    rules: [
+      'Padlocks mandatory on all bags.',
+      'Government Photo ID & Train Ticket required.',
+    ],
+    verifiedPhone: '+91 44 2819 0241',
+    insiderTip: 'Convenient terminal for south-bound trains. Drop bags and explore the Government Museum and National Art Gallery.',
+  },
+  {
+    id: 'chennai_airport_maa',
+    cityId: 'chennai',
+    name: 'Chennai International Airport (MAA) Left-Luggage',
+    hub: 'Meenambakkam Airport (MAA)',
+    category: 'airport',
+    operator: 'AAI Chennai International Airport',
+    locationDetails: 'Concourse between Terminal 1 (Domestic) & Terminal 2 (International) Arrivals',
+    metroProximity: 'Direct covered air-conditioned skywalk to Chennai Airport Metro Station (Gate 1)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹400 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Flight ticket or boarding pass mandatory.',
+      'Passport or National ID required.',
+      'Mandatory security X-Ray baggage screening.',
+    ],
+    verifiedPhone: '+91 44 2256 0551',
+    insiderTip: 'Step out of MAA Arrivals, deposit bags, and take the direct Metro Blue Line to Central and Marina Beach in 35 minutes.',
+  },
+];
+
 export const ALL_CLOAKROOMS = [
   ...BENGALURU_CLOAKROOMS,
   ...DELHI_CLOAKROOMS,
   ...MUMBAI_CLOAKROOMS,
   ...KOLKATA_CLOAKROOMS,
+  ...HYDERABAD_CLOAKROOMS,
+  ...CHENNAI_CLOAKROOMS,
 ];
 
 /**
  * Returns cloakrooms filtered by city ID.
- * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai' | 'kolkata'
+ * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai' | 'kolkata' | 'hyderabad' | 'chennai'
  * @returns {Array}
  */
 export function getCloakroomsForCity(cityId = 'bengaluru') {
+  if (cityId === 'hyderabad') return HYDERABAD_CLOAKROOMS;
+  if (cityId === 'chennai') return CHENNAI_CLOAKROOMS;
   if (cityId === 'kolkata') return KOLKATA_CLOAKROOMS;
   if (cityId === 'delhi') return DELHI_CLOAKROOMS;
   if (cityId === 'mumbai') return MUMBAI_CLOAKROOMS;

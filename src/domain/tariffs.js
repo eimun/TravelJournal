@@ -228,6 +228,106 @@ export const TARIFFS = {
       appNote: 'Price is set by the app (Yatri Sathi / Rapido / Uber Moto). Check the app before booking.',
     },
   },
+
+  hyderabad: {
+    auto: {
+      regulated: true,
+      label: 'Auto meter (Hyderabad GHMC)',
+      baseFare: 30,
+      baseKm: 1.5,
+      perKm: 15,
+      night: { multiplier: 1.25, from: 23, to: 5, label: '+25% from 11 PM to 5 AM' },
+      waiting: '₹1.50 per minute (first 10 min free)',
+      effectiveFrom: '2023-03-01',
+      verifiedOn: '2026-10-14',
+      authority: 'Telangana State Transport Department',
+      scope: 'Greater Hyderabad Municipal Corporation (GHMC)',
+      sources: [
+        'https://transport.telangana.gov.in',
+      ],
+      appNote:
+        'Street auto drivers frequently demand flat fares; insist on "Meter veyyandi" or book through Uber Auto, Rapido, or Ola Auto for upfront pricing.',
+    },
+    cab: {
+      regulated: true,
+      label: 'Prepaid taxi meter (Hyderabad)',
+      baseFare: 50,
+      baseKm: 2,
+      perKm: 18,
+      night: { multiplier: 1.25, from: 23, to: 5, label: '+25% from 11 PM to 5 AM' },
+      tiers: [
+        { label: 'Non-AC Taxi', baseFare: 50, baseKm: 2, perKm: 18 },
+        { label: 'AC Taxi', baseFare: 60, baseKm: 2, perKm: 21 },
+      ],
+      effectiveFrom: '2023-03-01',
+      verifiedOn: '2026-10-14',
+      authority: 'Telangana State Transport Department',
+      scope: 'Metered & Prepaid Taxis in Hyderabad',
+      sources: [
+        'https://transport.telangana.gov.in',
+      ],
+      appNote:
+        'Prepaid taxi counters are active at Secunderabad (SC), Nampally (HYB), and Rajiv Gandhi International Airport (RGIA). TSRTC Pushpak AC buses connect airport to city hubs.',
+    },
+    bike: {
+      regulated: false,
+      label: 'Bike taxi',
+      verifiedOn: '2026-10-14',
+      legalStatus: 'Operational via Rapido, Uber Moto, and Ola Bike in Hyderabad GHMC.',
+      sources: [],
+      appNote: 'Price is determined dynamically by the app. Check Rapido or Uber before booking.',
+    },
+  },
+
+  chennai: {
+    auto: {
+      regulated: true,
+      label: 'Auto meter (Chennai GCC)',
+      baseFare: 25,
+      baseKm: 1.8,
+      perKm: 12,
+      night: { multiplier: 1.5, from: 23, to: 5, label: '+50% from 11 PM to 5 AM' },
+      waiting: '₹3.50 per 5 minutes',
+      effectiveFrom: '2023-02-01',
+      verifiedOn: '2026-10-14',
+      authority: 'Tamil Nadu Transport Department (Motor Vehicles Act)',
+      scope: 'Greater Chennai Corporation (GCC)',
+      sources: [
+        'https://tnsta.gov.in',
+      ],
+      appNote:
+        'Street drivers rarely run meters; insist on "Meter podunga" or book via Rapido, Ola Auto, or Fast Track. Prepaid auto booths operate at Chennai Central and Egmore.',
+    },
+    cab: {
+      regulated: true,
+      label: 'Fast Track / Metered Taxi (Chennai)',
+      baseFare: 60,
+      baseKm: 3,
+      perKm: 16,
+      night: { multiplier: 1.25, from: 23, to: 5, label: '+25% from 11 PM to 5 AM' },
+      tiers: [
+        { label: 'Sedan / Hatchback Meter', baseFare: 60, baseKm: 3, perKm: 16 },
+        { label: 'AC Prime Taxi', baseFare: 80, baseKm: 3, perKm: 20 },
+      ],
+      effectiveFrom: '2023-02-01',
+      verifiedOn: '2026-10-14',
+      authority: 'Tamil Nadu Transport Department',
+      scope: 'Metered Taxis and Call Taxis in Chennai',
+      sources: [
+        'https://tnsta.gov.in',
+      ],
+      appNote:
+        'Prepaid call taxi counters (Fast Track, Aviation Express) are available at Chennai Central, Egmore, and Chennai Airport (MAA).',
+    },
+    bike: {
+      regulated: false,
+      label: 'Bike taxi',
+      verifiedOn: '2026-10-14',
+      legalStatus: 'Operational via Rapido, Uber Moto, and Ola Bike.',
+      sources: [],
+      appNote: 'Dynamic app pricing applies. Check Rapido / Uber Moto before hailing.',
+    },
+  },
 };
 
 export function getTariff(cityId, vehicle) {
