@@ -69,37 +69,38 @@ export function getTimeSurgeContext(date = new Date(), cityId = 'bengaluru') {
 
 /**
  * Estimated realistic price range for App Autos (Uber Auto, Ola Auto, Rapido Auto, Namma Yatri).
- * Reflects real-world dynamic pricing: meter base + platform fee (₹10–₹20) + peak/night surge.
+ * Reflects real-world dynamic pricing: meter base + platform fee (₹15–₹30) + peak/night surge.
  */
 export function estimateAppAutoPriceRange(meterFare, distanceKm, isNight = false, period = 'midday_normal') {
   const d = Math.max(0.5, distanceKm || 1);
-  const base = meterFare && meterFare > 0 ? meterFare : Math.round(30 + d * 15);
+  const base = meterFare && meterFare > 0 ? meterFare : Math.round(36 + d * 18);
 
-  // App autos charge platform booking fee (~₹10–₹15) on top of meter
-  const low = Math.max(35, Math.round((base * 1.1) / 5) * 5);
+  // App autos have platform fees and booking charge; realistic minimum is ~₹75-80
+  const low = Math.max(75, Math.round((base * 1.25) / 5) * 5);
 
   // Peak/night surge multiplier
   const isPeak = period === 'morning_peak' || period === 'evening_peak';
-  const surgeMultiplier = isNight ? 1.45 : isPeak ? 1.35 : 1.25;
-  const high = Math.max(low + 15, Math.round((base * surgeMultiplier + 10) / 5) * 5);
+  const surgeMultiplier = isNight ? 1.55 : isPeak ? 1.45 : 1.35;
+  const high = Math.max(low + 20, Math.round((base * surgeMultiplier + 25) / 5) * 5);
 
   return { min: low, max: high, fareText: `~₹${low} – ₹${high}` };
 }
 
 /**
  * Estimated realistic price range for Bike Taxis (Rapido, Uber Moto, Ola Bike).
- * Base flagfall ₹20–₹25 for first 1.5 km, then ₹7.5–₹9.5/km.
+ * Real-world city minimums with platform fees and insurance are ₹60+.
  */
 export function estimateBikePriceRange(distanceKm, isNight = false, period = 'midday_normal') {
   const d = Math.max(0.5, distanceKm || 1);
   const isPeak = period === 'morning_peak' || period === 'evening_peak';
 
-  const lowRaw = 20 + Math.max(0, d - 1.5) * 7.5;
-  const low = Math.max(25, Math.round(lowRaw / 5) * 5);
+  // Base Rapido minimum is ~₹60 for city rides
+  const lowRaw = 52 + Math.max(0, d - 1.5) * 11;
+  const low = Math.max(60, Math.round(lowRaw / 5) * 5);
 
-  const nightAdd = isNight ? 10 : isPeak ? 5 : 0;
-  const highRaw = 28 + Math.max(0, d - 1.5) * 10 + nightAdd;
-  const high = Math.max(low + 10, Math.round(highRaw / 5) * 5);
+  const nightAdd = isNight ? 15 : isPeak ? 10 : 0;
+  const highRaw = 68 + Math.max(0, d - 1.5) * 14 + nightAdd;
+  const high = Math.max(low + 15, Math.round(highRaw / 5) * 5);
 
   return { min: low, max: high, fareText: `~₹${low} – ₹${high}` };
 }
