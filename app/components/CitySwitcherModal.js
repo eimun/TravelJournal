@@ -18,6 +18,8 @@ const CITY_ICONS = {
   delhi: '🏛️',
   mumbai: '🌊',
   kolkata: '🚋',
+  hyderabad: '🕌',
+  chennai: '🛕',
 };
 
 const CITY_TRANSIT_SUBTITLES = {
@@ -25,6 +27,8 @@ const CITY_TRANSIT_SUBTITLES = {
   delhi: 'Delhi Metro (DMRC) & DTC',
   mumbai: 'Mumbai Local Rail & Metro',
   kolkata: 'Metro, Trams & Yellow Taxis',
+  hyderabad: 'Metro, MMTS & Cyber Cabs',
+  chennai: 'Metro, MRTS & Coastal Locals',
 };
 
 export default function CitySwitcherModal({ visible, onClose }) {
