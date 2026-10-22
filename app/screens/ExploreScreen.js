@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Polygon } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
@@ -220,18 +220,6 @@ export default function ExploreScreen({ contentPadding }) {
   const mealCtx = getMealContext();
   const now = new Date();
 
-  const counts = useMemo(() => {
-    const c = { verified: 0, corrected: 0, unverified: 0, live: 0 };
-    for (const r of allRestaurants || []) {
-      const s = r.verification?.status;
-      if (s === 'verified') c.verified += 1;
-      else if (s === 'location_corrected') c.corrected += 1;
-      else if (s && s.startsWith('live_')) c.live += 1;
-      else c.unverified += 1;
-    }
-    return c;
-  }, [allRestaurants]);
-
   const distanceTo = (r) =>
     userLocation ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude) : null;
 
@@ -260,7 +248,18 @@ export default function ExploreScreen({ contentPadding }) {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.container, contentPadding]}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.container, contentPadding]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isFetchingOsm}
+          onRefresh={refreshLive}
+          tintColor={colors.accentRamp[700]}
+          colors={[colors.accentRamp[600]]}
+        />
+      }
+    >
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
@@ -272,32 +271,6 @@ export default function ExploreScreen({ contentPadding }) {
         </View>
         <Pressable onPress={openCitySwitcher} style={({ pressed }) => [styles.cityPill, pressed && { opacity: 0.8 }]}>
           <Text style={styles.cityPillText}>📍 {currentCity?.shortName || 'BLR'} ▾</Text>
-        </Pressable>
-      </View>
-
-      {/* Data status */}
-      <View style={styles.dataCard}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.dataTitle}>{(allRestaurants || []).length} places</Text>
-          <Text style={styles.dataLine}>
-            ✓ {counts.verified + counts.corrected} checked on OpenStreetMap · {counts.unverified} unverified
-          </Text>
-          <Text style={styles.dataLine}>
-            {isFetchingOsm
-              ? 'Searching live places nearby…'
-              : liveFetchStatus?.state === 'ok'
-                ? `🌐 ${liveFetchStatus.count} live from ${liveFetchStatus.source}`
-                : liveFetchStatus?.state === 'failed'
-                  ? '⚠️ Live search failed — showing saved places'
-                  : 'Live search not run yet'}
-          </Text>
-        </View>
-        <Pressable
-          onPress={refreshLive}
-          disabled={isFetchingOsm}
-          style={({ pressed }) => [styles.refreshBtn, pressed && { opacity: 0.8 }, isFetchingOsm && { opacity: 0.6 }]}
-        >
-          {isFetchingOsm ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.refreshText}>↻ Live</Text>}
         </Pressable>
       </View>
 
@@ -480,40 +453,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamily.bodyBold,
     color: colors.accentRamp[800],
-  },
-  dataCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#ffffff',
-    borderRadius: radius.md,
-    padding: 14,
-    marginTop: 14,
-    ...shadow.sm,
-  },
-  dataTitle: {
-    fontSize: 15,
-    fontFamily: fontFamily.bodyExtraBold,
-    color: colors.neutral[900],
-  },
-  dataLine: {
-    fontSize: 12,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[600],
-    marginTop: 2,
-  },
-  refreshBtn: {
-    backgroundColor: colors.accentRamp[600],
-    borderRadius: radius.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    minWidth: 72,
-    alignItems: 'center',
-  },
-  refreshText: {
-    color: '#fff',
-    fontSize: 13,
-    fontFamily: fontFamily.bodyBold,
   },
   chipStrip: {
     flexDirection: 'row',
