@@ -38,6 +38,7 @@ export default function DynamicAutoFareCard({ dynamicFare }) {
       <View style={styles.providersList}>
         {rows.map((p) => {
           const hasFare = p.fare !== null && p.fare !== undefined;
+          const hasRange = !!p.fareRange;
           return (
             <View key={p.id} style={[styles.providerRow, p.id === 'rto_meter' && styles.providerRowFeatured]}>
               <View style={styles.providerLeftCol}>
@@ -54,7 +55,9 @@ export default function DynamicAutoFareCard({ dynamicFare }) {
                 {!!p.subtitle && <Text style={styles.providerSub}>{p.subtitle}</Text>}
               </View>
               <View style={styles.providerRightCol}>
-                <Text style={[styles.providerFare, !hasFare && styles.providerFareMuted]}>{p.fareText}</Text>
+                <Text style={[styles.providerFare, hasRange && styles.providerFareRange, !hasFare && !hasRange && styles.providerFareMuted]}>
+                  {p.fareText}
+                </Text>
                 {!!p.badge && <Text style={styles.providerBadge}>{p.badge}</Text>}
               </View>
             </View>
@@ -181,6 +184,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: fontFamily.bodyBold,
     color: colors.neutral[900],
+  },
+  providerFareRange: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
   },
   providerFareMuted: {
     fontSize: 12,
