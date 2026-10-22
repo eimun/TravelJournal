@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 import { DISHES, DIET_OPTIONS, PACK_ITEMS } from '../data/bengaluruData';
+import { getCityHeritageGuide } from '../data/cityHeritageData';
 import CircularProgress from '../components/CircularProgress';
 import CloakroomModal from '../components/CloakroomModal';
 import SafetyPingModal from '../components/SafetyPingModal';
@@ -39,10 +41,13 @@ export default function GuideScreen({ contentPadding }) {
     currentCity,
     openCitySwitcher,
     cityDishes,
+    selectDestination,
+    setTab,
   } = useTrip();
   const issueCounts = useIssueCounts();
 
-  const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'food' | 'offline'
+  const [guideSubTab, setGuideSubTab] = useState('tips'); // 'tips' | 'heritage' | 'food' | 'offline'
+  const [monumentFilter, setMonumentFilter] = useState('All');
   const [showCloakroomModal, setShowCloakroomModal] = useState(false);
   const [showSafetyModal, setShowSafetyModal] = useState(false);
 
@@ -51,6 +56,12 @@ export default function GuideScreen({ contentPadding }) {
 
   const currentDishes = (cityDishes && cityDishes.length > 0) ? cityDishes : DISHES;
   const selectedDishObj = currentDishes.find((d) => d.id === dish) || currentDishes[0];
+
+  const cityHeritage = getCityHeritageGuide(currentCity?.id || 'bengaluru');
+  const displayedMonuments = (cityHeritage?.monuments || []).filter((m) => {
+    if (monumentFilter === 'All') return true;
+    return m.category.toLowerCase().includes(monumentFilter.toLowerCase());
+  });
 
   return (
     <ScrollView
@@ -89,13 +100,26 @@ export default function GuideScreen({ contentPadding }) {
       </Pressable>
 
       {/* Segmented Sub-Tabs */}
-      <View style={styles.subTabRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.subTabRow}
+      >
         <Pressable
           onPress={() => setGuideSubTab('tips')}
           style={[styles.subTabBtn, guideSubTab === 'tips' && styles.subTabBtnActive]}
         >
           <Text style={[styles.subTabBtnText, guideSubTab === 'tips' && styles.subTabBtnTextActive]}>
             Transit & Tips
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setGuideSubTab('heritage')}
+          style={[styles.subTabBtn, guideSubTab === 'heritage' && styles.subTabBtnActive]}
+        >
+          <Text style={[styles.subTabBtnText, guideSubTab === 'heritage' && styles.subTabBtnTextActive]}>
+            🏛️ History & Heritage
           </Text>
         </Pressable>
 
@@ -116,7 +140,7 @@ export default function GuideScreen({ contentPadding }) {
             Offline Pack
           </Text>
         </Pressable>
-      </View>
+      </ScrollView>
 
       {/* Subtab 1: Transit & City Tips */}
       {guideSubTab === 'tips' && (
@@ -207,7 +231,132 @@ export default function GuideScreen({ contentPadding }) {
         </View>
       )}
 
-      {/* Subtab 2: Food & Darshinis */}
+      {/* Subtab 2: Heritage, History & Monuments Guidebook */}
+      {guideSubTab === 'heritage' && (
+        <View style={styles.tabContent}>
+          {/* City Moniker & Story Card */}
+          <View style={styles.heritageHeroCard}>
+            <View style={styles.heritageHeroTop}>
+              <View style={styles.heritageBadge}>
+                <Text style={styles.heritageBadgeText}>FOUNDED {cityHeritage.foundingYear.toUpperCase()}</Text>
+              </View>
+              <Text style={styles.heritageCityName}>{cityHeritage.cityName} Historical Guide</Text>
+              <Text style={styles.heritageMoniker}>{cityHeritage.moniker}</Text>
+            </View>
+
+            <View style={styles.heritageStoryBox}>
+              <Text style={styles.heritageStoryText}>{cityHeritage.historySummary}</Text>
+              <View style={styles.founderRow}>
+                <Text style={styles.founderLabel}>Founder / Historical Roots:</Text>
+                <Text style={styles.founderName}>{cityHeritage.founder}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Historical Eras Timeline */}
+          <Text style={styles.sectionHeading}>Historical Eras & Timeline</Text>
+          <View style={styles.erasList}>
+            {cityHeritage.historicalEras.map((era, eIdx) => (
+              <View key={eIdx} style={styles.eraCard}>
+                <View style={styles.eraHeaderRow}>
+                  <View style={styles.eraTimelineDot} />
+                  <Text style={styles.eraTimeRange}>{era.era}</Text>
+                  <Text style={styles.eraTitle}>{era.title}</Text>
+                </View>
+                <Text style={styles.eraDesc}>{era.desc}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Category Filter Chips for Monuments */}
+          <View style={styles.monumentFilterRow}>
+            <Text style={styles.sectionHeading}>Iconic Monuments & Heritage Places</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.monumentCategoryScroll}>
+              {['All', 'Palace', 'Fort', 'Temple', 'Mausoleum', 'Monument'].map((cat) => {
+                const active = (monumentFilter === cat) || (cat === 'All' && monumentFilter === 'All');
+                return (
+                  <Pressable
+                    key={cat}
+                    onPress={() => setMonumentFilter(cat)}
+                    style={[styles.monumentFilterChip, active && styles.monumentFilterChipActive]}
+                  >
+                    <Text style={[styles.monumentFilterText, active && styles.monumentFilterTextActive]}>{cat}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Monuments List */}
+          <View style={styles.monumentsList}>
+            {displayedMonuments.map((m) => (
+              <View key={m.id} style={styles.monumentCard}>
+                <View style={styles.monumentImageContainer}>
+                  <Image source={{ uri: m.image }} style={styles.monumentImage} resizeMode="cover" />
+                  <View style={styles.builtYearBadge}>
+                    <Text style={styles.builtYearText}>Est. {m.builtYear}</Text>
+                  </View>
+                  <View style={styles.monumentCategoryPill}>
+                    <Text style={styles.monumentCategoryPillText}>{m.emoji} {m.category}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.monumentBody}>
+                  <Text style={styles.monumentTitle}>{m.name}</Text>
+                  <Text style={styles.monumentBuilder}>Built by: {m.builder}</Text>
+
+                  <Text style={styles.monumentSignificance}>{m.significance}</Text>
+
+                  <View style={styles.monumentMetaGrid}>
+                    <View style={styles.monumentMetaItem}>
+                      <Text style={styles.monumentMetaLabel}>TIMINGS</Text>
+                      <Text style={styles.monumentMetaVal}>{m.visitingHours}</Text>
+                    </View>
+                    <View style={styles.monumentMetaItem}>
+                      <Text style={styles.monumentMetaLabel}>ENTRY TICKET</Text>
+                      <Text style={styles.monumentMetaVal}>{m.entryTicket}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.nearestMetroBox}>
+                    <Text style={styles.metroIcon}>🚇</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.nearestMetroLabel}>NEAREST TRANSIT ACCESS</Text>
+                      <Text style={styles.nearestMetroVal}>{m.nearestMetro}</Text>
+                    </View>
+                  </View>
+
+                  {m.insiderTip && (
+                    <View style={styles.insiderTipBox}>
+                      <Text style={styles.insiderTipText}>💡 {m.insiderTip}</Text>
+                    </View>
+                  )}
+
+                  <Pressable
+                    onPress={() => {
+                      selectDestination({
+                        id: m.id,
+                        name: m.name,
+                        area: cityHeritage.cityName,
+                        category: m.category,
+                        latitude: m.latitude,
+                        longitude: m.longitude,
+                        nearestMetro: m.nearestMetro,
+                      });
+                      setTab('navigate');
+                    }}
+                    style={({ pressed }) => [styles.getRouteButton, pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] }]}
+                  >
+                    <Text style={styles.getRouteButtonText}>🧭 Plan Route to {m.name}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Subtab 3: Food & Darshinis */}
       {guideSubTab === 'food' && (
         <View style={styles.tabContent}>
           {/* Dietary Filter Chips */}
@@ -414,29 +563,315 @@ const styles = StyleSheet.create({
   },
   subTabRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     marginTop: 14,
-    backgroundColor: colors.neutral[200],
-    borderRadius: radius.pill,
-    padding: 3,
+    paddingVertical: 4,
   },
   subTabBtn: {
-    flex: 1,
     paddingVertical: 7,
+    paddingHorizontal: 13,
     alignItems: 'center',
     borderRadius: radius.pill,
+    backgroundColor: colors.neutral[200],
   },
   subTabBtnActive: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.accentRamp[700],
     ...shadow.sm,
   },
   subTabBtnText: {
     fontSize: 12,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[600],
+    color: colors.neutral[700],
   },
   subTabBtnTextActive: {
+    color: '#ffffff',
+  },
+  heritageHeroCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    marginBottom: 16,
+    ...shadow.sm,
+  },
+  heritageHeroTop: {
+    marginBottom: 4,
+  },
+  heritageBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.xs,
+    marginBottom: 6,
+  },
+  heritageBadgeText: {
+    fontSize: 9.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#92400e',
+    letterSpacing: 0.8,
+  },
+  heritageCityName: {
+    fontSize: 20,
+    fontFamily: fontFamily.heading,
     color: colors.neutral[900],
+  },
+  heritageMoniker: {
+    fontSize: 13,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  heritageStoryBox: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral[100],
+  },
+  heritageStoryText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[700],
+    lineHeight: 20,
+  },
+  founderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: '#f8fafc',
+    padding: 10,
+    borderRadius: radius.sm,
+  },
+  founderLabel: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[600],
+  },
+  founderName: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[800],
+    flex: 1,
+  },
+  erasList: {
+    gap: 10,
+    marginBottom: 18,
+  },
+  eraCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  eraHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  eraTimelineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentRamp[600],
+  },
+  eraTimeRange: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
+  },
+  eraTitle: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+    flex: 1,
+  },
+  eraDesc: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+    lineHeight: 16,
+  },
+  monumentFilterRow: {
+    marginTop: 4,
+    marginBottom: 10,
+  },
+  monumentCategoryScroll: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  monumentFilterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+  },
+  monumentFilterChipActive: {
+    backgroundColor: colors.accentRamp[700],
+    borderColor: colors.accentRamp[800],
+  },
+  monumentFilterText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  monumentFilterTextActive: {
+    color: '#ffffff',
+  },
+  monumentsList: {
+    gap: 16,
+    marginBottom: 20,
+  },
+  monumentCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    ...shadow.sm,
+  },
+  monumentImageContainer: {
+    height: 170,
+    position: 'relative',
+    backgroundColor: colors.neutral[200],
+  },
+  monumentImage: {
+    width: '100%',
+    height: '100%',
+  },
+  builtYearBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  builtYearText: {
+    color: '#ffffff',
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+  },
+  monumentCategoryPill: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
+  monumentCategoryPillText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[900],
+  },
+  monumentBody: {
+    padding: 14,
+  },
+  monumentTitle: {
+    fontSize: 17,
+    fontFamily: fontFamily.heading,
+    color: colors.neutral[900],
+  },
+  monumentBuilder: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.accentRamp[800],
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  monumentSignificance: {
+    fontSize: 12,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[700],
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  monumentMetaGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  monumentMetaItem: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    padding: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral[100],
+  },
+  monumentMetaLabel: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[500],
+    letterSpacing: 0.5,
+  },
+  monumentMetaVal: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyMedium,
+    color: colors.neutral[800],
+    marginTop: 2,
+  },
+  nearestMetroBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#f0fdf4',
+    padding: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    marginBottom: 10,
+  },
+  metroIcon: {
+    fontSize: 16,
+  },
+  nearestMetroLabel: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: '#166534',
+    letterSpacing: 0.5,
+  },
+  nearestMetroVal: {
+    fontSize: 11,
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
+    marginTop: 1,
+  },
+  insiderTipBox: {
+    backgroundColor: '#fffbeb',
+    padding: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    marginBottom: 12,
+  },
+  insiderTipText: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#92400e',
+    lineHeight: 16,
+  },
+  getRouteButton: {
+    backgroundColor: colors.accentRamp[700],
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  getRouteButtonText: {
+    fontSize: 12.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
   },
   tabContent: {
     marginTop: 16,
