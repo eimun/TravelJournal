@@ -96,20 +96,40 @@ export default function WebRoadMap({
       background: #f8f6f0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
+    .leaflet-div-custom {
+      background: transparent !important;
+      border: none !important;
+    }
     .custom-marker {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 4px;
       background: #ffffff;
       border-radius: 999px;
       font-weight: 700;
       font-size: 11px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-      border: 2px solid #2d3748;
+      line-height: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+      border: 2px solid #ffffff;
       color: #1a202c;
       white-space: nowrap;
-      padding: 2px 6px;
-      transform: translate(-50%, -50%);
+      padding: 4px 8px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      pointer-events: auto;
+      z-index: 1000;
+    }
+    .custom-marker .marker-icon {
+      font-size: 12px;
+      line-height: 1;
+    }
+    .custom-marker .marker-text {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      line-height: 1;
     }
     .marker-origin {
       background: #2563eb;
@@ -270,28 +290,79 @@ export default function WebRoadMap({
       step.coordinates.forEach(c => allBounds.push(c));
     });
 
+    // Smart collision detection for start near board, or end near deboard
+    const startM = milestones.find(m => m.type === 'origin');
+    const boardM = milestones.find(m => m.id === 'm_board');
+    const isStartNearBoard = startM && boardM && startM.coords && boardM.coords && (
+      Math.abs(startM.coords[0] - boardM.coords[0]) < 0.0035 &&
+      Math.abs(startM.coords[1] - boardM.coords[1]) < 0.0035
+    );
+
+    const endM = milestones.find(m => m.type === 'destination');
+    const deboardM = milestones.find(m => m.id === 'm_deboard');
+    const isEndNearDeboard = endM && deboardM && endM.coords && deboardM.coords && (
+      Math.abs(endM.coords[0] - deboardM.coords[0]) < 0.0035 &&
+      Math.abs(endM.coords[1] - deboardM.coords[1]) < 0.0035
+    );
+
     // Render Milestone Pins
     milestones.forEach((m) => {
       if (!m.coords || m.coords[0] === 0) return;
       allBounds.push(m.coords);
 
       let badgeClass = 'custom-marker';
-      if (m.type === 'origin') badgeClass += ' marker-origin';
-      else if (m.type === 'destination') badgeClass += ' marker-dest';
-      else if (m.line === 'green') badgeClass += ' marker-green';
-      else if (m.line === 'purple') badgeClass += ' marker-purple';
-      else if (m.line === 'dmrc_yellow') badgeClass += ' marker-yellow';
-      else if (m.line === 'dmrc_blue') badgeClass += ' marker-blue';
-      else if (m.line === 'dmrc_airport') badgeClass += ' marker-airport';
-      else if (m.line === 'mumbai_western') badgeClass += ' marker-western';
-      else if (m.line === 'mumbai_central') badgeClass += ' marker-central';
-      else if (m.line === 'mumbai_metro1') badgeClass += ' marker-metro1';
+      let iconEmoji = '●';
+      let displayLabel = m.label || m.title || '';
+
+      if (m.type === 'origin') {
+        badgeClass += ' marker-origin';
+        iconEmoji = '📍';
+        displayLabel = 'Start';
+      } else if (m.type === 'destination') {
+        badgeClass += ' marker-dest';
+        iconEmoji = '🏁';
+        displayLabel = 'End';
+      } else {
+        if (m.id === 'm_board') {
+          iconEmoji = '🚇';
+          displayLabel = 'Board';
+        } else if (m.id === 'm_deboard') {
+          iconEmoji = '🚪';
+          displayLabel = 'De-board';
+        } else if (m.id && m.id.includes('transfer')) {
+          iconEmoji = '🔄';
+          displayLabel = 'Transfer';
+        }
+
+        if (m.line === 'green') badgeClass += ' marker-green';
+        else if (m.line === 'purple') badgeClass += ' marker-purple';
+        else if (m.line === 'dmrc_yellow') badgeClass += ' marker-yellow';
+        else if (m.line === 'dmrc_blue') badgeClass += ' marker-blue';
+        else if (m.line === 'dmrc_airport') badgeClass += ' marker-airport';
+        else if (m.line === 'mumbai_western') badgeClass += ' marker-western';
+        else if (m.line === 'mumbai_central') badgeClass += ' marker-central';
+        else if (m.line === 'mumbai_metro1') badgeClass += ' marker-metro1';
+        else badgeClass += ' marker-purple';
+      }
+
+      let offsetTransform = 'transform: translate(-50%, -50%);';
+      if (isStartNearBoard) {
+        if (m.type === 'origin') offsetTransform = 'transform: translate(-50%, 60%);';
+        else if (m.id === 'm_board') offsetTransform = 'transform: translate(-50%, -125%);';
+      }
+      if (isEndNearDeboard) {
+        if (m.type === 'destination') offsetTransform = 'transform: translate(-50%, 60%);';
+        else if (m.id === 'm_deboard') offsetTransform = 'transform: translate(-50%, -125%);';
+      }
 
       const icon = L.divIcon({
         className: 'leaflet-div-custom',
-        html: '<div class="' + badgeClass + '">' + (m.label || m.title || '●') + '</div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
+        html: '<div class="' + badgeClass + '" style="' + offsetTransform + '">' +
+                '<span class="marker-icon">' + iconEmoji + '</span>' +
+                '<span class="marker-text">' + displayLabel + '</span>' +
+              '</div>',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
       });
 
       L.marker(m.coords, { icon: icon })
