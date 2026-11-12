@@ -106,7 +106,24 @@ export function buildConnectingLeg({
   const approx = autoOfficial.distanceSource === 'estimated' ? '~' : '';
   const nightNote = autoOfficial.isNight ? ` (${autoOfficial.tariff.night.label})` : '';
 
-  const matchedBuses = findBusesForLocation(locationName);
+  const isBlr = (cityId || 'bengaluru') === 'bengaluru';
+  const busAgencyNames = {
+    bengaluru: 'BMTC Bus',
+    delhi: 'DTC Bus',
+    mumbai: 'BEST Bus',
+    kolkata: 'WBTC Bus',
+    hyderabad: 'TSRTC Bus',
+    chennai: 'MTC Bus',
+    jaipur: 'JCTSL Bus',
+    pune: 'PMPML Bus',
+    ahmedabad: 'Janmarg BRTS / AMTS',
+    kochi: 'KSRTC / Water Metro',
+    goa: 'Kadamba (KTCL) Bus',
+    varanasi: 'Kashi E-Bus',
+  };
+  const busLabel = busAgencyNames[cityId] || 'City Bus';
+
+  const matchedBuses = isBlr ? findBusesForLocation(locationName) : [];
   const matchedBus = matchedBuses.length > 0 ? matchedBuses[0] : null;
   const busSchedule = matchedBus ? calculateUpcomingBusDepartures(matchedBus, new Date()) : null;
 
@@ -159,7 +176,7 @@ export function buildConnectingLeg({
     },
     bus: {
       key: 'bus',
-      label: 'BMTC Bus',
+      label: busLabel,
       icon: 'bus',
       emoji: '🚌',
       durationMinutes: busMin,
@@ -168,14 +185,14 @@ export function buildConnectingLeg({
       ordinaryFare: matchedBus ? matchedBus.ordinaryFare : busFare,
       matchedBus,
       busSchedule,
-      title: matchedBus ? `BMTC ${matchedBus.routeNumber} to ${locationName}` : `BMTC Feeder Bus to ${locationName}`,
+      title: matchedBus ? `BMTC ${matchedBus.routeNumber} to ${locationName}` : `${busLabel} to ${locationName}`,
       meta: busSchedule && busSchedule.departures?.[0]
         ? `Next in ${busSchedule.nextBusInMinutes}m (${busSchedule.departures[0].timeFormatted}) · ₹${busFare}`
         : `${formatDistance(distanceMeters)} · ~${busMin} min · ₹${busFare}`,
       details: matchedBus
         ? `BMTC ${matchedBus.routeNumber}: ${matchedBus.name}. Next bus in ${busSchedule.nextBusInMinutes} mins (${busSchedule.departures[0]?.timeFormatted}). ${busSchedule.frequencyText}.`
-        : `BMTC metro feeder bus (MF-series). Economical choice (~${busMin} min). Stops right at station gate.`,
-      tip: `Pay cash (₹10 note) or UPI QR via Tummoc / conductor scanner. Zero surge guarantee.`,
+        : `Local ${busLabel} connecting to ${locationName} (~${busMin} min). Affordable public transit.`,
+      tip: `Pay cash or UPI QR via conductor scanner. Zero surge guarantee.`,
     },
     walk: {
       key: 'walk',
@@ -826,6 +843,36 @@ export function planTransitRoute(origin, destination, travelDate = new Date(), o
     const dosaCount = Math.floor(moneySaved / 80);
     const coffeeCount = Math.max(1, Math.floor((moneySaved % 80) / 25));
     foodEquivalent = dosaCount > 0 ? `${dosaCount} Ghee Roast Dosas + ${coffeeCount} Degree Filter Kaapis` : `${coffeeCount} Degree Filter Kaapis`;
+  } else if (cityId === 'jaipur') {
+    agencyName = 'Jaipur Metro (JMRC)';
+    const kachoriCount = Math.floor(moneySaved / 30);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 30) / 10));
+    foodEquivalent = kachoriCount > 0 ? `${kachoriCount} Rawat Pyaaz Kachoris + ${chaiCount} Kulhad Chais` : `${chaiCount} Kulhad Chais`;
+  } else if (cityId === 'pune') {
+    agencyName = 'Maha Metro Pune';
+    const misalCount = Math.floor(moneySaved / 70);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 70) / 15));
+    foodEquivalent = misalCount > 0 ? `${misalCount} Kata Kirr Misal Pavs + ${chaiCount} Amruttulya Chais` : `${chaiCount} Amruttulya Chais`;
+  } else if (cityId === 'ahmedabad') {
+    agencyName = 'Ahmedabad Metro (GMRC)';
+    const dhoklaCount = Math.floor(moneySaved / 40);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 40) / 12));
+    foodEquivalent = dhoklaCount > 0 ? `${dhoklaCount} Das Khaman Plates + ${chaiCount} Masala Chais` : `${chaiCount} Masala Chais`;
+  } else if (cityId === 'kochi') {
+    agencyName = 'Kochi Metro (KMRL) & Water Metro';
+    const appamCount = Math.floor(moneySaved / 50);
+    const kaapiCount = Math.max(1, Math.floor((moneySaved % 50) / 15));
+    foodEquivalent = appamCount > 0 ? `${appamCount} Appam Stew Plates + ${kaapiCount} Kerala Kaapis` : `${kaapiCount} Kerala Kaapis`;
+  } else if (cityId === 'goa') {
+    agencyName = 'Goa Coastal Transit & Ferries';
+    const poiCount = Math.floor(moneySaved / 45);
+    const chaiCount = Math.max(1, Math.floor((moneySaved % 45) / 15));
+    foodEquivalent = poiCount > 0 ? `${poiCount} Goan Poi Cutlets + ${chaiCount} Chais` : `${chaiCount} Chais`;
+  } else if (cityId === 'varanasi') {
+    agencyName = 'Kashi Public Transit & Ghat Ferries';
+    const kachoriCount = Math.floor(moneySaved / 30);
+    const lassiCount = Math.max(1, Math.floor((moneySaved % 30) / 25));
+    foodEquivalent = kachoriCount > 0 ? `${kachoriCount} Ram Bhandar Kachoris + ${lassiCount} Blue Lassis` : `${kachoriCount} Ram Bhandar Kachoris`;
   } else {
     const dosaCount = Math.floor(moneySaved / 85);
     const coffeeCount = Math.max(1, Math.floor((moneySaved % 85) / 20));
@@ -1092,6 +1139,24 @@ export function planDirectBusRoute(origin, destination, distanceMeters, cityId =
   } else if (cityId === 'chennai') {
     agencyName = 'MTC Bus';
     busFare = Math.min(25, Math.max(8, Math.round(8 + distanceKm * 1.3)));
+  } else if (cityId === 'jaipur') {
+    agencyName = 'JCTSL City Bus';
+    busFare = Math.min(25, Math.max(10, Math.round(10 + distanceKm * 1.4)));
+  } else if (cityId === 'pune') {
+    agencyName = 'PMPML Bus';
+    busFare = Math.min(25, Math.max(5, Math.round(5 + distanceKm * 1.5)));
+  } else if (cityId === 'ahmedabad') {
+    agencyName = 'Janmarg BRTS / AMTS';
+    busFare = Math.min(20, Math.max(5, Math.round(5 + distanceKm * 1.3)));
+  } else if (cityId === 'kochi') {
+    agencyName = 'KSRTC City Bus';
+    busFare = Math.min(25, Math.max(10, Math.round(10 + distanceKm * 1.3)));
+  } else if (cityId === 'goa') {
+    agencyName = 'Kadamba Coastal Bus (KTCL)';
+    busFare = Math.min(35, Math.max(10, Math.round(10 + distanceKm * 1.5)));
+  } else if (cityId === 'varanasi') {
+    agencyName = 'Kashi E-Bus (UPSRTC)';
+    busFare = Math.min(25, Math.max(10, Math.round(10 + distanceKm * 1.2)));
   } else {
     // Bengaluru
     agencyName = 'BMTC Bus';
@@ -1227,7 +1292,30 @@ export function planMultimodalRoutes(origin, destination, departureTime = new Da
   // Short trip (< 4.5km): Direct Auto is fastest
   const isShortDistance = totalDirectDistance < 4500;
   const recommendedMode = isShortDistance ? 'auto' : 'metro';
-  const busName = cityId === 'delhi' ? 'DTC Bus' : cityId === 'mumbai' ? 'BEST Bus' : cityId === 'kolkata' ? 'WBTC Bus' : cityId === 'hyderabad' ? 'TSRTC Bus' : cityId === 'chennai' ? 'MTC Bus' : 'BMTC Bus';
+  const busName =
+    cityId === 'delhi'
+      ? 'DTC Bus'
+      : cityId === 'mumbai'
+      ? 'BEST Bus'
+      : cityId === 'kolkata'
+      ? 'WBTC Bus'
+      : cityId === 'hyderabad'
+      ? 'TSRTC Bus'
+      : cityId === 'chennai'
+      ? 'MTC Bus'
+      : cityId === 'jaipur'
+      ? 'JCTSL Bus'
+      : cityId === 'pune'
+      ? 'PMPML Bus'
+      : cityId === 'ahmedabad'
+      ? 'Janmarg BRTS'
+      : cityId === 'kochi'
+      ? 'KSRTC / Water Metro'
+      : cityId === 'goa'
+      ? 'Kadamba Bus'
+      : cityId === 'varanasi'
+      ? 'E-Rickshaw / UPSRTC'
+      : 'BMTC Bus';
 
   const options = [
     {

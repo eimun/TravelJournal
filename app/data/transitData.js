@@ -397,6 +397,170 @@ export const CHENNAI_GREEN_STATIONS = [
   { id: 'chen_g17', name: 'St. Thomas Mount (Terminal / Suburban Rail Interchange)', latitude: 12.9962, longitude: 80.1985, isInterchange: true },
 ];
 
+
+// ============================================================================
+// JAIPUR METRO (JMRC Pink Line)
+// ============================================================================
+export const JAIPUR_PINK = '#ec4899';
+export const JAIPUR_PINK_STATIONS = [
+  { id: 'jai_m1', name: 'Mansarovar', latitude: 26.8624, longitude: 75.7612 },
+  { id: 'jai_m2', name: 'New Aatish Market', latitude: 26.8785, longitude: 75.7661 },
+  { id: 'jai_m3', name: 'Vivek Vihar', latitude: 26.8872, longitude: 75.7705 },
+  { id: 'jai_m4', name: 'Shyam Nagar', latitude: 26.8961, longitude: 75.7738 },
+  { id: 'jai_m5', name: 'Ram Nagar', latitude: 26.9042, longitude: 75.7765 },
+  { id: 'jai_m6', name: 'Civil Lines', latitude: 26.9102, longitude: 75.7824 },
+  { id: 'jai_m7', name: 'Railway Station (Jaipur Junction)', latitude: 26.9198, longitude: 75.7885, isInterchange: true },
+  { id: 'jai_m8', name: 'Sindhi Camp (ISBT Inter-state Bus)', latitude: 26.9234, longitude: 75.8012, isInterchange: true },
+  { id: 'jai_m9', name: 'Chandpole', latitude: 26.9248, longitude: 75.8115 },
+  { id: 'jai_m10', name: 'Chhoti Chaupar', latitude: 26.9255, longitude: 75.8202 },
+  { id: 'jai_m11', name: 'Badi Chaupar (City Palace & Hawa Mahal)', latitude: 26.9239, longitude: 75.8267 },
+];
+
+// ============================================================================
+// PUNE METRO (Maha Metro Line 1 Purple & Line 2 Aqua)
+// ============================================================================
+export const PUNE_PURPLE = '#7c3aed';
+export const PUNE_AQUA = '#06b6d4';
+export const PUNE_PURPLE_STATIONS = [
+  { id: 'pun_p1', name: 'PCMC Pimpri', latitude: 18.6275, longitude: 73.8012 },
+  { id: 'pun_p2', name: 'Bhosari (Nashik Phata)', latitude: 18.6085, longitude: 73.8182 },
+  { id: 'pun_p3', name: 'Kasarwadi', latitude: 18.5982, longitude: 73.8245 },
+  { id: 'pun_p4', name: 'Dapodi', latitude: 18.5854, longitude: 73.8324 },
+  { id: 'pun_p5', name: 'Bopodi', latitude: 18.5721, longitude: 73.8385 },
+  { id: 'pun_p6', name: 'Khadki', latitude: 18.5612, longitude: 73.8442 },
+  { id: 'pun_p7', name: 'Range Hill', latitude: 18.5442, longitude: 73.8475 },
+  { id: 'pun_p8', name: 'Shivajinagar Station', latitude: 18.5314, longitude: 73.8524, isInterchange: true },
+  { id: 'pun_p9', name: 'Civil Court Interchange', latitude: 18.5285, longitude: 73.8562, isInterchange: true },
+  { id: 'pun_p10', name: 'Kasba Peth (Budhwar Peth)', latitude: 18.5185, longitude: 73.8568 },
+  { id: 'pun_p11', name: 'Mandai', latitude: 18.5135, longitude: 73.8569 },
+  { id: 'pun_p12', name: 'Swargate Terminal', latitude: 18.5015, longitude: 73.8582, isInterchange: true },
+];
+
+export const PUNE_AQUA_STATIONS = [
+  { id: 'pun_a1', name: 'Vanaz', latitude: 18.5072, longitude: 73.8052 },
+  { id: 'pun_a2', name: 'Anand Nagar', latitude: 18.5085, longitude: 73.8135 },
+  { id: 'pun_a3', name: 'Ideal Colony', latitude: 18.5098, longitude: 73.8224 },
+  { id: 'pun_a4', name: 'Nal Stop', latitude: 18.5112, longitude: 73.8315 },
+  { id: 'pun_a5', name: 'Garware College', latitude: 18.5142, longitude: 73.8389 },
+  { id: 'pun_a6', name: 'Deccan Gymkhana', latitude: 18.5182, longitude: 73.8445 },
+  { id: 'pun_a7', name: 'PMC (Pune Municipal Corp)', latitude: 18.5245, longitude: 73.8512 },
+  { id: 'pun_a8', name: 'Civil Court Interchange', latitude: 18.5285, longitude: 73.8562, isInterchange: true },
+  { id: 'pun_a9', name: 'Pune Railway Station', latitude: 18.5289, longitude: 73.8742, isInterchange: true },
+  { id: 'pun_a10', name: 'Ruby Hall Clinic', latitude: 18.5332, longitude: 73.8812 },
+  { id: 'pun_a11', name: 'Bund Garden', latitude: 18.5385, longitude: 73.8895 },
+  { id: 'pun_a12', name: 'Kalyani Nagar', latitude: 18.5482, longitude: 73.9042 },
+  { id: 'pun_a13', name: 'Ramwadi', latitude: 18.5524, longitude: 73.9185 },
+];
+
+// ============================================================================
+// AHMEDABAD METRO (GMRC East-West & North-South Corridors)
+// ============================================================================
+export const AMD_BLUE = '#2563eb';
+export const AMD_RED = '#dc2626';
+export const AMD_BLUE_STATIONS = [
+  { id: 'amd_b1', name: 'Thaltej Gam', latitude: 23.0532, longitude: 72.5085 },
+  { id: 'amd_b2', name: 'Thaltej', latitude: 23.0505, longitude: 72.5175 },
+  { id: 'amd_b3', name: 'Doordarshan Kendra', latitude: 23.0485, longitude: 72.5282 },
+  { id: 'amd_b4', name: 'Gurukul Road', latitude: 23.0452, longitude: 72.5375 },
+  { id: 'amd_b5', name: 'Gujarat University', latitude: 23.0385, longitude: 72.5482 },
+  { id: 'amd_b6', name: 'Commerce Six Road', latitude: 23.0365, longitude: 72.5562 },
+  { id: 'amd_b7', name: 'SP Stadium', latitude: 23.0392, longitude: 72.5654 },
+  { id: 'amd_b8', name: 'Old High Court Interchange', latitude: 23.0345, longitude: 72.5712, isInterchange: true },
+  { id: 'amd_b9', name: 'Shahpur', latitude: 23.0312, longitude: 72.5785 },
+  { id: 'amd_b10', name: 'Gheekanta (Teen Darwaza / Old City)', latitude: 23.0275, longitude: 72.5842 },
+  { id: 'amd_b11', name: 'Kalupur (Ahmedabad Railway Station)', latitude: 23.0235, longitude: 72.6012, isInterchange: true },
+  { id: 'amd_b12', name: 'Kankaria East', latitude: 23.0095, longitude: 72.6085 },
+  { id: 'amd_b13', name: 'Apparel Park', latitude: 23.0072, longitude: 72.6195 },
+  { id: 'amd_b14', name: 'Amraiwadi', latitude: 23.0055, longitude: 72.6285 },
+  { id: 'amd_b15', name: 'Rabari Colony', latitude: 23.0035, longitude: 72.6375 },
+  { id: 'amd_b16', name: 'Vastral Gam', latitude: 23.0012, longitude: 72.6562 },
+];
+
+export const AMD_RED_STATIONS = [
+  { id: 'amd_r1', name: 'Motera Stadium (Narendra Modi Stadium)', latitude: 23.0915, longitude: 72.5975 },
+  { id: 'amd_r2', name: 'Sabarmati Railway Station', latitude: 23.0785, longitude: 72.5925, isInterchange: true },
+  { id: 'amd_r3', name: 'Ranip (BRTS Interchange)', latitude: 23.0682, longitude: 72.5865, isInterchange: true },
+  { id: 'amd_r4', name: 'Vadaj', latitude: 23.0565, longitude: 72.5782 },
+  { id: 'amd_r5', name: 'Usmanpura', latitude: 23.0475, longitude: 72.5742 },
+  { id: 'amd_r6', name: 'Old High Court Interchange', latitude: 23.0345, longitude: 72.5712, isInterchange: true },
+  { id: 'amd_r7', name: 'Gandhigram', latitude: 23.0282, longitude: 72.5702 },
+  { id: 'amd_r8', name: 'Paldi', latitude: 23.0165, longitude: 72.5685 },
+  { id: 'amd_r9', name: 'Shreyas', latitude: 23.0082, longitude: 72.5624 },
+  { id: 'amd_r10', name: 'Jivraj Park', latitude: 22.9985, longitude: 72.5482 },
+  { id: 'amd_r11', name: 'APMC Vasna', latitude: 22.9912, longitude: 72.5385 },
+];
+
+// ============================================================================
+// KOCHI METRO (KMRL) & KOCHI WATER METRO
+// ============================================================================
+export const KOCHI_METRO_COLOR = '#0284c7';
+export const KOCHI_WATER_COLOR = '#0d9488';
+export const KOCHI_METRO_STATIONS = [
+  { id: 'koc_m1', name: 'Aluva', latitude: 10.1098, longitude: 76.3532, isInterchange: true },
+  { id: 'koc_m2', name: 'Muttom', latitude: 10.0765, longitude: 76.3312 },
+  { id: 'koc_m3', name: 'Kalamassery', latitude: 10.0524, longitude: 76.3195 },
+  { id: 'koc_m4', name: 'CUSAT', latitude: 10.0415, longitude: 76.3142 },
+  { id: 'koc_m5', name: 'Edapally (Lulu Mall)', latitude: 10.0254, longitude: 76.3082 },
+  { id: 'koc_m6', name: 'Palarivattom', latitude: 10.0095, longitude: 76.3052 },
+  { id: 'koc_m7', name: 'JLN Stadium', latitude: 9.9985, longitude: 76.3005 },
+  { id: 'koc_m8', name: 'Kaloor', latitude: 9.9912, longitude: 76.2942 },
+  { id: 'koc_m9', name: 'Lissie', latitude: 9.9865, longitude: 76.2895 },
+  { id: 'koc_m10', name: 'MG Road Kochi', latitude: 9.9798, longitude: 76.2842 },
+  { id: 'koc_m11', name: 'Maharajas College', latitude: 9.9725, longitude: 76.2845 },
+  { id: 'koc_m12', name: 'Ernakulam South (Railway Station)', latitude: 9.9675, longitude: 76.2892, isInterchange: true },
+  { id: 'koc_m13', name: 'Kadavanthra', latitude: 9.9654, longitude: 76.2995 },
+  { id: 'koc_m14', name: 'Vyttila Mobility Hub', latitude: 9.9672, longitude: 76.3215, isInterchange: true },
+  { id: 'koc_m15', name: 'Thykoodam', latitude: 9.9612, longitude: 76.3265 },
+  { id: 'koc_m16', name: 'SN Junction (Tripunithura)', latitude: 9.9512, longitude: 76.3452 },
+];
+
+export const KOCHI_WATER_METRO_STATIONS = [
+  { id: 'koc_wm1', name: 'High Court Water Metro Terminal', latitude: 9.9835, longitude: 76.2742, isInterchange: true },
+  { id: 'koc_wm2', name: 'Bolgatty Island Terminal', latitude: 9.9805, longitude: 76.2685 },
+  { id: 'koc_wm3', name: 'Vypin Ferry Terminal', latitude: 9.9745, longitude: 76.2482 },
+  { id: 'koc_wm4', name: 'Fort Kochi Water Metro Terminal', latitude: 9.9682, longitude: 76.2435 },
+  { id: 'koc_wm5', name: 'South Chittoor Terminal', latitude: 10.0385, longitude: 76.2752 },
+  { id: 'koc_wm6', name: 'Cheranalloor Terminal', latitude: 10.0482, longitude: 76.2854 },
+];
+
+// ============================================================================
+// GOA TRANSIT & FERRY HUBS
+// ============================================================================
+export const GOA_COASTAL_COLOR = '#16a34a';
+export const GOA_FERRY_COLOR = '#0284c7';
+export const GOA_TRANSIT_STATIONS = [
+  { id: 'goa_t1', name: 'Panaji KTC Central Bus Terminal', latitude: 15.4989, longitude: 73.8342, isInterchange: true },
+  { id: 'goa_t2', name: 'Panaji Ferry Jetty (Mandovi Riverfront)', latitude: 15.5012, longitude: 73.8285, isInterchange: true },
+  { id: 'goa_t3', name: 'Betim Ferry Terminal', latitude: 15.5065, longitude: 73.8262 },
+  { id: 'goa_t4', name: 'Mapusa KTC Bus Stand', latitude: 15.5925, longitude: 73.8142 },
+  { id: 'goa_t5', name: 'Calangute Beach Circle Hub', latitude: 15.5412, longitude: 73.7554 },
+  { id: 'goa_t6', name: 'Candolim Main Road Hub', latitude: 15.5185, longitude: 73.7682 },
+  { id: 'goa_t7', name: 'Old Goa Heritage Terminal (Basilica)', latitude: 15.5005, longitude: 73.9115 },
+  { id: 'goa_t8', name: 'Madgaon (Margao) KTC Bus Stand', latitude: 15.2842, longitude: 73.9625, isInterchange: true },
+  { id: 'goa_t9', name: 'Madgaon Junction Railway Station', latitude: 15.2715, longitude: 73.9724, isInterchange: true },
+  { id: 'goa_t10', name: 'Vasco da Gama KTC Bus Stand', latitude: 15.3985, longitude: 73.8142 },
+  { id: 'goa_t11', name: 'Dabolim Airport Terminal', latitude: 15.3805, longitude: 73.8315 },
+  { id: 'goa_t12', name: 'Mopa (Manohar) Airport GOX', latitude: 15.7512, longitude: 73.8685 },
+];
+
+// ============================================================================
+// VARANASI URBAN TRANSIT & GHAT WATERWAYS
+// ============================================================================
+export const VARANASI_BUS_COLOR = '#ea580c';
+export const VARANASI_BOAT_COLOR = '#0284c7';
+export const VARANASI_TRANSIT_STATIONS = [
+  { id: 'vns_t1', name: 'Varanasi Cantt (Varanasi Jn) Railway Station', latitude: 25.3282, longitude: 82.9865, isInterchange: true },
+  { id: 'vns_t2', name: 'Godowlia Chowk Transit Hub', latitude: 25.3105, longitude: 83.0072, isInterchange: true },
+  { id: 'vns_t3', name: 'Kashi Vishwanath Ganga Corridor Gate', latitude: 25.3112, longitude: 83.0115 },
+  { id: 'vns_t4', name: 'Dashashwamedh Ghat Terminal', latitude: 25.3075, longitude: 83.0102 },
+  { id: 'vns_t5', name: 'Assi Ghat Terminal (Subah-e-Banaras)', latitude: 25.2902, longitude: 83.0065 },
+  { id: 'vns_t6', name: 'BHU Lanka Gate (Sir Sunderlal Hospital / VT)', latitude: 25.2795, longitude: 82.9995 },
+  { id: 'vns_t7', name: 'Banaras (Manduadih) Railway Station', latitude: 25.2985, longitude: 82.9662, isInterchange: true },
+  { id: 'vns_t8', name: 'Sarnath Heritage Terminal (Dhamek Stupa)', latitude: 25.3812, longitude: 83.0235 },
+  { id: 'vns_t9', name: 'Namo Ghat Ro-Pax Ferry Terminal', latitude: 25.3342, longitude: 83.0375 },
+  { id: 'vns_t10', name: 'Lal Bahadur Shastri Airport Babatpur', latitude: 25.4525, longitude: 82.8595 },
+];
+
 // Curated Popular Destinations across Bengaluru for instant offline search & quick picks
 export const POPULAR_DESTINATIONS = [
   {
@@ -575,6 +739,17 @@ export function getLineColor(line) {
     case 'hyd_green': return HYD_GREEN;
     case 'chennai_blue': return CHENNAI_BLUE;
     case 'chennai_green': return CHENNAI_GREEN;
+    case 'jaipur_pink': return JAIPUR_PINK;
+    case 'pune_purple': return PUNE_PURPLE;
+    case 'pune_aqua': return PUNE_AQUA;
+    case 'amd_blue': return AMD_BLUE;
+    case 'amd_red': return AMD_RED;
+    case 'kochi_metro': return KOCHI_METRO_COLOR;
+    case 'kochi_water': return KOCHI_WATER_COLOR;
+    case 'goa_coastal': return GOA_COASTAL_COLOR;
+    case 'goa_ferry': return GOA_FERRY_COLOR;
+    case 'vns_bus': return VARANASI_BUS_COLOR;
+    case 'vns_boat': return VARANASI_BOAT_COLOR;
     default: return PURPLE_LINE;
   }
 }
@@ -598,6 +773,17 @@ export function getLineDisplayName(line) {
     case 'hyd_blue': return 'Blue Line 2 (Nagole – Raidurg/Hitec City)';
     case 'chennai_blue': return 'Blue Line 1 (Wimco Nagar – Chennai Airport)';
     case 'chennai_green': return 'Green Line 2 (Chennai Central – St. Thomas Mount)';
+    case 'jaipur_pink': return 'Pink Line (JMRC)';
+    case 'pune_purple': return 'Purple Line (Maha Metro)';
+    case 'pune_aqua': return 'Aqua Line (Maha Metro)';
+    case 'amd_blue': return 'Blue Line (GMRC)';
+    case 'amd_red': return 'Red Line (GMRC)';
+    case 'kochi_metro': return 'Kochi Metro (KMRL)';
+    case 'kochi_water': return 'Kochi Water Metro';
+    case 'goa_coastal': return 'Kadamba Coastal Transit';
+    case 'goa_ferry': return 'Mandovi River Ferry';
+    case 'vns_bus': return 'Kashi Smart City E-Bus';
+    case 'vns_boat': return 'Ganga Ghat Waterway';
     default: return 'Transit Line';
   }
 }
@@ -621,6 +807,15 @@ export function getStationListForLine(line) {
     case 'hyd_blue': return HYD_BLUE_STATIONS;
     case 'chennai_blue': return CHENNAI_BLUE_STATIONS;
     case 'chennai_green': return CHENNAI_GREEN_STATIONS;
+    case 'jaipur_pink': return JAIPUR_PINK_STATIONS;
+    case 'pune_purple': return PUNE_PURPLE_STATIONS;
+    case 'pune_aqua': return PUNE_AQUA_STATIONS;
+    case 'amd_blue': return AMD_BLUE_STATIONS;
+    case 'amd_red': return AMD_RED_STATIONS;
+    case 'kochi_metro': return KOCHI_METRO_STATIONS;
+    case 'kochi_water': return KOCHI_WATER_METRO_STATIONS;
+    case 'goa_coastal': return GOA_TRANSIT_STATIONS;
+    case 'vns_bus': return VARANASI_TRANSIT_STATIONS;
     default: return PURPLE_STATIONS;
   }
 }
@@ -629,12 +824,31 @@ export function getStationListForLine(line) {
  * Detects city from coordinate latitude and longitude
  */
 export function detectCityFromCoord(lat, lon) {
-  if (lat > 26) return 'delhi';
-  if (lat > 18 && lon < 74) return 'mumbai';
-  if (lon > 85) return 'kolkata';
-  if (lat > 16.5 && lat < 18.5 && lon > 77.5 && lon < 79.5) return 'hyderabad';
-  if (lat > 12.5 && lat < 14 && lon > 79.5) return 'chennai';
-  return 'bengaluru';
+  if (lat == null || lon == null) return 'bengaluru';
+  const centers = [
+    { id: 'bengaluru', lat: 12.9716, lon: 77.5946 },
+    { id: 'delhi', lat: 28.6139, lon: 77.2090 },
+    { id: 'mumbai', lat: 18.9220, lon: 72.8347 },
+    { id: 'kolkata', lat: 22.5726, lon: 88.3639 },
+    { id: 'hyderabad', lat: 17.3850, lon: 78.4867 },
+    { id: 'chennai', lat: 13.0827, lon: 80.2707 },
+    { id: 'jaipur', lat: 26.9124, lon: 75.7873 },
+    { id: 'pune', lat: 18.5204, lon: 73.8567 },
+    { id: 'ahmedabad', lat: 23.0225, lon: 72.5714 },
+    { id: 'kochi', lat: 9.9312, lon: 76.2673 },
+    { id: 'goa', lat: 15.2993, lon: 74.1240 },
+    { id: 'varanasi', lat: 25.3176, lon: 82.9739 },
+  ];
+  let closest = 'bengaluru';
+  let minD2 = Infinity;
+  for (const c of centers) {
+    const d2 = (lat - c.lat) ** 2 + (lon - c.lon) ** 2;
+    if (d2 < minD2) {
+      minD2 = d2;
+      closest = c.id;
+    }
+  }
+  return closest;
 }
 
 /**
@@ -807,6 +1021,44 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
  * Calculates fare in Indian Rupees between two station indices
  */
 export function calculateMetroFare(stopCount, cityId = 'bengaluru') {
+  if (cityId === 'jaipur') {
+    if (stopCount <= 2) return 6;
+    if (stopCount <= 5) return 12;
+    if (stopCount <= 8) return 18;
+    return 22;
+  }
+  if (cityId === 'pune') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 20;
+    if (stopCount <= 14) return 25;
+    return 30;
+  }
+  if (cityId === 'ahmedabad') {
+    if (stopCount <= 3) return 5;
+    if (stopCount <= 7) return 10;
+    if (stopCount <= 12) return 15;
+    return 20;
+  }
+  if (cityId === 'kochi') {
+    if (stopCount <= 2) return 10;
+    if (stopCount <= 5) return 20;
+    if (stopCount <= 9) return 30;
+    if (stopCount <= 14) return 40;
+    return 50;
+  }
+  if (cityId === 'goa') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 25;
+    return 35;
+  }
+  if (cityId === 'varanasi') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 20;
+    return 25;
+  }
   if (cityId === 'hyderabad') {
     if (stopCount <= 2) return 10;
     if (stopCount <= 4) return 15;
@@ -879,7 +1131,76 @@ export function findNearestMetroStation(lat, lon, cityId = null) {
   let best = null;
   let minDistance = Infinity;
 
-  if (city === 'hyderabad') {
+    if (city === 'jaipur') {
+    for (const st of JAIPUR_PINK_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'jaipur_pink', city: 'jaipur', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'pune') {
+    for (const st of PUNE_PURPLE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'pune_purple', city: 'pune', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of PUNE_AQUA_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'pune_aqua', city: 'pune', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'ahmedabad') {
+    for (const st of AMD_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'amd_blue', city: 'ahmedabad', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of AMD_RED_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'amd_red', city: 'ahmedabad', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'kochi') {
+    for (const st of KOCHI_METRO_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kochi_metro', city: 'kochi', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of KOCHI_WATER_METRO_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kochi_water', city: 'kochi', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'goa') {
+    for (const st of GOA_TRANSIT_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'goa_coastal', city: 'goa', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'varanasi') {
+    for (const st of VARANASI_TRANSIT_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'vns_bus', city: 'varanasi', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'hyderabad') {
     for (const st of HYD_RED_STATIONS) {
       const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
       if (d < minDistance) {
