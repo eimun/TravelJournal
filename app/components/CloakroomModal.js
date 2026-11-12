@@ -72,6 +72,18 @@ export default function CloakroomModal({ visible, onClose }) {
                 ? 'Hands-free exploration · Secunderabad, Nampally & RGIA Airport'
                 : currentCity?.id === 'chennai'
                 ? 'Hands-free exploration · Central, Egmore & Chennai Airport'
+                : currentCity?.id === 'jaipur'
+                ? 'Hands-free exploration · Jaipur Junction & Jaipur Airport'
+                : currentCity?.id === 'pune'
+                ? 'Hands-free exploration · Pune Junction & Pune Airport'
+                : currentCity?.id === 'ahmedabad'
+                ? 'Hands-free exploration · Kalupur Station & SVPI Airport'
+                : currentCity?.id === 'kochi'
+                ? 'Hands-free exploration · Ernakulam South & Cochin Airport'
+                : currentCity?.id === 'goa'
+                ? 'Hands-free exploration · Madgaon, Thivim & Dabolim Airport'
+                : currentCity?.id === 'varanasi'
+                ? 'Hands-free exploration · Varanasi Cantt, Banaras & Airport'
                 : 'Hands-free exploration · KSR Majestic, Yesvantpur & Airport'}
             </Text>
           </View>
@@ -105,6 +117,18 @@ export default function CloakroomModal({ visible, onClose }) {
                   ? '✈️ RGIA Airport (HYD)'
                   : currentCity?.id === 'chennai'
                   ? '✈️ Chennai Airport (MAA)'
+                  : currentCity?.id === 'jaipur'
+                  ? '✈️ Jaipur Airport (JAI)'
+                  : currentCity?.id === 'pune'
+                  ? '✈️ Pune Airport (PNQ)'
+                  : currentCity?.id === 'ahmedabad'
+                  ? '✈️ SVPI Airport (AMD)'
+                  : currentCity?.id === 'kochi'
+                  ? '✈️ Cochin Airport (COK)'
+                  : currentCity?.id === 'goa'
+                  ? '✈️ Goa Airport (GOI)'
+                  : currentCity?.id === 'varanasi'
+                  ? '✈️ Varanasi Airport (VNS)'
                   : '✈️ Airport (KIA)',
             },
           ].map((tab) => {

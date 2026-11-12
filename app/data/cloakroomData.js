@@ -461,6 +461,325 @@ export const CHENNAI_CLOAKROOMS = [
   },
 ];
 
+export const JAIPUR_CLOAKROOMS = [
+  {
+    id: 'jaipur_railway_cloakroom',
+    cityId: 'jaipur',
+    name: 'Jaipur Junction Railway Station Cloakroom',
+    hub: 'Jaipur Junction / Station Road',
+    category: 'railway',
+    operator: 'Indian Railways (NWR)',
+    locationDetails: 'Platform 1, near Main Concourse & VIP Waiting Lounge',
+    metroProximity: '150m walk to Railway Station Metro Station (Pink Line)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+      lockerOption: '₹40 / 24 hrs for steel locker box',
+    },
+    rules: [
+      'Lock & Key is strictly MANDATORY: Unlocked bags will be rejected.',
+      'Valid Government Photo ID required.',
+      'Valid Indian Railways Train Ticket (PNR) required.',
+    ],
+    verifiedPhone: '+91 141 220 1555',
+    insiderTip: 'Drop heavy backpacks here on Platform 1 for ₹30, hop on the Pink Line Metro straight to Badi Chaupar, and explore Hawa Mahal hands-free!',
+  },
+  {
+    id: 'jaipur_airport_left_luggage',
+    cityId: 'jaipur',
+    name: 'Jaipur International Airport (JAI) Left-Luggage',
+    hub: 'Sanganer Airport (JAI)',
+    category: 'airport',
+    operator: 'Adani Airports / AAI Jaipur',
+    locationDetails: 'Terminal 2 Arrivals, near Exit Gate & Taxi Booking Booths',
+    metroProximity: 'Feeder bus / taxi to Mansarovar Metro (~15 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹350 per bag',
+      subsequentDay: '₹150 per bag / day',
+    },
+    rules: [
+      'Boarding pass or flight itinerary mandatory.',
+      'Valid Government Photo ID required.',
+      'X-Ray security check before deposit.',
+    ],
+    verifiedPhone: '+91 141 279 2211',
+    insiderTip: 'Ideal for travelers with an evening flight who want to tour Amer Fort and City Palace luggage-free during a day layover.',
+  },
+];
+
+export const PUNE_CLOAKROOMS = [
+  {
+    id: 'pune_junction_cloakroom',
+    cityId: 'pune',
+    name: 'Pune Junction Railway Station Cloakroom',
+    hub: 'Pune Station / Camp Area',
+    category: 'railway',
+    operator: 'Indian Railways (CR)',
+    locationDetails: 'Platform 1, near Concourse Exit & Waiting Room',
+    metroProximity: 'Direct covered pathway to Pune Railway Station Metro Station',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+      lockerOption: '₹40 / 24 hrs',
+    },
+    rules: [
+      'Padlock on bag zippers mandatory.',
+      'Government Photo ID and valid train ticket required.',
+    ],
+    verifiedPhone: '+91 20 2612 6575',
+    insiderTip: 'Directly linked to Pune Metro Line 2. Deposit bags on Platform 1 and take the Metro to Civil Court / Deccan Gymkhana in 10 minutes.',
+  },
+  {
+    id: 'pune_airport_left_luggage',
+    cityId: 'pune',
+    name: 'Pune International Airport (PNQ) Left-Luggage',
+    hub: 'Lohegaon Airport (PNQ)',
+    category: 'airport',
+    operator: 'AAI Pune Airport',
+    locationDetails: 'New Integrated Terminal Building, Arrivals Ground Floor',
+    metroProximity: 'PMPML airport feeder to Ramwadi Metro Station (~10 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹350 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Flight ticket required.',
+      'Valid ID proof and X-Ray screening mandatory.',
+    ],
+    verifiedPhone: '+91 20 2668 3232',
+    insiderTip: 'Store luggage here and catch an auto to nearby Aga Khan Palace and Koregaon Park cafes before your flight.',
+  },
+];
+
+export const AHMEDABAD_CLOAKROOMS = [
+  {
+    id: 'ahmedabad_kalupur_cloakroom',
+    cityId: 'ahmedabad',
+    name: 'Ahmedabad Junction (Kalupur) Cloakroom',
+    hub: 'Kalupur Central Railway Station',
+    category: 'railway',
+    operator: 'Indian Railways (WR)',
+    locationDetails: 'Platform 1, near PRS Booking Office and VIP Lounge',
+    metroProximity: 'Direct underground connection to Kalupur Metro Station',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+      lockerOption: '₹40 / 24 hrs',
+    },
+    rules: [
+      'Padlock strictly mandatory on all zippers.',
+      'Valid train ticket and photo ID required.',
+    ],
+    verifiedPhone: '+91 79 2214 4118',
+    insiderTip: 'Leave luggage here and take the East-West Metro to Old High Court for Sabarmati Riverfront and Atal Bridge strolls.',
+  },
+  {
+    id: 'ahmedabad_airport_left_luggage',
+    cityId: 'ahmedabad',
+    name: 'SVPI Airport (AMD) Left-Luggage Facility',
+    hub: 'Hansol / SVPI Airport',
+    category: 'airport',
+    operator: 'Adani Airports / AAI',
+    locationDetails: 'Terminal 1 & Terminal 2 Arrivals concourse',
+    metroProximity: 'BRTS and taxi connection to Motera Stadium Metro (~12 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹400 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Valid flight itinerary and passport/Aadhaar required.',
+      'Mandatory security scanning.',
+    ],
+    verifiedPhone: '+91 79 2286 9211',
+    insiderTip: 'Convenient 6-hour layover drop: leave bags and take an auto to Sabarmati Ashram and Adalaj Stepwell.',
+  },
+];
+
+export const KOCHI_CLOAKROOMS = [
+  {
+    id: 'ernakulam_south_cloakroom',
+    cityId: 'kochi',
+    name: 'Ernakulam Junction (South) Railway Cloakroom',
+    hub: 'Ernakulam South Station Hub',
+    category: 'railway',
+    operator: 'Indian Railways (SR)',
+    locationDetails: 'Platform 1, near Second Class Waiting Hall and Exit',
+    metroProximity: '200m covered walk to Ernakulam South Metro Station',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+      lockerOption: '₹40 / 24 hrs',
+    },
+    rules: [
+      'Bags must be locked with external padlocks.',
+      'Valid train ticket and Government Photo ID mandatory.',
+    ],
+    verifiedPhone: '+91 484 237 0880',
+    insiderTip: 'Drop heavy bags here for ₹30, hop on the Metro or Water Metro, and enjoy Fort Kochi and Mattancherry freely.',
+  },
+  {
+    id: 'cochin_airport_left_luggage',
+    cityId: 'kochi',
+    name: 'Cochin International Airport (COK) Left-Luggage',
+    hub: 'Nedumbassery Airport (COK)',
+    category: 'airport',
+    operator: 'CIAL (Cochin International Airport Ltd)',
+    locationDetails: 'Terminal 1 (Domestic) & Terminal 3 (International) Arrivals Concourse',
+    metroProximity: 'Direct KSRTC electric AC bus feeder to Aluva Metro Station (~15 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹400 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Flight boarding pass or ticket mandatory.',
+      'Valid photo ID and X-Ray screening required.',
+    ],
+    verifiedPhone: '+91 484 261 0115',
+    insiderTip: 'World’s first fully solar-powered airport. Store luggage here before catching a day trip to Athirappilly Falls or Fort Kochi.',
+  },
+];
+
+export const GOA_CLOAKROOMS = [
+  {
+    id: 'madgaon_railway_cloakroom',
+    cityId: 'goa',
+    name: 'Madgaon (Margao) Railway Junction Cloakroom',
+    hub: 'Madgaon Junction / South Goa',
+    category: 'railway',
+    operator: 'Konkan Railway (KRCL)',
+    locationDetails: 'Platform 1, near Main Concourse Entrance and RPF Office',
+    metroProximity: 'Connected via KTC South Goa buses and prepaid taxis',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+    },
+    rules: [
+      'Bags must have external padlocks.',
+      'Valid train ticket and Government ID proof mandatory.',
+    ],
+    verifiedPhone: '+91 832 271 2790',
+    insiderTip: 'Drop bags before hotel check-in and explore Colva and Benaulim beaches or Margao heritage mansions.',
+  },
+  {
+    id: 'thivim_railway_cloakroom',
+    cityId: 'goa',
+    name: 'Thivim Railway Station Cloakroom',
+    hub: 'Thivim / North Goa Coastal Access',
+    category: 'railway',
+    operator: 'Konkan Railway (KRCL)',
+    locationDetails: 'Platform 1, adjacent to Station Master Office',
+    metroProximity: 'KTC bus and pilot bike taxis right outside exit',
+    timings: '06:00 AM – 22:00 PM',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹12 per bag / day',
+    },
+    rules: [
+      'Padlock on luggage zippers mandatory.',
+      'Valid train ticket required.',
+    ],
+    verifiedPhone: '+91 832 229 8224',
+    insiderTip: 'Closest station to North Goa beaches (Calangute, Anjuna, Vagator). Drop heavy baggage and ride a motorcycle pilot to the beach!',
+  },
+  {
+    id: 'goa_airport_left_luggage',
+    cityId: 'goa',
+    name: 'Goa Dabolim Airport (GOI) Left-Luggage Facility',
+    hub: 'Dabolim Airport (GOI)',
+    category: 'airport',
+    operator: 'AAI Goa Airport',
+    locationDetails: 'Integrated Terminal Building, Arrivals Ground Level',
+    metroProximity: 'Kadamba AC Airport Shuttle to Panaji & Calangute outside gate',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹400 per bag',
+      subsequentDay: '₹200 per bag / day',
+    },
+    rules: [
+      'Flight boarding pass or ticket mandatory.',
+      'Passport or Aadhaar card required.',
+    ],
+    verifiedPhone: '+91 832 254 0802',
+    insiderTip: 'Deposit bags during your return flight layover and catch the Bogmalo beach sunset just 10 minutes away.',
+  },
+];
+
+export const VARANASI_CLOAKROOMS = [
+  {
+    id: 'varanasi_cantt_cloakroom',
+    cityId: 'varanasi',
+    name: 'Varanasi Junction (Cantt) Railway Station Cloakroom',
+    hub: 'Varanasi Cantt Station Hub',
+    category: 'railway',
+    operator: 'Indian Railways (NR)',
+    locationDetails: 'Platform 1, near Main Portico and Enquiry Counter',
+    metroProximity: 'Connected via Kashi Ropeway terminal (under construction) & E-Rickshaws to Godowlia',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+      lockerOption: '₹40 / 24 hrs',
+    },
+    rules: [
+      'External brass padlock strictly mandatory.',
+      'Valid train ticket (PNR) and government photo ID required.',
+    ],
+    verifiedPhone: '+91 542 250 8246',
+    insiderTip: 'The ghat alleys are strictly pedestrian-only and impossible with heavy suitcases. Drop luggage here on Platform 1 and take an E-rickshaw to Godowlia!',
+  },
+  {
+    id: 'banaras_station_cloakroom',
+    cityId: 'varanasi',
+    name: 'Banaras (Manduadih) Railway Station Cloakroom',
+    hub: 'Banaras World-Class Station',
+    category: 'railway',
+    operator: 'Indian Railways (NER)',
+    locationDetails: 'Platform 1, near Executive Lounge and Second Class Concourse',
+    metroProximity: 'E-Rickshaw to Assi Ghat and BHU Campus (~15 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹30 per bag',
+      subsequentDay: '₹10 per bag / day',
+    },
+    rules: [
+      'Padlock on bag zippers required.',
+      'Valid train ticket and photo ID mandatory.',
+    ],
+    verifiedPhone: '+91 542 227 0134',
+    insiderTip: 'Ultra-clean, modern airport-like station. Very fast cloakroom service compared to Cantt.',
+  },
+  {
+    id: 'varanasi_airport_left_luggage',
+    cityId: 'varanasi',
+    name: 'Lal Bahadur Shastri Airport (VNS) Left-Luggage',
+    hub: 'Babatpur Airport (VNS)',
+    category: 'airport',
+    operator: 'AAI Varanasi Airport',
+    locationDetails: 'Arrivals Concourse, adjacent to Tourist Information Desk',
+    metroProximity: 'UPSRTC AC bus and prepaid taxi to city center (~35 mins)',
+    timings: '24 Hours (Open 7 Days a week)',
+    tariff: {
+      first24Hours: '₹250 – ₹350 per bag',
+      subsequentDay: '₹180 per bag / day',
+    },
+    rules: [
+      'Flight ticket required.',
+      'Valid photo ID and security scanning mandatory.',
+    ],
+    verifiedPhone: '+91 542 262 2155',
+    insiderTip: 'Store luggage here and take a cab directly to Sarnath Buddhist ruins for a half-day tour before your evening flight.',
+  },
+];
+
 export const ALL_CLOAKROOMS = [
   ...BENGALURU_CLOAKROOMS,
   ...DELHI_CLOAKROOMS,
@@ -468,14 +787,26 @@ export const ALL_CLOAKROOMS = [
   ...KOLKATA_CLOAKROOMS,
   ...HYDERABAD_CLOAKROOMS,
   ...CHENNAI_CLOAKROOMS,
+  ...JAIPUR_CLOAKROOMS,
+  ...PUNE_CLOAKROOMS,
+  ...AHMEDABAD_CLOAKROOMS,
+  ...KOCHI_CLOAKROOMS,
+  ...GOA_CLOAKROOMS,
+  ...VARANASI_CLOAKROOMS,
 ];
 
 /**
  * Returns cloakrooms filtered by city ID.
- * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai' | 'kolkata' | 'hyderabad' | 'chennai'
+ * @param {string} cityId 'bengaluru' | 'delhi' | 'mumbai' | 'kolkata' | 'hyderabad' | 'chennai' | 'jaipur' | 'pune' | 'ahmedabad' | 'kochi' | 'goa' | 'varanasi'
  * @returns {Array}
  */
 export function getCloakroomsForCity(cityId = 'bengaluru') {
+  if (cityId === 'jaipur') return JAIPUR_CLOAKROOMS;
+  if (cityId === 'pune') return PUNE_CLOAKROOMS;
+  if (cityId === 'ahmedabad') return AHMEDABAD_CLOAKROOMS;
+  if (cityId === 'kochi') return KOCHI_CLOAKROOMS;
+  if (cityId === 'goa') return GOA_CLOAKROOMS;
+  if (cityId === 'varanasi') return VARANASI_CLOAKROOMS;
   if (cityId === 'hyderabad') return HYDERABAD_CLOAKROOMS;
   if (cityId === 'chennai') return CHENNAI_CLOAKROOMS;
   if (cityId === 'kolkata') return KOLKATA_CLOAKROOMS;
