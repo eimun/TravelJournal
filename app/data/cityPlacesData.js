@@ -3008,7 +3008,1217 @@ export const CHENNAI_EATERIES_DB = {
 
 // ─── HELPER ACCESSORS ──────────────────────────────────────────────────────
 
+
+// ============================================================================
+// 4. JAIPUR (PINK CITY) SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const JAIPUR_SEARCH_HUBS = [
+  {
+    id: 'hawa_mahal',
+    name: 'Hawa Mahal & City Palace',
+    area: 'Badi Chaupar, Walled City',
+    category: 'Royal Heritage',
+    latitude: 26.9239,
+    longitude: 75.8267,
+    nearestMetro: 'Badi Chaupar Metro (Gate 2)',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 2,
+    tip: '1799 pink sandstone facade with 953 honeycomb jharokhas. Morning light is best for photography.',
+    autoFareQuoteWarning: 'Autos around Badi Chaupar quote fixed rates. E-rickshaws cost only ₹10–₹20.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'amer_fort',
+    name: 'Amer Fort & Maota Lake',
+    area: 'Amer Heritage Valley',
+    category: 'UNESCO World Heritage',
+    latitude: 26.9855,
+    longitude: 75.8513,
+    nearestMetro: 'Badi Chaupar Metro + JCTSL AC Bus AC-1',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 25,
+    tip: 'Vast hilltop fortress with mirror-studded Sheesh Mahal. Electric golf carts available at base.',
+    autoFareQuoteWarning: 'Touts urge elephant rides or commission gem shops; ignore them and take the public path.',
+    estimatedCost: 50,
+  },
+  {
+    id: 'nahargarh_fort',
+    name: 'Nahargarh Fort & Sunset Point',
+    area: 'Aravalli Ridge',
+    category: 'Fort & Sunset',
+    latitude: 26.9372,
+    longitude: 75.8155,
+    nearestMetro: 'Chandpole Metro + Auto/Cab',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 20,
+    tip: 'Best panoramic sunset view over the Pink City from Padao open-air restaurant.',
+    autoFareQuoteWarning: 'Winding uphill road. Pre-negotiate a round-trip fare with auto or book Ola/Uber.',
+    estimatedCost: 40,
+  },
+  {
+    id: 'jantar_mantar_jaipur',
+    name: 'Jantar Mantar Observatory',
+    area: 'City Palace Complex',
+    category: 'UNESCO Science Heritage',
+    latitude: 26.9196,
+    longitude: 75.8242,
+    nearestMetro: 'Badi Chaupar Metro',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 5,
+    tip: 'World’s largest stone sundial, measuring time to 2 seconds accuracy.',
+    autoFareQuoteWarning: 'Easily walkable from Hawa Mahal inside the walled city precinct.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'jaipur_junction',
+    name: 'Jaipur Junction Railway Station',
+    area: 'Station Road',
+    category: 'Transit Hub',
+    latitude: 26.9204,
+    longitude: 75.7878,
+    nearestMetro: 'Railway Station Metro (Pink Line)',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 2,
+    tip: 'Main train terminal. 24/7 cloakroom on Platform 1 and prepaid auto booth outside portico.',
+    autoFareQuoteWarning: 'Use the official Traffic Police Prepaid Booth on Platform 1 exit.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'albert_hall_museum',
+    name: 'Albert Hall Museum & Ram Niwas Garden',
+    area: 'Ram Niwas Garden',
+    category: 'Indo-Saracenic Museum',
+    latitude: 26.9116,
+    longitude: 75.8194,
+    nearestMetro: 'Chhoti Chaupar or Badi Chaupar Metro',
+    metroLine: 'jaipur_pink',
+    walkMinutesFromMetro: 12,
+    tip: 'Oldest museum in Rajasthan, illuminated with colorful lights every evening.',
+    autoFareQuoteWarning: 'Flocks of pigeons congregate outside in the morning; picturesque photo spot.',
+    estimatedCost: 25,
+  },
+];
+
+export const JAIPUR_RESTAURANTS = [
+  {
+    id: 'r_jai_rawat',
+    name: 'Rawat Mishtan Bhandar',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: 'Station Road, Sindhi Camp, Jaipur',
+    cuisine: 'rajasthani',
+    rating: 4.7,
+    priceTier: 1,
+    latitude: 26.9218,
+    longitude: 75.7981,
+    openTime: '06:30',
+    closeTime: '22:30',
+    tags: ['veg'],
+    nearestMetro: 'Sindhi Camp Metro (Gate 2) · 3 min walk',
+    mustTry: { dish: 'Pyaaz Kachori & Mawa Kachori', price: 50 },
+    topDishes: [
+      { name: 'Crispy Spiced Pyaaz Kachori', price: 50 },
+      { name: 'Sweet Mawa Kachori dipped in Sugar Syrup', price: 65 },
+      { name: 'Samosa with Tangy Saunth Chutney', price: 30 },
+    ],
+    insiderNote: 'The gold standard for Jaipur’s iconic onion kachoris since 1972. Crisp, deeply flaky outer shell with pungent spiced onion filling.',
+    established: 'Since 1972',
+  },
+  {
+    id: 'r_jai_lmb',
+    name: 'LMB (Laxmi Mishthan Bhandar)',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'Johari Bazaar, Walled City, Jaipur',
+    cuisine: 'rajasthani',
+    rating: 4.5,
+    priceTier: 3,
+    latitude: 26.9212,
+    longitude: 75.8258,
+    openTime: '07:30',
+    closeTime: '23:00',
+    tags: ['veg'],
+    nearestMetro: 'Badi Chaupar Metro · 4 min walk',
+    mustTry: { dish: 'Rajasthani Royal Thali & Malai Ghewar', price: 380 },
+    topDishes: [
+      { name: 'Special Dal Baati Churma Thali', price: 380 },
+      { name: 'Paneer Ghewar & Malai Ghewar', price: 120 },
+      { name: 'Ker Sangri Dry Vegetable', price: 210 },
+    ],
+    insiderNote: 'Legendary heritage dining in the heart of Johari Bazaar since 1727. Their Ghewar and Dal Baati Churma are world-renowned.',
+    established: 'Since 1727',
+  },
+  {
+    id: 'r_jai_lassiwala',
+    name: 'Lassiwala (Shop 312)',
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+    area: 'MI Road, Jaipur',
+    cuisine: 'streetfood',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 26.9184,
+    longitude: 75.8118,
+    openTime: '07:00',
+    closeTime: '16:00',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Chandpole or Ajmeri Gate Metro · 8 min walk',
+    mustTry: { dish: 'Creamy Malai Lassi in Earthen Kulhad', price: 60 },
+    topDishes: [
+      { name: 'Full Kulhad Sweet Lassi with Thick Malai Layer', price: 60 },
+      { name: 'Small Kulhad Lassi', price: 35 },
+    ],
+    insiderNote: 'Look strictly for Shop No. 312 Kishan Lal Govind Narain (original since 1944). Usually sells out by 3 PM.',
+    established: 'Since 1944',
+  },
+  {
+    id: 'r_jai_tapri',
+    name: 'Tapri Central',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    area: 'Prithviraj Road, C-Scheme, Jaipur',
+    cuisine: 'cafe',
+    rating: 4.6,
+    priceTier: 2,
+    latitude: 26.9084,
+    longitude: 75.8035,
+    openTime: '07:30',
+    closeTime: '22:15',
+    tags: ['veg'],
+    nearestMetro: 'Civil Lines Metro · 12 min walk',
+    mustTry: { dish: 'Kadak Masala Chai & Sauteed Khakhra', price: 110 },
+    topDishes: [
+      { name: 'Cutting Chai with Bun Maska', price: 90 },
+      { name: 'Cheese Nachos & Dal Pakwan', price: 160 },
+      { name: 'Handmade Khakhra Pizza', price: 140 },
+    ],
+    insiderNote: 'Rooftop cafe overlooking Central Park. Outstanding chai culture with creative contemporary Rajasthani snacks.',
+    established: 'Since 2010',
+  },
+];
+
+export const JAIPUR_DISHES = [
+  { id: 'pyaazkachori', name: 'Pyaaz & mawa kachori', price: '₹40–₹65', tint: '#e08b47' },
+  { id: 'dalbaati', name: 'Dal baati churma', price: '₹180–₹380', tint: '#c85a32' },
+  { id: 'ghewar', name: 'Malai & rabdi ghewar', price: '₹80–₹140', tint: '#f4a261' },
+  { id: 'lassi', name: 'Kulhad malai lassi', price: '₹40–₹70', tint: '#d4a373' },
+  { id: 'ker_sangri', name: 'Ker sangri & bajra roti', price: '₹120–₹220', tint: '#7cb518' },
+];
+
+export const JAIPUR_EATERIES_DB = {
+  pyaazkachori: [
+    { name: 'Rawat Mishtan Bhandar', area: 'Sindhi Camp · since 1972', price: 50, tags: ['veg'], note: 'Benchmark onion kachori with crunchy multi-layered crust.' },
+    { name: 'Samrat Restaurant', area: 'Chaura Rasta, Walled City', price: 35, tags: ['veg', 'cash'], note: 'Crisp kachoris served with sweet tamarind and spicy green chutney.' },
+  ],
+  dalbaati: [
+    { name: 'LMB (Laxmi Mishthan Bhandar)', area: 'Johari Bazaar · since 1727', price: 380, tags: ['veg'], note: 'Lavish ghee-soaked baatis with five-lentil panchmel dal and sweet churma.' },
+    { name: 'Chokhi Dhani Heritage Village', area: 'Tonk Road', price: 750, tags: ['veg'], note: 'Grand cultural Rajasthani royal dining village experience.' },
+  ],
+  ghewar: [
+    { name: 'Sambhar Fini & Ghewar', area: 'Johari Bazaar', price: 110, tags: ['veg'], note: 'Legendary honeycomb dessert laced with saffron and thick malai.' },
+    { name: 'Kanha Sweets', area: 'Tonk Road / C-Scheme', price: 95, tags: ['veg'], note: 'Freshly fried traditional sweet treats and savory snacks.' },
+  ],
+  lassi: [
+    { name: 'Lassiwala (Shop 312)', area: 'MI Road · since 1944', price: 60, tags: ['veg', 'cash'], note: 'Cold creamy lassi topped with thick clotted malai layer.' },
+  ],
+  ker_sangri: [
+    { name: '1135 AD', area: 'Amer Fort Complex', price: 420, tags: ['veg'], note: 'Regal desert berries and beans cooked in mustard oil within royal fort ramparts.' },
+  ],
+};
+
+// ============================================================================
+// 5. PUNE SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const PUNE_SEARCH_HUBS = [
+  {
+    id: 'shaniwar_wada',
+    name: 'Shaniwar Wada Palace',
+    area: 'Kasba Peth / Bajirao Road',
+    category: 'Maratha Citadel',
+    latitude: 18.5196,
+    longitude: 73.8553,
+    nearestMetro: 'Civil Court or Kasba Peth Metro',
+    metroLine: 'pune_purple',
+    walkMinutesFromMetro: 6,
+    tip: '1732 seat of the Peshwas. Massive teakwood Dilli Darwaza with iron spikes.',
+    autoFareQuoteWarning: 'Autos around Kasba Peth are required by law to run by electronic meter.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'fc_road_deccan',
+    name: 'FC Road & Deccan Gymkhana',
+    area: 'Shivajinagar / Deccan',
+    category: 'Cafe & Student Boulevard',
+    latitude: 18.5188,
+    longitude: 73.8415,
+    nearestMetro: 'Deccan Gymkhana Metro',
+    metroLine: 'pune_aqua',
+    walkMinutesFromMetro: 3,
+    tip: 'Youthful cafe street lined with bookstores, Irani cafes, and street shopping.',
+    autoFareQuoteWarning: 'Parking is tight; take the Pune Metro Aqua line right to Deccan station.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'aga_khan_palace',
+    name: 'Aga Khan Palace & Memorial',
+    area: 'Kalyani Nagar / Yerwada',
+    category: 'National Monument',
+    latitude: 18.5524,
+    longitude: 73.9015,
+    nearestMetro: 'Ramwadi or Kalyani Nagar Metro',
+    metroLine: 'pune_aqua',
+    walkMinutesFromMetro: 10,
+    tip: 'Italianate arches and serene manicured lawns where Mahatma Gandhi was interned in 1942.',
+    autoFareQuoteWarning: 'Auto fare from Ramwadi Metro is around ₹35 on meter.',
+    estimatedCost: 25,
+  },
+  {
+    id: 'pune_junction',
+    name: 'Pune Junction Railway Station',
+    area: 'Camp / Agarkar Nagar',
+    category: 'Transit Hub',
+    latitude: 18.5284,
+    longitude: 73.8744,
+    nearestMetro: 'Pune Railway Station Metro',
+    metroLine: 'pune_aqua',
+    walkMinutesFromMetro: 2,
+    tip: 'Major terminal. Covered direct access to Metro Line 2. 24/7 cloakroom on Platform 1.',
+    autoFareQuoteWarning: 'Use the official Traffic Police Prepaid Booth outside Platform 1 exit.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'koregaon_park',
+    name: 'Koregaon Park (North Main Road)',
+    area: 'East Pune',
+    category: 'Boutique & Heritage District',
+    latitude: 18.5362,
+    longitude: 73.8940,
+    nearestMetro: 'Mangalwar Peth or Kalyani Nagar Metro',
+    metroLine: 'pune_aqua',
+    walkMinutesFromMetro: 15,
+    tip: 'Canopy of ancient banyan trees, artisan cafes, German bakeries, and Osho garden.',
+    autoFareQuoteWarning: 'Tree-lined lanes are ideal for cycling or walking.',
+    estimatedCost: 25,
+  },
+  {
+    id: 'sinhagad_fort',
+    name: 'Sinhagad Fort Ridge',
+    area: 'South-West Sahyadris',
+    category: 'Mountain Fortress',
+    latitude: 18.3663,
+    longitude: 73.7559,
+    nearestMetro: 'Swargate Bus Stand + PMPML Bus',
+    metroLine: 'pune_purple',
+    walkMinutesFromMetro: 45,
+    tip: 'Breathtaking cliff fortress. Taste fresh Pithla Bhakri and Matka Dahi from village women.',
+    autoFareQuoteWarning: 'Shared Jeeps run from Donje village base to the fort gate for ₹50.',
+    estimatedCost: 60,
+  },
+];
+
+export const PUNE_RESTAURANTS = [
+  {
+    id: 'r_pun_kattakirrr',
+    name: 'Kattakirrr Misal',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: 'Prabhat Road, Deccan / Karve Nagar, Pune',
+    cuisine: 'maharashtrian',
+    rating: 4.7,
+    priceTier: 1,
+    latitude: 18.5085,
+    longitude: 73.8342,
+    openTime: '08:00',
+    closeTime: '15:30',
+    tags: ['veg'],
+    nearestMetro: 'Garware College Metro · 8 min walk',
+    mustTry: { dish: 'Teekha Misal with Extra Kat & Buttermilk', price: 90 },
+    topDishes: [
+      { name: 'Puneri Spicy Misal with Farsan & Sev', price: 90 },
+      { name: 'Taak (Chilled Masala Buttermilk)', price: 25 },
+      { name: 'Extra Kat (Spicy Rassa gravy bowl)', price: 20 },
+    ],
+    insiderNote: 'The gold benchmark for spicy Puneri Misal. Served with three levels of fiery rassa (Medium, Spicy, and Black Kat).',
+    established: 'Since 2006',
+  },
+  {
+    id: 'r_pun_goodluck',
+    name: 'Cafe Goodluck',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'Goodluck Chowk, FC Road, Pune',
+    cuisine: 'irani_cafe',
+    rating: 4.6,
+    priceTier: 1,
+    latitude: 18.5178,
+    longitude: 73.8418,
+    openTime: '07:00',
+    closeTime: '23:30',
+    tags: ['nonveg'],
+    nearestMetro: 'Deccan Gymkhana Metro · 4 min walk',
+    mustTry: { dish: 'Bun Maska & Irani Chai with Keema Pav', price: 55 },
+    topDishes: [
+      { name: 'Toasted Bun Maska with Special Irani Chai', price: 55 },
+      { name: 'Mutton Keema Ghotala with Pav', price: 170 },
+      { name: 'Caramel Custard', price: 65 },
+    ],
+    insiderNote: 'Pune’s most historic Irani cafe since 1935. The bustling heart of Goodluck Chowk where generations of students have gathered.',
+    established: 'Since 1935',
+  },
+  {
+    id: 'r_pun_chitale',
+    name: 'Chitale Bandhu Mithaiwale',
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+    area: 'Bajirao Road / Deccan Gymkhana, Pune',
+    cuisine: 'snacks',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 18.5135,
+    longitude: 73.8524,
+    openTime: '08:30',
+    closeTime: '20:30',
+    tags: ['veg'],
+    nearestMetro: 'Civil Court Metro · 10 min walk',
+    mustTry: { dish: 'World Famous Puneri Bakarwadi', price: 80 },
+    topDishes: [
+      { name: 'Crispy Spicy Bakarwadi (500g pack)', price: 170 },
+      { name: 'Alphonso Mango Barfi (Amba Barfi)', price: 90 },
+      { name: 'Kaju Katli & Shrikhand', price: 110 },
+    ],
+    insiderNote: 'Synonymous with Pune culture since 1950. Their secret-recipe spiral Bakarwadi is exported worldwide.',
+    established: 'Since 1950',
+  },
+  {
+    id: 'r_pun_sujata',
+    name: 'Sujata Mastani',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    area: 'Sadashiv Peth, Pune',
+    cuisine: 'dessert',
+    rating: 4.7,
+    priceTier: 2,
+    latitude: 18.5122,
+    longitude: 73.8505,
+    openTime: '11:00',
+    closeTime: '23:00',
+    tags: ['veg'],
+    nearestMetro: 'Budhwar Peth Metro · 7 min walk',
+    mustTry: { dish: 'Classic Mango Mastani with Ice Cream Scoop', price: 110 },
+    topDishes: [
+      { name: 'Mango Mastani (thick shake topped with mango ice cream & dry fruits)', price: 110 },
+      { name: 'Anjeer (Fig) Mastani', price: 120 },
+      { name: 'Kesar Pista Mastani', price: 130 },
+    ],
+    insiderNote: 'Invented in Pune and named after Peshwa Baji Rao’s beloved Mastani. A decadent hybrid of thick milkshake and ice cream.',
+    established: 'Since 1958',
+  },
+];
+
+export const PUNE_DISHES = [
+  { id: 'misal', name: 'Puneri spicy misal pav', price: '₹70–₹110', tint: '#c85a32' },
+  { id: 'bunmaska', name: 'Irani bun maska & chai', price: '₹45–₹70', tint: '#8d6e63' },
+  { id: 'bakarwadi', name: 'Chitale bakarwadi', price: '₹60–₹120', tint: '#d4a373' },
+  { id: 'mastani', name: 'Thick mango mastani', price: '₹90–₹150', tint: '#f4a261' },
+  { id: 'pithla', name: 'Sinhagad pithla bhakri', price: '₹80–₹130', tint: '#7cb518' },
+];
+
+export const PUNE_EATERIES_DB = {
+  misal: [
+    { name: 'Kattakirrr Misal', area: 'Prabhat Road / Deccan', price: 90, tags: ['veg'], note: 'Renowned for fiery red and black kat gravy with crunchy farsan.' },
+    { name: 'Bedekar Tea Stall', area: 'Narayan Peth · since 1948', price: 80, tags: ['veg', 'cash'], note: 'Traditional Puneri sweeter poha-based misal served with sliced bread.' },
+  ],
+  bunmaska: [
+    { name: 'Cafe Goodluck', area: 'FC Road · since 1935', price: 55, tags: ['veg'], note: 'Warm buttered sweet bun dipped into strong aromatic Irani chai.' },
+    { name: 'Vohuman Cafe', area: 'Near Pune Station · since 1978', price: 65, tags: ['veg'], note: 'Iconic double cheese omelette and melt-in-mouth bun maska.' },
+  ],
+  bakarwadi: [
+    { name: 'Chitale Bandhu Mithaiwale', area: 'Bajirao Road · since 1950', price: 80, tags: ['veg'], note: 'The quintessential Puneri fried spiral savory snack.' },
+  ],
+  mastani: [
+    { name: 'Sujata Mastani', area: 'Sadashiv Peth / FC Road', price: 110, tags: ['veg'], note: 'Rich fruit milkshake topped with homemade ice cream scoops.' },
+  ],
+  pithla: [
+    { name: 'Sinhagad Killa Village Stalls', area: 'Sinhagad Fort Top', price: 90, tags: ['veg'], note: 'Hot gram-flour pithla cooked on earthen chulha with jowar bhakri and thecha.' },
+  ],
+};
+
+// ============================================================================
+// 6. AHMEDABAD SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const AHMEDABAD_SEARCH_HUBS = [
+  {
+    id: 'sabarmati_ashram',
+    name: 'Sabarmati Ashram (Hriday Kunj)',
+    area: 'Sabarmati Riverfront North',
+    category: 'National Heritage',
+    latitude: 23.0605,
+    longitude: 72.5808,
+    nearestMetro: 'Vadaj BRTS / Ashram Metro',
+    metroLine: 'ahmedabad_ns',
+    walkMinutesFromMetro: 8,
+    tip: 'Mahatma Gandhi’s tranquil home for 12 years. Dandi March started here in 1930.',
+    autoFareQuoteWarning: 'Autos from Ahmedabad Junction use electronic meters (approx ₹70).',
+    estimatedCost: 20,
+  },
+  {
+    id: 'atal_pedestrian_bridge',
+    name: 'Atal Pedestrian Bridge',
+    area: 'Sabarmati Riverfront West',
+    category: 'Modern Landmark',
+    latitude: 23.0289,
+    longitude: 72.5762,
+    nearestMetro: 'Old High Court Metro Interchange',
+    metroLine: 'ahmedabad_ew',
+    walkMinutesFromMetro: 10,
+    tip: '300m footbridge inspired by kites. Connects multi-level river gardens with great breezes.',
+    autoFareQuoteWarning: 'Best visited at sunset when colorful lights reflect on the river.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'manek_chowk',
+    name: 'Manek Chowk Night Market',
+    area: 'Old Walled City',
+    category: 'Street Food Bazaar',
+    latitude: 23.0248,
+    longitude: 72.5873,
+    nearestMetro: 'Gheekanta Metro',
+    metroLine: 'ahmedabad_ew',
+    walkMinutesFromMetro: 6,
+    tip: 'Jewelry market by day that transforms into an electric street food hub from 8:30 PM to 2 AM.',
+    autoFareQuoteWarning: 'Extremely crowded lanes; walk from Gheekanta Metro.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'adalaj_stepwell',
+    name: 'Adalaj Stepwell (Rudabai Vav)',
+    area: 'Gandhinagar Corridor',
+    category: 'Subterranean Architecture',
+    latitude: 23.1667,
+    longitude: 72.5800,
+    nearestMetro: 'Motera Stadium Metro + Auto/Cab',
+    metroLine: 'ahmedabad_ns',
+    walkMinutesFromMetro: 20,
+    tip: '1498 five-storey subterranean stepwell with Solanki sandstone filigree and cool interior shafts.',
+    autoFareQuoteWarning: 'Negotiate waiting time with auto or book Ola/Uber return cab.',
+    estimatedCost: 40,
+  },
+  {
+    id: 'ahmedabad_kalupur',
+    name: 'Ahmedabad Junction (Kalupur)',
+    area: 'Kalupur Old City',
+    category: 'Transit Terminal',
+    latitude: 23.0234,
+    longitude: 72.6002,
+    nearestMetro: 'Kalupur Metro Station',
+    metroLine: 'ahmedabad_ew',
+    walkMinutesFromMetro: 2,
+    tip: 'Direct underground metro station right below the railway concourse. 24/7 cloakroom.',
+    autoFareQuoteWarning: 'Prepaid auto booth on Platform 1 protects from tout inflated quotes.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'sidi_saiyyed',
+    name: 'Sidi Saiyyed Mosque (Tree of Life)',
+    area: 'Lal Darwaza',
+    category: 'UNESCO Architectural Wonder',
+    latitude: 23.0270,
+    longitude: 72.5815,
+    nearestMetro: 'Gheekanta Metro / Lal Darwaza Bus Station',
+    metroLine: 'ahmedabad_ew',
+    walkMinutesFromMetro: 5,
+    tip: '1573 mosque with delicate marble lattice screens carved into intertwined palm leaves (IIM logo).',
+    autoFareQuoteWarning: 'Open to all visitors outside prayer hours; modest dress required.',
+    estimatedCost: 15,
+  },
+];
+
+export const AHMEDABAD_RESTAURANTS = [
+  {
+    id: 'r_amd_oshwal',
+    name: 'Oshwal Restaurant',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: 'Ashram Road, Ahmedabad',
+    cuisine: 'gujarati',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 23.0334,
+    longitude: 72.5705,
+    openTime: '06:30',
+    closeTime: '21:00',
+    tags: ['veg'],
+    nearestMetro: 'Old High Court Metro · 5 min walk',
+    mustTry: { dish: 'Crispy Fafda & Warm Jalebi with Papaya Sambharo', price: 70 },
+    topDishes: [
+      { name: 'Freshly Rolled Besan Fafda (100g)', price: 70 },
+      { name: 'Crisp Saffron Jalebi', price: 60 },
+      { name: 'Kadhi with Papaya Sambharo & Fried Chillies', price: 20 },
+    ],
+    insiderNote: 'The gold standard Sunday morning breakfast in Ahmedabad. Light, airy fafdas paired with crunchy raw papaya relish.',
+    established: 'Since 1982',
+  },
+  {
+    id: 'r_amd_daskhaman',
+    name: 'Das Khaman House',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'Lal Darwaza / Trade Centre, Ahmedabad',
+    cuisine: 'snacks',
+    rating: 4.7,
+    priceTier: 1,
+    latitude: 23.0242,
+    longitude: 72.5811,
+    openTime: '07:30',
+    closeTime: '21:30',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Gheekanta Metro · 6 min walk',
+    mustTry: { dish: 'Spongy Nylon Khaman & Sev Khamani', price: 50 },
+    topDishes: [
+      { name: 'Melt-in-mouth Yellow Nylon Khaman', price: 50 },
+      { name: 'Sev Khamani (crushed chana dal steamed with pomegranate & sev)', price: 55 },
+      { name: 'Tam Tam Khaman with Spiced Chutney', price: 50 },
+    ],
+    insiderNote: 'Founded in 1922 in Lal Darwaza. Feather-light steamed snack that defined Ahmedabad’s farsan culture.',
+    established: 'Since 1922',
+  },
+  {
+    id: 'r_amd_agashiye',
+    name: 'Agashiye (The House of MG)',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    area: 'Opp. Sidi Saiyyed Mosque, Lal Darwaza, Ahmedabad',
+    cuisine: 'gujarati_thali',
+    rating: 4.8,
+    priceTier: 3,
+    latitude: 23.0275,
+    longitude: 72.5818,
+    openTime: '12:00',
+    closeTime: '23:00',
+    tags: ['veg'],
+    nearestMetro: 'Gheekanta Metro · 5 min walk',
+    mustTry: { dish: 'Grand Royal Gujarati Thali on Rooftop', price: 550 },
+    topDishes: [
+      { name: 'Full Gujarati Heritage Thali with Ringan Bhartha & Rotla', price: 550 },
+      { name: 'Homemade Kesar Pista Ice Cream in Terracotta Cup', price: 90 },
+      { name: 'Freshly Churned Buttermilk & Warm Shrikhand', price: 60 },
+    ],
+    insiderNote: 'Set on the terrace of a 1924 textile baron’s mansion. Authentic Gujarati seasonal delicacies served in brass and silver vessels.',
+    established: 'Since 1999',
+  },
+];
+
+export const AHMEDABAD_DISHES = [
+  { id: 'fafda_jalebi', name: 'Fafda & jalebi with sambharo', price: '₹60–₹95', tint: '#e08b47' },
+  { id: 'khaman', name: 'Nylon khaman & sev khamani', price: '₹40–₹65', tint: '#f4a261' },
+  { id: 'thali', name: 'Royal gujarati thali', price: '₹280–₹550', tint: '#c85a32' },
+  { id: 'dosa_sandwich', name: 'Manek chowk midnight dosa', price: '₹90–₹160', tint: '#d4a373' },
+  { id: 'dalvada', name: 'Crunchy hot dalvada with chillies', price: '₹40–₹70', tint: '#7cb518' },
+];
+
+export const AHMEDABAD_EATERIES_DB = {
+  fafda_jalebi: [
+    { name: 'Oshwal Restaurant', area: 'Ashram Road · since 1982', price: 70, tags: ['veg'], note: 'Light crispy fafdas with piping hot jalebi and spicy green chillies.' },
+    { name: 'Chandravilas', area: 'Gandhi Road · since 1900', price: 60, tags: ['veg', 'cash'], note: 'Historic eatery visited by Sardar Patel and Mahatma Gandhi.' },
+  ],
+  khaman: [
+    { name: 'Das Khaman House', area: 'Lal Darwaza · since 1922', price: 50, tags: ['veg'], note: 'Famous spongy nylon khaman garnished with mustard seeds and coriander.' },
+  ],
+  thali: [
+    { name: 'Agashiye (House of MG)', area: 'Lal Darwaza', price: 550, tags: ['veg'], note: 'Exquisite rooftop heritage Gujarati dining under the open sky.' },
+    { name: 'Gordhan Thal', area: 'SG Highway', price: 340, tags: ['veg'], note: 'Bountiful traditional unlimited Gujarati feast with farsans and sweets.' },
+  ],
+  dosa_sandwich: [
+    { name: 'Manek Chowk Night Stalls', area: 'Manek Chowk (Post 9 PM)', price: 130, tags: ['veg'], note: 'Gwalior butter dosa, cheese chocolate sandwich, and pineapple sandwiches.' },
+  ],
+  dalvada: [
+    { name: 'Anand Dalvada', area: 'Navrangpura', price: 60, tags: ['veg', 'cash'], note: 'Hot crunchy yellow moong dal fritters with sliced onions and fried chillies.' },
+  ],
+};
+
+// ============================================================================
+// 7. KOCHI SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const KOCHI_SEARCH_HUBS = [
+  {
+    id: 'fort_kochi_beach',
+    name: 'Chinese Fishing Nets & Fort Kochi',
+    area: 'Fort Kochi Waterfront',
+    category: 'Coastal Living Heritage',
+    latitude: 9.9675,
+    longitude: 76.2428,
+    nearestMetro: 'High Court Water Metro + 20-min boat',
+    metroLine: 'kochi_water',
+    walkMinutesFromMetro: 4,
+    tip: '14th-century cantilevered sea nets. Picturesque sunset views over the shipping channel.',
+    autoFareQuoteWarning: 'Walk through leafy colonial streets rather than hiring autos for short hops.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'mattancherry_jewtown',
+    name: 'Mattancherry Palace & Jew Town',
+    area: 'Mattancherry',
+    category: 'Palace & Antique Market',
+    latitude: 9.9575,
+    longitude: 76.2592,
+    nearestMetro: 'Water Metro to Mattancherry / Ro-Ro Ferry',
+    metroLine: 'kochi_water',
+    walkMinutesFromMetro: 5,
+    tip: 'Dutch Palace with Hindu Ramayana murals, alongside the 1568 Paradesi Synagogue.',
+    autoFareQuoteWarning: 'Buy spices only from Spices Board approved stores; avoid tout commissions.',
+    estimatedCost: 25,
+  },
+  {
+    id: 'marine_drive_kochi',
+    name: 'Marine Drive & Rainbow Bridge',
+    area: 'Central Ernakulam Waterfront',
+    category: 'Promenade',
+    latitude: 9.9816,
+    longitude: 76.2764,
+    nearestMetro: 'MG Road or High Court Water Metro',
+    metroLine: 'kochi_water',
+    walkMinutesFromMetro: 5,
+    tip: 'Tree-lined backwater promenade with budget evening harbor boat cruises.',
+    autoFareQuoteWarning: 'Water Metro terminal is right at the northern end of Marine Drive.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'ernakulam_south',
+    name: 'Ernakulam Junction (South) Railway',
+    area: 'South Rail Hub',
+    category: 'Transit Hub',
+    latitude: 9.9676,
+    longitude: 76.2917,
+    nearestMetro: 'Ernakulam South Metro',
+    metroLine: 'kochi_blue',
+    walkMinutesFromMetro: 2,
+    tip: 'Main rail junction with 24/7 cloakroom and direct covered skywalk to Kochi Metro.',
+    autoFareQuoteWarning: 'Use the official Prepaid Auto counter right outside Platform 1.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'edapally_lulu',
+    name: 'Edapally Interchange & Lulu Mall',
+    area: 'Edapally',
+    category: 'Retail & Metro Hub',
+    latitude: 10.0234,
+    longitude: 76.3117,
+    nearestMetro: 'Edapally Metro Station',
+    metroLine: 'kochi_blue',
+    walkMinutesFromMetro: 1,
+    tip: 'Air-conditioned skybridge links the elevated metro station directly into Lulu Mall.',
+    autoFareQuoteWarning: 'Avoid road jams at Edapally junction by taking the Metro.',
+    estimatedCost: 25,
+  },
+];
+
+export const KOCHI_RESTAURANTS = [
+  {
+    id: 'r_koc_kayees',
+    name: 'Kayees Rahmathulla Hotel',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: 'Gujarati Road, Mattancherry, Kochi',
+    cuisine: 'kerala_biryani',
+    rating: 4.6,
+    priceTier: 2,
+    latitude: 9.9565,
+    longitude: 76.2575,
+    openTime: '11:30',
+    closeTime: '21:00',
+    tags: ['nonveg'],
+    nearestMetro: 'High Court Water Metro + Auto · 12 min',
+    mustTry: { dish: 'Mutton Dum Biryani with Date Chutney', price: 240 },
+    topDishes: [
+      { name: 'Kochi Mutton Biryani with Kaima rice', price: 240 },
+      { name: 'Chicken Biryani with Pineapple Pickle', price: 190 },
+      { name: 'Fish Fry (Neymeen / Seer fish)', price: 210 },
+    ],
+    insiderNote: 'Legendary since 1948. Famous for fragrant small-grain Kaima rice biryani infused with Kerala spices and sweet dates pickle.',
+    established: 'Since 1948',
+  },
+  {
+    id: 'r_koc_kashi',
+    name: 'Kashi Art Cafe',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'Burger Street, Fort Kochi',
+    cuisine: 'cafe',
+    rating: 4.7,
+    priceTier: 2,
+    latitude: 9.9652,
+    longitude: 76.2425,
+    openTime: '08:30',
+    closeTime: '21:30',
+    tags: ['veg', 'nonveg'],
+    nearestMetro: 'Fort Kochi Water Metro · 6 min walk',
+    mustTry: { dish: 'Warm Chocolate Cake & Fresh French Roast Coffee', price: 180 },
+    topDishes: [
+      { name: 'Signature Chocolate Cake with Melted Ganache', price: 180 },
+      { name: 'Avocado Toast with Poached Eggs', price: 240 },
+      { name: 'Iced Cinnamon Cold Brew', price: 130 },
+    ],
+    insiderNote: 'Pioneered Fort Kochi’s bohemian contemporary art culture. Peaceful open courtyard with curated sculptures and fresh bakes.',
+    established: 'Since 1997',
+  },
+  {
+    id: 'r_koc_paragon',
+    name: 'Paragon Restaurant',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    area: 'Lulu Mall / Aster Medcity Road, Kochi',
+    cuisine: 'malabar',
+    rating: 4.8,
+    priceTier: 2,
+    latitude: 10.0245,
+    longitude: 76.3125,
+    openTime: '11:30',
+    closeTime: '23:00',
+    tags: ['nonveg'],
+    nearestMetro: 'Edapally Metro · 3 min walk',
+    mustTry: { dish: 'Flaky Malabar Parotta with Fish Mango Curry', price: 260 },
+    topDishes: [
+      { name: 'Malabar Parotta (flaky layered bread)', price: 25 },
+      { name: 'Fish Mango Curry in Coconut Milk', price: 260 },
+      { name: 'Chicken Stew with Steamed Appam', price: 180 },
+    ],
+    insiderNote: 'Ranked among the world’s most legendary restaurants. Masters of coastal Malabar seafood and layered parottas.',
+    established: 'Since 1939',
+  },
+];
+
+export const KOCHI_DISHES = [
+  { id: 'appam_stew', name: 'Appam with coconut stew', price: '₹60–₹120', tint: '#8d6e63' },
+  { id: 'karimeen', name: 'Karimeen pollichathu', price: '₹280–₹450', tint: '#c85a32' },
+  { id: 'biryani', name: 'Kochi kaima biryani', price: '₹180–₹260', tint: '#e08b47' },
+  { id: 'parotta_beef', name: 'Malabar parotta & roast', price: '₹70–₹160', tint: '#936639' },
+  { id: 'pazham_pori', name: 'Pazham pori with beef/tea', price: '₹20–₹60', tint: '#f4a261' },
+];
+
+export const KOCHI_EATERIES_DB = {
+  appam_stew: [
+    { name: 'Fort House Restaurant', area: 'Calvathy Road, Fort Kochi', price: 120, tags: ['veg', 'nonveg'], note: 'Lace-edged appams served waterfront with gentle harbor views.' },
+    { name: 'Paragon Restaurant', area: 'Edapally Lulu Mall', price: 90, tags: ['veg'], note: 'Authentic vegetable stew infused with curry leaves and coconut milk.' },
+  ],
+  karimeen: [
+    { name: 'Mullapanthal Toddy Shop', area: 'Udayamperoor, Kochi', price: 340, tags: ['nonveg'], note: 'Fresh pearl spot fish marinated in shallots, green chillies and roasted in banana leaf.' },
+    { name: 'Grand Hotel', area: 'MG Road, Ernakulam', price: 380, tags: ['nonveg'], note: 'Classic dining room serving premium coastal fish specialties.' },
+  ],
+  biryani: [
+    { name: 'Kayees Rahmathulla Hotel', area: 'Mattancherry · since 1948', price: 240, tags: ['nonveg'], note: 'The quintessential Kochi wedding-style dum biryani with Kaima rice.' },
+  ],
+  parotta_beef: [
+    { name: 'Sree Muruga Cafe', area: 'Thripunithura', price: 80, tags: ['nonveg'], note: 'Famous pairing of crisp hot parotta and sweet banana fritters.' },
+  ],
+  pazham_pori: [
+    { name: 'Local Chayakadas near Fort Kochi Jetty', area: 'Fort Kochi Waterfront', price: 25, tags: ['veg'], note: 'Sweet ripe Nendran bananas batter-fried and served with spiced black tea.' },
+  ],
+};
+
+// ============================================================================
+// 8. GOA SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const GOA_SEARCH_HUBS = [
+  {
+    id: 'fontainhas_panaji',
+    name: 'Fontainhas Latin Quarter',
+    area: 'Panaji City Center',
+    category: 'Colonial Heritage District',
+    latitude: 15.4950,
+    longitude: 73.8315,
+    nearestMetro: 'Panaji Kadamba Bus Terminus',
+    metroLine: 'goa_bus',
+    walkMinutesFromMetro: 8,
+    tip: 'Asia’s only surviving Latin quarter. Ochre, pastel blue and tiled Portuguese mansions.',
+    autoFareQuoteWarning: 'Walk through narrow lanes on foot; best photographed early morning.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'basilica_bom_jesus',
+    name: 'Basilica of Bom Jesus',
+    area: 'Old Goa (Velha Goa)',
+    category: 'UNESCO World Heritage',
+    latitude: 15.5009,
+    longitude: 73.9116,
+    nearestMetro: 'Kadamba Old Goa Shuttle Bus',
+    metroLine: 'goa_bus',
+    walkMinutesFromMetro: 3,
+    tip: '1605 Baroque basilica holding the mortal remains of St. Francis Xavier. Se Cathedral opposite.',
+    autoFareQuoteWarning: 'Take the direct Kadamba electric bus from Panaji stand for only ₹15.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'fort_aguada',
+    name: 'Fort Aguada & Lighthouse',
+    area: 'Sinquerim Coastal Headland',
+    category: 'Coastal Fortress',
+    latitude: 15.4925,
+    longitude: 73.7736,
+    nearestMetro: 'Bus from Panaji / Calangute',
+    metroLine: 'goa_bus',
+    walkMinutesFromMetro: 15,
+    tip: '1612 Portuguese fortress overlooking the Mandovi estuary. 4-storey 1864 lighthouse.',
+    autoFareQuoteWarning: 'Book taxis on GoaMiles app to avoid high private quote at beach gates.',
+    estimatedCost: 35,
+  },
+  {
+    id: 'panaji_ferry_wharf',
+    name: 'Panaji – Betim River Ferry Wharf',
+    area: 'Mandovi Riverfront',
+    category: 'River Ferry',
+    latitude: 15.5019,
+    longitude: 73.8286,
+    nearestMetro: 'Panaji River Promenade',
+    metroLine: 'goa_ferry',
+    walkMinutesFromMetro: 2,
+    tip: 'Public car and passenger ferry across the Mandovi river. FREE for all pedestrians!',
+    autoFareQuoteWarning: 'Ferries depart every 15 minutes 24/7; scenic alternative to bridge traffic.',
+    estimatedCost: 0,
+  },
+  {
+    id: 'madgaon_railway',
+    name: 'Madgaon (Margao) Railway Junction',
+    area: 'South Goa Rail Hub',
+    category: 'Transit Terminal',
+    latitude: 15.2694,
+    longitude: 73.9722,
+    nearestMetro: 'Kadamba Margao Stand',
+    metroLine: 'goa_bus',
+    walkMinutesFromMetro: 4,
+    tip: 'Primary Konkan Railway station in South Goa. 24/7 luggage cloakroom on Platform 1.',
+    autoFareQuoteWarning: 'Prepaid taxi and GoaMiles kiosks available directly outside station concourse.',
+    estimatedCost: 25,
+  },
+  {
+    id: 'chapora_fort',
+    name: 'Chapora Fort (Dil Chahta Hai)',
+    area: 'Vagator / Anjuna',
+    category: 'Cliff Fortress & Sunset',
+    latitude: 15.6058,
+    longitude: 73.7381,
+    nearestMetro: 'Local bus from Mapusa Stand',
+    metroLine: 'goa_bus',
+    walkMinutesFromMetro: 12,
+    tip: 'Spectacular sunset spot on red laterite ramparts overlooking the Chapora river and Vagator beach.',
+    autoFareQuoteWarning: 'Rocky short uphill path; wear sturdy footwear.',
+    estimatedCost: 25,
+  },
+];
+
+export const GOA_RESTAURANTS = [
+  {
+    id: 'r_goa_ritz',
+    name: 'Ritz Classic',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: '18th June Road, Panaji, Goa',
+    cuisine: 'goan_seafood',
+    rating: 4.7,
+    priceTier: 2,
+    latitude: 15.4942,
+    longitude: 73.8248,
+    openTime: '11:30',
+    closeTime: '23:00',
+    tags: ['nonveg'],
+    nearestMetro: 'Panaji Kadamba Stand · 10 min walk',
+    mustTry: { dish: 'Goan Fish Curry Thali with Kingfish Rava Fry', price: 240 },
+    topDishes: [
+      { name: 'Special Fish Thali with Crab Xacuti & Sol Kadhi', price: 240 },
+      { name: 'Kingfish (Surmai) Rava Fry', price: 280 },
+      { name: 'Squid Golden Fry with Tartar Sauce', price: 220 },
+    ],
+    insiderNote: 'The gold standard for Goan seafood lunch. Hearty brass thalis packed with clam sukka, kokum kadi, and spicy fish curry.',
+    established: 'Since 1978',
+  },
+  {
+    id: 'r_goa_vivapanjim',
+    name: 'Viva Panjim',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'Fontainhas Latin Quarter, Panaji',
+    cuisine: 'indo_portuguese',
+    rating: 4.6,
+    priceTier: 2,
+    latitude: 15.4962,
+    longitude: 73.8322,
+    openTime: '12:00',
+    closeTime: '22:30',
+    tags: ['nonveg'],
+    nearestMetro: 'Panaji Kadamba Stand · 7 min walk',
+    mustTry: { dish: 'Pork Vindaloo with Crusty Poi Bread', price: 260 },
+    topDishes: [
+      { name: 'Authentic Pork Vindaloo cooked in palm vinegar', price: 260 },
+      { name: 'Chicken Xacuti in roasted spiced coconut gravy', price: 220 },
+      { name: 'Bebinca with Vanilla Ice Cream', price: 90 },
+    ],
+    insiderNote: 'Tucked away in a quaint alley of Fontainhas. Serving home-style Catholic Goan recipes in a family Portuguese residence.',
+    established: 'Since 2000',
+  },
+  {
+    id: 'r_goa_confeitaria',
+    name: 'Confeitaria 31 de Janeiro',
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+    area: 'Rua 31 de Janeiro, Fontainhas, Panaji',
+    cuisine: 'bakery',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 15.4952,
+    longitude: 73.8318,
+    openTime: '08:00',
+    closeTime: '20:00',
+    tags: ['veg', 'nonveg'],
+    nearestMetro: 'Panaji Kadamba Stand · 8 min walk',
+    mustTry: { dish: 'Warm Traditional 7-Layer Bebinca & Pastéis de Nata', price: 90 },
+    topDishes: [
+      { name: 'Traditional Coconut Milk Bebinca', price: 90 },
+      { name: 'Portuguese Egg Custard Tarts (Pastéis de Nata)', price: 70 },
+      { name: 'Goan Prawn Patties in Flaky Puff', price: 65 },
+    ],
+    insiderNote: 'One of the oldest bakeries in Goa, founded in 1930. Baking authentic Indo-Portuguese pastries using traditional wood-fired ovens.',
+    established: 'Since 1930',
+  },
+];
+
+export const GOA_DISHES = [
+  { id: 'fish_thali', name: 'Goan fish curry thali', price: '₹180–₹280', tint: '#c85a32' },
+  { id: 'vindaloo', name: 'Pork / chicken vindaloo with poi', price: '₹220–₹320', tint: '#936639' },
+  { id: 'bebinca', name: 'Layered coconut bebinca', price: '₹70–₹110', tint: '#f4a261' },
+  { id: 'ross_omelette', name: 'Street ross omelette', price: '₹50–₹75', tint: '#e08b47' },
+  { id: 'xacuti', name: 'Spicy chicken xacuti', price: '₹180–₹260', tint: '#7cb518' },
+];
+
+export const GOA_EATERIES_DB = {
+  fish_thali: [
+    { name: 'Ritz Classic', area: '18th June Road, Panaji', price: 240, tags: ['nonveg'], note: 'Brimming seafood thali featuring fresh catches from the Arabian sea.' },
+    { name: 'Anand Seafood Bar', area: 'Anjuna', price: 220, tags: ['nonveg'], note: 'Beloved coastal joint serving crab masala and fresh fried rava kingfish.' },
+  ],
+  vindaloo: [
+    { name: 'Viva Panjim', area: 'Fontainhas, Panaji', price: 260, tags: ['nonveg'], note: 'Spicy, tangy slow-simmered pork in authentic Goan palm toddy vinegar.' },
+    { name: 'Martin’s Corner', area: 'Betalbatim, South Goa', price: 310, tags: ['nonveg'], note: 'World-famous Goan institution frequented by celebrities and locals.' },
+  ],
+  bebinca: [
+    { name: 'Confeitaria 31 de Janeiro', area: 'Fontainhas · since 1930', price: 90, tags: ['veg'], note: 'Rich multi-layered pudding baked slowly with coconut milk and nutmeg.' },
+  ],
+  ross_omelette: [
+    { name: 'Panaji Church Square Gadda Stalls', area: 'Church Square, Panaji', price: 60, tags: ['nonveg'], note: 'Freshly fried fluffy omelette drowned in spicy chicken xacuti gravy.' },
+  ],
+  xacuti: [
+    { name: 'Mum’s Kitchen', area: 'Miramar, Panaji', price: 290, tags: ['nonveg'], note: 'Traditional family recipes made from hand-roasted spices and grated coconut.' },
+  ],
+};
+
+// ============================================================================
+// 9. VARANASI SEARCH HUBS & EATERIES
+// ============================================================================
+
+export const VARANASI_SEARCH_HUBS = [
+  {
+    id: 'kashi_vishwanath',
+    name: 'Kashi Vishwanath Corridor',
+    area: 'Vishwanath Gali / Lalita Ghat',
+    category: 'Supreme Jyotirlinga',
+    latitude: 25.3109,
+    longitude: 83.0107,
+    nearestMetro: 'Kashi Ropeway (Godowlia) / E-Rickshaw',
+    metroLine: 'varanasi_ropeway',
+    walkMinutesFromMetro: 4,
+    tip: 'One of the 12 holy Jyotirlingas, newly linked directly to the sacred Ganga by a grand corridor.',
+    autoFareQuoteWarning: 'Alleys leading to the shrine are strictly pedestrian-only; drop bags at Cantt cloakroom.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'dashashwamedh_ghat',
+    name: 'Dashashwamedh Ghat',
+    area: 'Central Ghats Riverfront',
+    category: 'Ganga Maha Aarti',
+    latitude: 25.3072,
+    longitude: 83.0105,
+    nearestMetro: 'Godowlia Chowk Crossing',
+    metroLine: 'varanasi_ropeway',
+    walkMinutesFromMetro: 6,
+    tip: 'Venue of the world-famous Grand Ganga Aarti every evening at sunset with multi-tiered brass lamps.',
+    autoFareQuoteWarning: 'Arrive by 17:45 to get front-row seats on the steps or book a shared wooden boat.',
+    estimatedCost: 10,
+  },
+  {
+    id: 'assi_ghat',
+    name: 'Assi Ghat & Confluence',
+    area: 'South Varanasi Riverfront',
+    category: 'Culture & Dawn Yoga',
+    latitude: 25.2885,
+    longitude: 83.0067,
+    nearestMetro: 'E-Rickshaw from Lanka / BHU',
+    metroLine: 'varanasi_bus',
+    walkMinutesFromMetro: 1,
+    tip: 'Subah-e-Banaras daily at dawn with morning ragas, Vedic chanting, and free Ganga-side yoga.',
+    autoFareQuoteWarning: 'Pizzas and wood-fired bakeries available at nearby cafes.',
+    estimatedCost: 15,
+  },
+  {
+    id: 'sarnath_heritage',
+    name: 'Sarnath Dhamek Stupa',
+    area: 'Sarnath (10 km NE)',
+    category: 'UNESCO Buddhist Center',
+    latitude: 25.3762,
+    longitude: 83.0227,
+    nearestMetro: 'Cab / Auto from Cantt Station',
+    metroLine: 'varanasi_bus',
+    walkMinutesFromMetro: 20,
+    tip: 'Site of the Buddha’s First Sermon. Visit the Archaeological Museum housing the 4-lion Ashoka Capital.',
+    autoFareQuoteWarning: 'Pre-negotiate a round-trip auto fare (~₹350) or take an Uber.',
+    estimatedCost: 40,
+  },
+  {
+    id: 'varanasi_cantt',
+    name: 'Varanasi Junction (Cantt)',
+    area: 'Cantt Railway Hub',
+    category: 'Transit Terminal',
+    latitude: 25.3283,
+    longitude: 82.9867,
+    nearestMetro: 'Kashi Ropeway Cantt Terminal',
+    metroLine: 'varanasi_ropeway',
+    walkMinutesFromMetro: 1,
+    tip: 'Main train terminal. 24/7 cloakroom on Platform 1. E-rickshaws to Godowlia cost only ₹20.',
+    autoFareQuoteWarning: 'Avoid touts claiming ghats are closed; board shared e-rickshaws directly outside.',
+    estimatedCost: 20,
+  },
+  {
+    id: 'manikarnika_ghat',
+    name: 'Manikarnika Ghat (Mahashamshan)',
+    area: 'Central Sacred Ghats',
+    category: 'Sacred Cremation Ghat',
+    latitude: 25.3108,
+    longitude: 83.0139,
+    nearestMetro: 'Boat from Dashashwamedh or alley walk',
+    metroLine: 'varanasi_boat',
+    walkMinutesFromMetro: 8,
+    tip: 'Ancient cremation ground where fires have burned continuously for thousands of years. Photography is prohibited.',
+    autoFareQuoteWarning: 'Ignore touts asking for "cremation wood donations"; it is an infamous tourist trap.',
+    estimatedCost: 0,
+  },
+];
+
+export const VARANASI_RESTAURANTS = [
+  {
+    id: 'r_vns_rambhandar',
+    name: 'Ram Bhandar',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
+    area: 'Thatheri Bazaar, Chowk, Varanasi',
+    cuisine: 'banarasi_breakfast',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 25.3134,
+    longitude: 83.0105,
+    openTime: '06:30',
+    closeTime: '11:00',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Godowlia Chowk · 8 min walk through galis',
+    mustTry: { dish: 'Crispy Kachori Sabzi & Saffron Jalebi in Leaf Bowl', price: 50 },
+    topDishes: [
+      { name: 'Kachori with Desi Ghee Urad Dal filling & Aloo Chana Sabzi', price: 40 },
+      { name: 'Hot Crispy Jalebi fried in Pure Ghee', price: 40 },
+      { name: 'Kulhad Malaiyo (Winter seasonal)', price: 60 },
+    ],
+    insiderNote: 'The supreme Varanasi breakfast experience since the 19th century. Piping hot kachoris served in palash leaf donas with spiced potato curry.',
+    established: 'Since 1887',
+  },
+  {
+    id: 'r_vns_kashichaat',
+    name: 'Kashi Chaat Bhandar',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    area: 'D.48/102, Godowlia Crossing, Varanasi',
+    cuisine: 'chaat',
+    rating: 4.7,
+    priceTier: 1,
+    latitude: 25.3092,
+    longitude: 83.0058,
+    openTime: '15:30',
+    closeTime: '22:30',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Godowlia Chowk · 1 min walk',
+    mustTry: { dish: 'Signature Tamatar Chaat & Palak Patta Chaat', price: 60 },
+    topDishes: [
+      { name: 'Banarasi Tamatar Chaat (pureed tomatoes simmered in spices & sugar syrup)', price: 60 },
+      { name: 'Crispy Palak Patta Chaat with Sweet Curd', price: 50 },
+      { name: 'Dahi Golgappe (6 pcs)', price: 40 },
+    ],
+    insiderNote: 'Inventors of the world-famous Banarasi Tamatar Chaat. Cooked in pure desi ghee and topped with crunchy namakpara.',
+    established: 'Since 1968',
+  },
+  {
+    id: 'r_vns_bluelassi',
+    name: 'Blue Lassi Shop',
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+    area: 'Bangali Tola / Kunj Gali, near Manikarnika Ghat',
+    cuisine: 'dessert',
+    rating: 4.6,
+    priceTier: 1,
+    latitude: 25.3105,
+    longitude: 83.0125,
+    openTime: '08:00',
+    closeTime: '22:30',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Dashashwamedh Ghat alley · 6 min walk',
+    mustTry: { dish: 'Pomegranate & Blueberry Lassi with Rabdi', price: 80 },
+    topDishes: [
+      { name: 'Special Mix Fruit Lassi with Thick Malai & Nuts', price: 90 },
+      { name: 'Mango Rabdi Lassi in Handcrafted Kulhad', price: 80 },
+      { name: 'Plain Sweet Curd Lassi with Saffron', price: 50 },
+    ],
+    insiderNote: 'Quaint narrow alley shop operating since 1925. Lassi hand-churned in traditional wooden mathani and topped with generous dollops of rabdi.',
+    established: 'Since 1925',
+  },
+  {
+    id: 'r_vns_keshav',
+    name: 'Keshav Tambool Bhandar',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    area: 'Near BHU Main Gate, Lanka, Varanasi',
+    cuisine: 'paan',
+    rating: 4.8,
+    priceTier: 1,
+    latitude: 25.2818,
+    longitude: 82.9982,
+    openTime: '09:00',
+    closeTime: '23:30',
+    tags: ['veg', 'cash'],
+    nearestMetro: 'Lanka Crossing / BHU Gate',
+    metroLine: 'varanasi_bus',
+    mustTry: { dish: 'Authentic Banarasi Maghai Meetha Paan', price: 35 },
+    topDishes: [
+      { name: 'Maghai Meetha Paan with Gulkand, Saunf & Silver Foil', price: 35 },
+      { name: 'Zarda Paan (Navratan / Chaman)', price: 40 },
+    ],
+    insiderNote: 'The gold standard for the legendary “Khaike Paan Banaraswala”. Tender, pale Maghai betel leaves that dissolve effortlessly in the mouth.',
+    established: 'Since 1966',
+  },
+];
+
+export const VARANASI_DISHES = [
+  { id: 'kachori_sabzi', name: 'Banarasi kachori sabzi & jalebi', price: '₹40–₹65', tint: '#c85a32' },
+  { id: 'tamatar_chaat', name: 'Ghee tamatar chaat', price: '₹50–₹75', tint: '#e08b47' },
+  { id: 'malaiyo', name: 'Winter saffron malaiyo', price: '₹50–₹80', tint: '#f4a261' },
+  { id: 'paan', name: 'Authentic maghai meetha paan', price: '₹25–₹50', tint: '#7cb518' },
+  { id: 'lassi', name: 'Kulhad rabdi lassi', price: '₹40–₹80', tint: '#d4a373' },
+];
+
+export const VARANASI_EATERIES_DB = {
+  kachori_sabzi: [
+    { name: 'Ram Bhandar', area: 'Thatheri Bazaar · since 1887', price: 50, tags: ['veg', 'cash'], note: 'Crisp dal-stuffed kachori served with spicy aloo rassa and hot jalebi.' },
+    { name: 'Madhur Milan', area: 'Dashashwamedh Ghat Road', price: 45, tags: ['veg'], note: 'Early morning breakfast hub packed with locals after holy Ganga bath.' },
+  ],
+  tamatar_chaat: [
+    { name: 'Kashi Chaat Bhandar', area: 'Godowlia Crossing · since 1968', price: 60, tags: ['veg', 'cash'], note: 'The quintessential Banarasi hot tomato chaat infused with pure ghee and cumin.' },
+    { name: 'Deena Chaat Bhandar', area: 'Golghar / Luxa Road', price: 55, tags: ['veg'], note: 'Superb dahi golgappe, tikki, and flavorful tamatar chaat.' },
+  ],
+  malaiyo: [
+    { name: 'Chaukhamba Gali Stalls', area: 'Chaukhamba, Old City', price: 60, tags: ['veg', 'cash'], note: 'Frothy, cloud-like winter milk dessert made from overnight dew and saffron.' },
+  ],
+  paan: [
+    { name: 'Keshav Tambool Bhandar', area: 'Lanka Gate · since 1966', price: 35, tags: ['veg'], note: 'Melt-in-mouth Maghai leaf folded with gulkand and fragrant spices.' },
+  ],
+  lassi: [
+    { name: 'Blue Lassi Shop', area: 'Near Manikarnika Ghat · since 1925', price: 80, tags: ['veg', 'cash'], note: 'Thick creamy hand-churned curd topped with dry fruits and rabdi.' },
+    { name: 'Pehelwan Lassi', area: 'Lanka / Ravidas Gate', price: 50, tags: ['veg'], note: 'Classic thick Banarasi sweet lassi served in traditional unglazed clay pot.' },
+  ],
+};
+
+
 export function getSearchHubsForCity(cityId = 'bengaluru') {
+  if (cityId === 'jaipur') return JAIPUR_SEARCH_HUBS;
+  if (cityId === 'pune') return PUNE_SEARCH_HUBS;
+  if (cityId === 'ahmedabad') return AHMEDABAD_SEARCH_HUBS;
+  if (cityId === 'kochi') return KOCHI_SEARCH_HUBS;
+  if (cityId === 'goa') return GOA_SEARCH_HUBS;
+  if (cityId === 'varanasi') return VARANASI_SEARCH_HUBS;
   if (cityId === 'hyderabad') return HYDERABAD_SEARCH_HUBS;
   if (cityId === 'chennai') return CHENNAI_SEARCH_HUBS;
   if (cityId === 'kolkata') return KOLKATA_SEARCH_HUBS;
@@ -3018,6 +4228,12 @@ export function getSearchHubsForCity(cityId = 'bengaluru') {
 }
 
 export function getRestaurantsForCity(cityId = 'bengaluru') {
+  if (cityId === 'jaipur') return JAIPUR_RESTAURANTS;
+  if (cityId === 'pune') return PUNE_RESTAURANTS;
+  if (cityId === 'ahmedabad') return AHMEDABAD_RESTAURANTS;
+  if (cityId === 'kochi') return KOCHI_RESTAURANTS;
+  if (cityId === 'goa') return GOA_RESTAURANTS;
+  if (cityId === 'varanasi') return VARANASI_RESTAURANTS;
   if (cityId === 'hyderabad') return HYDERABAD_RESTAURANTS;
   if (cityId === 'chennai') return CHENNAI_RESTAURANTS;
   if (cityId === 'kolkata') return KOLKATA_RESTAURANTS;
@@ -3027,6 +4243,12 @@ export function getRestaurantsForCity(cityId = 'bengaluru') {
 }
 
 export function getDishesForCity(cityId = 'bengaluru') {
+  if (cityId === 'jaipur') return JAIPUR_DISHES;
+  if (cityId === 'pune') return PUNE_DISHES;
+  if (cityId === 'ahmedabad') return AHMEDABAD_DISHES;
+  if (cityId === 'kochi') return KOCHI_DISHES;
+  if (cityId === 'goa') return GOA_DISHES;
+  if (cityId === 'varanasi') return VARANASI_DISHES;
   if (cityId === 'hyderabad') return HYDERABAD_DISHES;
   if (cityId === 'chennai') return CHENNAI_DISHES;
   if (cityId === 'kolkata') return KOLKATA_DISHES;
@@ -3036,6 +4258,12 @@ export function getDishesForCity(cityId = 'bengaluru') {
 }
 
 export function getEateriesDbForCity(cityId = 'bengaluru') {
+  if (cityId === 'jaipur') return JAIPUR_EATERIES_DB;
+  if (cityId === 'pune') return PUNE_EATERIES_DB;
+  if (cityId === 'ahmedabad') return AHMEDABAD_EATERIES_DB;
+  if (cityId === 'kochi') return KOCHI_EATERIES_DB;
+  if (cityId === 'goa') return GOA_EATERIES_DB;
+  if (cityId === 'varanasi') return VARANASI_EATERIES_DB;
   if (cityId === 'hyderabad') return HYDERABAD_EATERIES_DB;
   if (cityId === 'chennai') return CHENNAI_EATERIES_DB;
   if (cityId === 'kolkata') return KOLKATA_EATERIES_DB;

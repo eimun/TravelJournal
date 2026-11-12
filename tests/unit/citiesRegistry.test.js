@@ -2,9 +2,9 @@ import { SUPPORTED_CITIES, getCityConfig, getAllCities } from '../../app/data/ci
 import { getCloakroomsForCity } from '../../app/data/cloakroomData';
 
 describe('Multi-City Registry & Multi-Metro Support', () => {
-  test('supports Bengaluru, Delhi NCR, Mumbai, Kolkata, Hyderabad, and Chennai with complete transit configs', () => {
+  test('supports all 12 major Indian cities with complete transit configs', () => {
     const cities = getAllCities();
-    expect(cities.length).toBe(6);
+    expect(cities.length).toBe(12);
 
     const cityIds = cities.map((c) => c.id);
     expect(cityIds).toContain('bengaluru');
@@ -13,6 +13,12 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(cityIds).toContain('kolkata');
     expect(cityIds).toContain('hyderabad');
     expect(cityIds).toContain('chennai');
+    expect(cityIds).toContain('jaipur');
+    expect(cityIds).toContain('pune');
+    expect(cityIds).toContain('ahmedabad');
+    expect(cityIds).toContain('kochi');
+    expect(cityIds).toContain('goa');
+    expect(cityIds).toContain('varanasi');
   });
 
   test('validates city auto-meter formulas match legal gazetted rates', () => {
@@ -51,6 +57,40 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     expect(maa.autoFareFormula.baseDistanceKm).toBe(1.8);
     expect(maa.autoFareFormula.perKm).toBe(12);
     expect(maa.transitAgency).toContain('Chennai Metro');
+
+    const jai = getCityConfig('jaipur');
+    expect(jai.autoFareFormula.baseFare).toBe(30);
+    expect(jai.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(jai.autoFareFormula.perKm).toBe(10);
+    expect(jai.transitAgency).toContain('Jaipur Metro');
+
+    const pun = getCityConfig('pune');
+    expect(pun.autoFareFormula.baseFare).toBe(25);
+    expect(pun.autoFareFormula.baseDistanceKm).toBe(1.5);
+    expect(pun.autoFareFormula.perKm).toBe(17);
+    expect(pun.transitAgency).toContain('Pune');
+
+    const amd = getCityConfig('ahmedabad');
+    expect(amd.autoFareFormula.baseFare).toBe(20);
+    expect(amd.autoFareFormula.baseDistanceKm).toBe(1.2);
+    expect(amd.autoFareFormula.perKm).toBe(15);
+    expect(amd.transitAgency).toContain('GMRC');
+
+    const koc = getCityConfig('kochi');
+    expect(koc.autoFareFormula.baseFare).toBe(30);
+    expect(koc.autoFareFormula.baseDistanceKm).toBe(1.5);
+    expect(koc.autoFareFormula.perKm).toBe(15);
+    expect(koc.transitAgency).toContain('Water Metro');
+
+    const goa = getCityConfig('goa');
+    expect(goa.autoFareFormula.baseFare).toBe(30);
+    expect(goa.autoFareFormula.baseDistanceKm).toBe(1.5);
+    expect(goa.autoFareFormula.perKm).toBe(16);
+
+    const vns = getCityConfig('varanasi');
+    expect(vns.autoFareFormula.baseFare).toBe(25);
+    expect(vns.autoFareFormula.baseDistanceKm).toBe(1.5);
+    expect(vns.autoFareFormula.perKm).toBe(12);
   });
 
   test('returns iconic landmarks and local food legends for each city with complete name and area', () => {
@@ -86,6 +126,30 @@ describe('Multi-City Registry & Multi-Metro Support', () => {
     const maa = getCityConfig('chennai');
     expect(maa.popularDestinations.some((d) => d.title.includes('Marina Beach') || d.title.includes('Kapaleeshwarar'))).toBe(true);
     expect(maa.iconicFoods.some((f) => f.name.includes('Filter Coffee') || f.name.includes('Ghee Roast'))).toBe(true);
+
+    const jai = getCityConfig('jaipur');
+    expect(jai.popularDestinations.some((d) => d.title.includes('Hawa Mahal') || d.title.includes('Amer Fort'))).toBe(true);
+    expect(jai.iconicFoods.some((f) => f.name.includes('Kachori') || f.name.includes('Dal Baati'))).toBe(true);
+
+    const pun = getCityConfig('pune');
+    expect(pun.popularDestinations.some((d) => d.title.includes('Shaniwar Wada') || d.title.includes('Aga Khan'))).toBe(true);
+    expect(pun.iconicFoods.some((f) => f.name.includes('Misal') || f.name.includes('Bakarwadi'))).toBe(true);
+
+    const amd = getCityConfig('ahmedabad');
+    expect(amd.popularDestinations.some((d) => d.title.includes('Sabarmati') || d.title.includes('Atal'))).toBe(true);
+    expect(amd.iconicFoods.some((f) => f.name.includes('Fafda') || f.name.includes('Khaman'))).toBe(true);
+
+    const koc = getCityConfig('kochi');
+    expect(koc.popularDestinations.some((d) => d.title.includes('Fishing Nets') || d.title.includes('Mattancherry'))).toBe(true);
+    expect(koc.iconicFoods.some((f) => f.name.includes('Appam') || f.name.includes('Karimeen'))).toBe(true);
+
+    const goa = getCityConfig('goa');
+    expect(goa.popularDestinations.some((d) => d.title.includes('Bom Jesus') || d.title.includes('Aguada') || d.title.includes('Fontainhas'))).toBe(true);
+    expect(goa.iconicFoods.some((f) => f.name.includes('Fish Curry') || f.name.includes('Vindaloo'))).toBe(true);
+
+    const vns = getCityConfig('varanasi');
+    expect(vns.popularDestinations.some((d) => d.title.includes('Vishwanath') || d.title.includes('Dashashwamedh') || d.title.includes('Ghat'))).toBe(true);
+    expect(vns.iconicFoods.some((f) => f.name.includes('Kachori') || f.name.includes('Tamatar') || f.name.includes('Paan'))).toBe(true);
   });
 
   test('falls back gracefully to Bengaluru when unknown city ID is passed', () => {

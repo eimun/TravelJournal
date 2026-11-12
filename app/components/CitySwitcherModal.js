@@ -20,6 +20,12 @@ const CITY_ICONS = {
   kolkata: '🚋',
   hyderabad: '🕌',
   chennai: '🛕',
+  jaipur: '🏰',
+  pune: '🚲',
+  ahmedabad: '🪁',
+  kochi: '🛶',
+  goa: '🌴',
+  varanasi: '🪔',
 };
 
 const CITY_TRANSIT_SUBTITLES = {
@@ -29,6 +35,12 @@ const CITY_TRANSIT_SUBTITLES = {
   kolkata: 'Metro, Trams & Yellow Taxis',
   hyderabad: 'Metro, MMTS & Cyber Cabs',
   chennai: 'Metro, MRTS & Coastal Locals',
+  jaipur: 'Jaipur Metro & JCTSL Bus',
+  pune: 'Pune Metro & PMPML Bus',
+  ahmedabad: 'Metro & Janmarg BRTS',
+  kochi: 'Kochi Metro & Water Metro',
+  goa: 'Mandovi Ferries & Kadamba Bus',
+  varanasi: 'Ganga Boats & E-Rickshaws',
 };
 
 export default function CitySwitcherModal({ visible, onClose }) {
