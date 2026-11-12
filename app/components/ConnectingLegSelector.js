@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
+import { useTrip } from '../../src/context/TripContext';
 import BmtcBusScheduleModal from './BmtcBusScheduleModal';
 import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
 import { formatDistance, estimateWalkMinutes } from '../services/locationService';
@@ -23,6 +24,13 @@ export default function ConnectingLegSelector({
   selectedModeKey,
   onSelectMode,
 }) {
+  const { currentCity, fireToast } = useTrip ? useTrip() : { currentCity: null, fireToast: () => {} };
+  const cId = (currentCity?.id || step?.cityId || 'bengaluru').toLowerCase();
+  const isBengaluru = cId === 'bengaluru';
+  const cityBusAgency = currentCity?.transitAgency
+    ? currentCity.transitAgency.split('&')[0].replace(/\(.*?\)/g, '').trim()
+    : (isBengaluru ? 'BMTC' : 'City Bus');
+
   const [showBusModal, setShowBusModal] = useState(false);
 
   if (!step?.modes) return null;
@@ -77,7 +85,7 @@ export default function ConnectingLegSelector({
           displayFare: fareLabel(m),
           subtitle: matchedBus
             ? `Route ${matchedBus.routeNumber} feeder`
-            : 'BMTC Feeder bus · Direct stop',
+            : (isBengaluru ? 'BMTC Feeder bus · Direct stop' : `${cityBusAgency} · Direct stop`),
           badge: 'Cheapest',
         };
       case 'walk':
@@ -109,15 +117,15 @@ export default function ConnectingLegSelector({
       <View style={styles.mainCard}>
         {/* Card Header */}
         <View style={styles.cardHeaderRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.cardHeaderTitle}>SELECT TRAVEL MODE</Text>
-            <Text style={styles.cardHeaderSub}>
+          <View style={styles.cardHeaderLeft}>
+            <Text numberOfLines={1} style={styles.cardHeaderTitle}>SELECT TRAVEL MODE</Text>
+            <Text numberOfLines={1} style={styles.cardHeaderSub}>
               {legDistance} by road · Tap option to choose
             </Text>
           </View>
           <View style={styles.selectedPillBadge}>
-            <Text style={styles.selectedPillText}>
-              {modes[currentKey]?.emoji || '🛺'} {modes[currentKey]?.label} Active
+            <Text numberOfLines={1} style={styles.selectedPillText}>
+              {modes[currentKey]?.emoji || '🛺'} Selected
             </Text>
           </View>
         </View>
@@ -209,13 +217,13 @@ export default function ConnectingLegSelector({
             <View style={styles.busHeaderRow}>
               <View style={styles.busHeaderLeft}>
                 <View style={styles.busBadge}>
-                  <Text style={styles.busBadgeText}>BMTC PUBLIC TRANSIT</Text>
+                  <Text style={styles.busBadgeText}>{(cityBusAgency || "CITY TRANSIT").toUpperCase()}</Text>
                 </View>
                 <Text style={styles.busTitle}>
                   {matchedBus ? `Route ${matchedBus.routeNumber} Feeder` : 'Metro Feeder & City Bus Routes'}
                 </Text>
                 <Text style={styles.busSubtitle}>
-                  {matchedBus ? matchedBus.name : 'Direct bus stand outside station · Flat ₹10–₹15'}
+                  {matchedBus ? matchedBus.name : `Local ${cityBusAgency} routes · Flat ₹10–₹15`}
                 </Text>
               </View>
               <Text style={styles.busEmoji}>🚌</Text>
@@ -262,13 +270,21 @@ export default function ConnectingLegSelector({
             )}
 
             <Pressable
-              onPress={() => setShowBusModal(true)}
+              onPress={() => {
+                if (isBengaluru) {
+                  setShowBusModal(true);
+                } else {
+                  fireToast && fireToast(`${cityBusAgency}: Connects to ${step.locationName || 'destination'}. Fare ₹10–₹15 with conductor.`);
+                }
+              }}
               style={({ pressed }) => [
                 styles.busScheduleButton,
                 pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
               ]}
             >
-              <Text style={styles.busScheduleButtonText}>🚌 View Full BMTC Timetable</Text>
+              <Text style={styles.busScheduleButtonText}>
+                {isBengaluru ? '🚌 View Full BMTC Timetable' : `🚌 ${cityBusAgency} Transit Info`}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -286,12 +302,14 @@ export default function ConnectingLegSelector({
         </Text>
       </View>
 
-      {/* BMTC Bus Modal */}
-      <BmtcBusScheduleModal
-        visible={showBusModal}
-        onClose={() => setShowBusModal(false)}
-        initialQuery={step.fromStation || step.toStation || ''}
-      />
+      {/* BMTC Bus Modal (Bengaluru only) */}
+      {isBengaluru && (
+        <BmtcBusScheduleModal
+          visible={showBusModal}
+          onClose={() => setShowBusModal(false)}
+          initialQuery={step.fromStation || step.toStation || ''}
+        />
+      )}
     </View>
   );
 }
@@ -349,6 +367,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral[100],
+    gap: 8,
+  },
+  cardHeaderLeft: {
+    flex: 1,
+    minWidth: 150,
   },
   cardHeaderTitle: {
     fontSize: 11,
@@ -369,6 +392,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill,
+    maxWidth: 110,
   },
   selectedPillText: {
     fontSize: 10.5,
