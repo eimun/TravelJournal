@@ -355,7 +355,23 @@ export default function ExploreScreen({ contentPadding }) {
               ? 'Vada pav typically ₹20–₹35, cutting chai ₹12–₹20, pav bhaji ₹90–₹150. Commuter stalls near stations are cheaper than tourist strips.'
               : currentCity?.id === 'kolkata'
                 ? 'Kathi rolls typically ₹50–₹90, street puchkas ₹20–₹40, Kolkata biryani with aloo ₹180–₹320, Bhar-er cha ₹10. Sweet shops (mishti) are plentiful in every para.'
-                : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
+                : currentCity?.id === 'hyderabad'
+                  ? 'Hyderabadi Dum Biryani ₹180–₹280, Irani Chai ₹15–₹25, Osmania biscuits ₹5–₹10. Charminar old city stalls offer unmatched late-night food.'
+                  : currentCity?.id === 'chennai'
+                    ? 'Degree filter coffee ₹20–₹35, Ghee roast dosa ₹70–₹120, Medu vada ₹30–₹50. Traditional Mylapore mess counters are cash or UPI friendly.'
+                    : currentCity?.id === 'jaipur'
+                      ? 'Pyaaz kachori ₹35–₹50, Dal Baati Churma thali ₹200–₹400, Kulhad lassi ₹50–₹70. Johari & Bapu Bazaar sweet stalls are legendary.'
+                      : currentCity?.id === 'pune'
+                        ? 'Puneri Misal pav ₹70–₹100, Irani bun maska chai ₹40–₹60, Sujata Mastani ₹90–₹140. FC Road & Camp food joints are student-friendly.'
+                        : currentCity?.id === 'ahmedabad'
+                          ? 'Fafda-Jalebi ₹50–₹80, Nylon khaman ₹40–₹60, Gujarati thali ₹250–₹450. Manek Chowk night market is active until 2 AM.'
+                          : currentCity?.id === 'kochi'
+                            ? 'Appam & stew ₹60–₹100, Karimeen fish pollichathu ₹250–₹400, Pazham pori ₹15–₹25. Fort Kochi chayakadas are seaside gems.'
+                            : currentCity?.id === 'goa'
+                              ? 'Goan fish curry thali ₹180–₹260, Ross omelette ₹50–₹70, Bebinca ₹60–₹90. Local beach shacks and Fontainhas cafes are iconic.'
+                              : currentCity?.id === 'varanasi'
+                                ? 'Kachori sabzi jalebi ₹40–₹60, Tamatar chaat ₹50–₹70, Banarasi paan ₹25–₹50. Godowlia and Thatheri Bazaar galis serve divine breakfast.'
+                                : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
         </Text>
         <Text style={styles.tipFoot}>Typical ranges from the curated guide — not live menu prices.</Text>
       </View>

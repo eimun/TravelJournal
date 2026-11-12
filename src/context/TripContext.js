@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { Platform } from 'react-native';
 
 import { PLACES, EATERIES_DB, RESTAURANTS } from '../../app/data/bengaluruData';
 import {
@@ -461,20 +462,28 @@ export function TripProvider({ children }) {
           return tagged;
         } else {
           done({ ok: false, count: 0, attempted });
-          reportIssue('FOOD_ALL_PROVIDERS_FAILED', {
-            key: activeCity,
-            message: `No live results from ${attempted.join(', ')} — see NET entries for the cause`,
-            data: { attempted, lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 },
-          });
+          if (Platform.OS !== 'web') {
+            reportIssue('FOOD_ALL_PROVIDERS_FAILED', {
+              key: activeCity,
+              message: `No live results from ${attempted.join(', ')} — see NET entries for the cause`,
+              data: { attempted, lat: Math.round(lat * 1000) / 1000, lon: Math.round(lon * 1000) / 1000 },
+            });
+          }
           setLiveFetchStatus({ state: 'failed', attempted, at: new Date().toISOString() });
-          fireToast('Live restaurant search failed. Showing saved places only.');
+          if (preferredProvider !== 'auto') {
+            fireToast('Live restaurant search failed. Showing saved places only.');
+          }
           return [];
         }
       } catch (err) {
         done.fail(err, { attempted });
-        reportIssue('FOOD_ALL_PROVIDERS_FAILED', { key: activeCity, message: err && err.message, data: serializeError(err) });
+        if (Platform.OS !== 'web') {
+          reportIssue('FOOD_ALL_PROVIDERS_FAILED', { key: activeCity, message: err && err.message, data: serializeError(err) });
+        }
         setLiveFetchStatus({ state: 'failed', attempted, at: new Date().toISOString() });
-        fireToast('Live restaurant search failed. Showing saved places only.');
+        if (preferredProvider !== 'auto') {
+          fireToast('Live restaurant search failed. Showing saved places only.');
+        }
         return [];
       } finally {
         setIsFetchingOsm(false);

@@ -1,10 +1,16 @@
+import { Platform } from 'react-native';
 import { PLACES, DISHES, EATERIES_DB, PURPLE_LINE, GREEN_LINE, BUS_LINE } from '../../app/data/bengaluruData';
 
 export async function seedBengaluruPack(db) {
   const existingCity = await db.getFirstAsync('SELECT id FROM cities WHERE id = ?;', ['bengaluru']);
   if (existingCity) return; // Already seeded
 
-  await db.withExclusiveTransactionAsync(async (tx) => {
+  const executeTx =
+    typeof db.withExclusiveTransactionAsync === 'function' && Platform.OS !== 'web'
+      ? (cb) => db.withExclusiveTransactionAsync(cb)
+      : (cb) => (typeof db.withTransactionAsync === 'function' ? db.withTransactionAsync(cb) : cb(db));
+
+  await executeTx(async (tx) => {
     // 1. City row
     await tx.runAsync(
       `INSERT INTO cities (id, name, country, currency, centre_lat, centre_lng, pack_version, verified_on)

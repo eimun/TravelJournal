@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 
 import * as migration001 from './migrations/001_initial';
@@ -51,6 +52,12 @@ export async function runMigrations(db) {
 
 export async function withTransaction(callback) {
   const db = await openDatabase();
+  if (Platform.OS === 'web' || typeof db.withExclusiveTransactionAsync !== 'function') {
+    if (typeof db.withTransactionAsync === 'function') {
+      return await db.withTransactionAsync(callback);
+    }
+    return await callback(db);
+  }
   return await db.withExclusiveTransactionAsync(async (tx) => {
     return await callback(tx);
   });
