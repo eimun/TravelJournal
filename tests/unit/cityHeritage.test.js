@@ -1,9 +1,22 @@
 import { CITY_HERITAGE_GUIDES, getCityHeritageGuide } from '../../app/data/cityHeritageData';
 
 describe('City Heritage & History Guidebook Data', () => {
-  const supportedCities = ['bengaluru', 'delhi', 'mumbai', 'kolkata', 'hyderabad', 'chennai'];
+  const supportedCities = [
+    'bengaluru',
+    'delhi',
+    'mumbai',
+    'kolkata',
+    'hyderabad',
+    'chennai',
+    'jaipur',
+    'pune',
+    'ahmedabad',
+    'kochi',
+    'goa',
+    'varanasi',
+  ];
 
-  test('contains complete heritage guide for all 6 supported cities', () => {
+  test('contains complete heritage guide for all 12 supported cities with 10+ places each', () => {
     for (const cityId of supportedCities) {
       const guide = CITY_HERITAGE_GUIDES[cityId];
       expect(guide).toBeDefined();
@@ -14,7 +27,7 @@ describe('City Heritage & History Guidebook Data', () => {
       expect(guide.founder).toBeTruthy();
       expect(guide.historySummary.length).toBeGreaterThan(50);
       expect(guide.historicalEras.length).toBeGreaterThanOrEqual(3);
-      expect(guide.monuments.length).toBeGreaterThanOrEqual(4);
+      expect(guide.monuments.length).toBeGreaterThanOrEqual(10);
     }
   });
 
