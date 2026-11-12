@@ -4,6 +4,285 @@ import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow, space } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
 
+
+const CITY_DEPARTURES = {
+  bengaluru: [
+    {
+      mode: 'bus',
+      badgeBg: '#15803d',
+      emoji: '🚌',
+      line: '500D',
+      title: 'Silk Board ↔ Hebbal Outer Ring Rd',
+      sub: 'Every 6 min · BMTC AC Volvo & Ordinary',
+      eta: '3 min',
+      platform: 'Stop A',
+      isBmtc: true,
+    },
+    {
+      mode: 'metro',
+      badgeBg: '#6d28d9',
+      emoji: '🚇',
+      line: 'Purple',
+      title: 'Whitefield (Kadugodi) ↔ Challaghatta',
+      sub: 'Next train via Majestic Interchange',
+      eta: '5 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+  ],
+  delhi: [
+    {
+      mode: 'metro',
+      badgeBg: '#eab308',
+      emoji: '🚇',
+      line: 'Yellow',
+      title: 'Samaypur Badli ↔ Millennium City Centre',
+      sub: 'Every 3 min · DMRC via Rajiv Chowk Interchange',
+      eta: '2 min',
+      platform: 'Plat 2',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#dc2626',
+      emoji: '🚌',
+      line: 'Airport Exp',
+      title: 'Kashmere Gate ISBT ↔ IGI Airport T3',
+      sub: 'Every 15 min · DTC Electric AC Express',
+      eta: '6 min',
+      platform: 'Bay 4',
+    },
+  ],
+  mumbai: [
+    {
+      mode: 'train',
+      badgeBg: '#0284c7',
+      emoji: '🚆',
+      line: 'Western',
+      title: 'Churchgate ↔ Bandra ↔ Borivali (Fast)',
+      sub: 'Every 4 min · Mumbai Suburban Local',
+      eta: '3 min',
+      platform: 'Plat 3',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#dc2626',
+      emoji: '🚌',
+      line: 'A-115',
+      title: 'CSMT Station ↔ Nariman Point NCPA',
+      sub: 'Every 8 min · BEST Electric AC Bus',
+      eta: '5 min',
+      platform: 'Stop C',
+    },
+  ],
+  kolkata: [
+    {
+      mode: 'metro',
+      badgeBg: '#16a34a',
+      emoji: '🚇',
+      line: 'Green',
+      title: 'Howrah Maidan ↔ Esplanade (Underwater)',
+      sub: 'Every 8 min · India’s first River Metro',
+      eta: '4 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#2563eb',
+      emoji: '🚌',
+      line: 'S-12',
+      title: 'Howrah Station ↔ Salt Lake Sector V',
+      sub: 'Every 10 min · WBTC Electric AC',
+      eta: '6 min',
+      platform: 'Stand 2',
+    },
+  ],
+  hyderabad: [
+    {
+      mode: 'metro',
+      badgeBg: '#dc2626',
+      emoji: '🚇',
+      line: 'Red',
+      title: 'Miyapur ↔ Ameerpet ↔ LB Nagar',
+      sub: 'Every 4.5 min · Hyderabad Metro Rail',
+      eta: '3 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#0284c7',
+      emoji: '🚌',
+      line: 'Pushpak',
+      title: 'Secunderabad ↔ Rajiv Gandhi Airport RGIA',
+      sub: 'Every 20 min · TSRTC Airport Liner',
+      eta: '9 min',
+      platform: 'Bay 1',
+    },
+  ],
+  chennai: [
+    {
+      mode: 'metro',
+      badgeBg: '#2563eb',
+      emoji: '🚇',
+      line: 'Blue',
+      title: 'Wimco Nagar ↔ Chennai Central ↔ Airport',
+      sub: 'Every 6 min · CMRL Direct Airport Corridor',
+      eta: '4 min',
+      platform: 'Plat 2',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#16a34a',
+      emoji: '🚌',
+      line: '21G',
+      title: 'Broadway ↔ Marina Beach ↔ Tambaram',
+      sub: 'Every 8 min · MTC Deluxe Express',
+      eta: '5 min',
+      platform: 'Stop B',
+    },
+  ],
+  jaipur: [
+    {
+      mode: 'metro',
+      badgeBg: '#ec4899',
+      emoji: '🚇',
+      line: 'Pink',
+      title: 'Mansarovar ↔ Railway Station ↔ Badi Chaupar',
+      sub: 'Every 8 min · JMRC Old City underground',
+      eta: '4 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#059669',
+      emoji: '🚌',
+      line: 'AC-1',
+      title: 'Sanganer Airport ↔ Ajmeri Gate ↔ Amer Fort',
+      sub: 'Every 12 min · JCTSL Low-floor AC',
+      eta: '6 min',
+      platform: 'Bay 3',
+    },
+  ],
+  pune: [
+    {
+      mode: 'metro',
+      badgeBg: '#7c3aed',
+      emoji: '🚇',
+      line: 'Purple',
+      title: 'PCMC Pimpri ↔ Shivajinagar ↔ Swargate',
+      sub: 'Every 7 min · Maha Metro Line 1',
+      eta: '5 min',
+      platform: 'Plat 2',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#ea580c',
+      emoji: '🚌',
+      line: '24',
+      title: 'Katraj ↔ Pune Station ↔ Nigdi Pavana',
+      sub: 'Every 10 min · PMPML Rainbow BRTS',
+      eta: '4 min',
+      platform: 'Stop A',
+    },
+  ],
+  ahmedabad: [
+    {
+      mode: 'metro',
+      badgeBg: '#2563eb',
+      emoji: '🚇',
+      line: 'Blue',
+      title: 'Thaltej Gam ↔ Old High Court ↔ Vastral Gam',
+      sub: 'Every 8 min · GMRC East-West Corridor',
+      eta: '3 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+    {
+      mode: 'bus',
+      badgeBg: '#16a34a',
+      emoji: '🚌',
+      line: 'BRTS 1',
+      title: 'RTO Circle ↔ Kalupur Station ↔ Maninagar',
+      sub: 'Every 5 min · Janmarg Dedicated Corridor',
+      eta: '2 min',
+      platform: 'Bay RTO',
+    },
+  ],
+  kochi: [
+    {
+      mode: 'metro',
+      badgeBg: '#0284c7',
+      emoji: '🚇',
+      line: 'KMRL',
+      title: 'Aluva ↔ MG Road ↔ Ernakulam South ↔ SN Jn',
+      sub: 'Every 6 min · Kochi Metro Rail',
+      eta: '4 min',
+      platform: 'Plat 1',
+      isMetro: true,
+    },
+    {
+      mode: 'ferry',
+      badgeBg: '#0d9488',
+      emoji: '⛴️',
+      line: 'Water Metro',
+      title: 'High Court Terminal ↔ Fort Kochi / Bolgatty',
+      sub: 'Every 15 min · Battery-electric Catamaran',
+      eta: '6 min',
+      platform: 'Jetty 1',
+    },
+  ],
+  goa: [
+    {
+      mode: 'bus',
+      badgeBg: '#15803d',
+      emoji: '🚌',
+      line: 'KTCL AC',
+      title: 'Panaji KTC Stand ↔ Calangute / Baga Coastal',
+      sub: 'Every 15 min · Kadamba Electric AC',
+      eta: '7 min',
+      platform: 'Bay 5',
+    },
+    {
+      mode: 'ferry',
+      badgeBg: '#0284c7',
+      emoji: '⛴️',
+      line: 'Ferry',
+      title: 'Betim Jetty ↔ Panaji Mandovi Terminal',
+      sub: 'Every 15 min · Free Government River Ferry',
+      eta: '5 min',
+      platform: 'Jetty B',
+    },
+  ],
+  varanasi: [
+    {
+      mode: 'bus',
+      badgeBg: '#ea580c',
+      emoji: '🚌',
+      line: 'E-Bus 102',
+      title: 'Varanasi Cantt Station ↔ Godowlia ↔ BHU Lanka',
+      sub: 'Every 10 min · Kashi Smart City AC E-Bus',
+      eta: '4 min',
+      platform: 'Cantt Stand',
+    },
+    {
+      mode: 'boat',
+      badgeBg: '#0284c7',
+      emoji: '⛵',
+      line: 'Ro-Pax',
+      title: 'Assi Ghat ↔ Dashashwamedh ↔ Namo Ghat',
+      sub: 'Every 30 min · Inland Waterways Ganga Cruise',
+      eta: '12 min',
+      platform: 'Ghat Steps',
+    },
+  ],
+};
+
 export default function CitymapperTransportGrid({
   onOpenBmtc,
   onOpenBlueprint,
@@ -58,7 +337,10 @@ export default function CitymapperTransportGrid({
         </Svg>
       ),
       onPress: () => {
-        fireToast('Yulu & SmartBike docks active near metro stations');
+        const bikeToast = currentCity?.id === 'goa'
+          ? 'Goa Motorcycle Pilot & Rental Scooters active'
+          : `${cityName} Bike Taxi & Metro feeder docks active`;
+        fireToast(bikeToast);
       },
     },
     {
@@ -117,7 +399,12 @@ export default function CitymapperTransportGrid({
       ),
       onPress: () => {
         setRouteMode('auto');
-        fireToast('Auto Rickshaw & Namma Yatri meter route enabled');
+        const autoToast = currentCity?.id === 'goa'
+          ? 'GoaMiles & Auto cab route enabled'
+          : currentCity?.id === 'mumbai'
+          ? 'Kaali-Peeli & Meter auto route enabled'
+          : `${cityName} Auto & Meter route enabled`;
+        fireToast(autoToast);
       },
     },
     {
@@ -176,72 +463,77 @@ export default function CitymapperTransportGrid({
           <Text style={styles.liveTag}>LIVE</Text>
         </View>
 
-        {/* Departure Row 1: BMTC Bus */}
-        <Pressable
-          onPress={onOpenBmtc}
-          style={({ pressed }) => [styles.departureItem, pressed && { opacity: 0.8 }]}
-        >
-          <View style={[styles.depModeBadge, { backgroundColor: '#15803d' }]}>
-            <Text style={styles.depBadgeEmoji}>🚌</Text>
-            <Text style={styles.depLineNum}>500D</Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.depDestTitle} numberOfLines={1}>
-              Silk Board ↔ Hebbal Outer Ring Rd
-            </Text>
-            <Text style={styles.depSubTitle}>Every 6 min · AC Volvo & Ordinary</Text>
-          </View>
-          <View style={styles.depEtaCol}>
-            <Text style={styles.depEtaText}>3 min</Text>
-            <Text style={styles.depPlatformText}>Stop A</Text>
-          </View>
-        </Pressable>
+        {/* Dynamic Departures for current city */}
+        {(() => {
+          const normCity = (currentCity?.id || 'bengaluru').toLowerCase();
+          const cityDeps = CITY_DEPARTURES[normCity] || CITY_DEPARTURES.bengaluru;
+          const baseFare = currentCity?.autoFareFormula?.baseFare || 30;
+          const autoBrand = normCity === 'goa' ? 'GoaMiles & Auto Stand' : normCity === 'mumbai' ? 'Auto Stand & Kaali-Peeli' : `${cityName} Auto Stand & Apps`;
 
-        <View style={styles.depDivider} />
+          return (
+            <>
+              {cityDeps.map((dep, idx) => {
+                const handlePress = () => {
+                  if (dep.isBmtc && normCity === 'bengaluru') {
+                    onOpenBmtc && onOpenBmtc();
+                  } else if (dep.isMetro) {
+                    onOpenBlueprint && onOpenBlueprint();
+                  } else {
+                    fireToast(`${dep.line}: ${dep.title} (${dep.sub})`);
+                  }
+                };
 
-        {/* Departure Row 2: Namma Metro */}
-        <Pressable
-          onPress={onOpenBlueprint}
-          style={({ pressed }) => [styles.departureItem, pressed && { opacity: 0.8 }]}
-        >
-          <View style={[styles.depModeBadge, { backgroundColor: '#6d28d9' }]}>
-            <Text style={styles.depBadgeEmoji}>🚇</Text>
-            <Text style={styles.depLineNum}>Purple</Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.depDestTitle} numberOfLines={1}>
-              Whitefield (Kadugodi) ↔ Challaghatta
-            </Text>
-            <Text style={styles.depSubTitle}>Next train at Majestic Interchange</Text>
-          </View>
-          <View style={styles.depEtaCol}>
-            <Text style={styles.depEtaText}>5 min</Text>
-            <Text style={styles.depPlatformText}>Plat 1</Text>
-          </View>
-        </Pressable>
+                return (
+                  <React.Fragment key={dep.line + idx}>
+                    {idx > 0 && <View style={styles.depDivider} />}
+                    <Pressable
+                      onPress={handlePress}
+                      style={({ pressed }) => [styles.departureItem, pressed && { opacity: 0.8 }]}
+                    >
+                      <View style={[styles.depModeBadge, { backgroundColor: dep.badgeBg }]}>
+                        <Text style={styles.depBadgeEmoji}>{dep.emoji}</Text>
+                        <Text style={styles.depLineNum}>{dep.line}</Text>
+                      </View>
+                      <View style={{ flex: 1, marginLeft: 10 }}>
+                        <Text style={styles.depDestTitle} numberOfLines={1}>
+                          {dep.title}
+                        </Text>
+                        <Text style={styles.depSubTitle}>{dep.sub}</Text>
+                      </View>
+                      <View style={styles.depEtaCol}>
+                        <Text style={styles.depEtaText}>{dep.eta}</Text>
+                        <Text style={styles.depPlatformText}>{dep.platform}</Text>
+                      </View>
+                    </Pressable>
+                  </React.Fragment>
+                );
+              })}
 
-        <View style={styles.depDivider} />
+              <View style={styles.depDivider} />
 
-        {/* Departure Row 3: Auto & Cab Compare */}
-        <Pressable
-          onPress={onOpenFareAudit}
-          style={({ pressed }) => [styles.departureItem, pressed && { opacity: 0.8 }]}
-        >
-          <View style={[styles.depModeBadge, { backgroundColor: '#d97706' }]}>
-            <Text style={styles.depBadgeEmoji}>🛺</Text>
-            <Text style={styles.depLineNum}>Auto</Text>
-          </View>
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={styles.depDestTitle} numberOfLines={1}>
-              Auto Stand & Namma Yatri
-            </Text>
-            <Text style={styles.depSubTitle}>Government Meter ₹30 · Rapido ₹42</Text>
-          </View>
-          <View style={styles.depEtaCol}>
-            <Text style={[styles.depEtaText, { color: '#16a34a' }]}>Instant</Text>
-            <Text style={styles.depPlatformText}>Compare</Text>
-          </View>
-        </Pressable>
+              {/* Departure Row 3: Auto & Cab Compare */}
+              <Pressable
+                onPress={onOpenFareAudit}
+                style={({ pressed }) => [styles.departureItem, pressed && { opacity: 0.8 }]}
+              >
+                <View style={[styles.depModeBadge, { backgroundColor: '#d97706' }]}>
+                  <Text style={styles.depBadgeEmoji}>🛺</Text>
+                  <Text style={styles.depLineNum}>Auto</Text>
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.depDestTitle} numberOfLines={1}>
+                    {autoBrand}
+                  </Text>
+                  <Text style={styles.depSubTitle}>Government Meter ₹{baseFare} · Live App Compare</Text>
+                </View>
+                <View style={styles.depEtaCol}>
+                  <Text style={[styles.depEtaText, { color: '#16a34a' }]}>Instant</Text>
+                  <Text style={styles.depPlatformText}>Compare</Text>
+                </View>
+              </Pressable>
+            </>
+          );
+        })()}
       </View>
 
       {/* ── Trip Stats / CO2 Savings Card (Reference IMG_6482) ── */}
