@@ -1,380 +1,219 @@
-# TravelJournal
+# TravelBuddy (TravelJournal)
 
-**An offline-first Android app for planning trips, running a day-by-day itinerary, tracking spend and keeping a travel journal.**
+**An offline-first, multi-modal urban transit router and curated living heritage companion across 12 major Indian cities.**
 
-[![Android CI](https://github.com/eimun/TravelJournal/actions/workflows/android-ci.yml/badge.svg)](https://github.com/eimun/TravelJournal/actions/workflows/android-ci.yml)
+[![Expo SDK 58](https://img.shields.io/badge/Expo-SDK%2058-000020.svg)](https://docs.expo.dev/)
+[![React Native 0.88](https://img.shields.io/badge/React%20Native-0.88.1-61dafb.svg)](https://reactnative.dev/)
+[![Tests: 137 Passing](https://img.shields.io/badge/Tests-137%20Passing%20(100%25)-16a34a.svg)](#testing--verification)
 [![License: MIT](https://img.shields.io/badge/license-MIT-c67139.svg)](LICENSE)
-[![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000020.svg)](https://docs.expo.dev/versions/v57.0.0/)
-[![Platform: Android 11+](https://img.shields.io/badge/Android-API%2030%2B-7a8a5e.svg)](#requirements)
-
-Trip plans today are scattered across screenshots, chat threads, notes apps and booking emails — and almost none of it is usable once mobile data stops. Roaming abroad is expensive and coverage is unreliable, which means a cloud-only itinerary is unavailable at exactly the moment it is needed.
-
-TravelJournal keeps the whole trip in one Android app — itinerary, saved places on a map, weather, budget, documents and a photo journal — and keeps **every part of the personal trip data readable with no network connection**.
-
-> **The product rule that governs every decision here:** the device is the system of record. No feature may be designed in a way that makes a trip screen depend on a network call, and no personal content may be transmitted for any reason without an explicit, user-triggered action.
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-blue.svg)](https://eimun.github.io/TravelJournal/)
+[![Android APK](https://img.shields.io/badge/Download-Android%20APK-success.svg)](https://expo.dev/artifacts/eas/eEJfWa81DRxvr17f4HzNv2Jtr_ixPf-4HhS-Al_J6XQ.apk)
 
 ---
 
-## Table of contents
+## 🚀 Quick Access & Demos
 
-- [Status](#status)
-- [The concept: a trip is a trail you walk](#the-concept-a-trip-is-a-trail-you-walk)
-- [Requirements](#requirements)
-- [Getting started](#getting-started)
-- [Running on a physical device](#running-on-a-physical-device)
-- [Design system](#design-system)
-- [Tech stack](#tech-stack)
-- [Architecture](#architecture)
-- [Project structure](#project-structure)
-- [Data model](#data-model)
-- [Offline rules](#offline-rules)
-- [Testing](#testing)
-- [CI/CD and branching](#cicd-and-branching)
-- [Roadmap](#roadmap)
-- [Team](#team)
-- [Documentation](#documentation)
-- [License](#license)
+| Resource | Link | Description |
+| :--- | :--- | :--- |
+| 🌐 **Live Web App** | [eimun.github.io/TravelJournal](https://eimun.github.io/TravelJournal/) | Works instantly in any mobile or desktop browser (no install needed). |
+| 📱 **Standalone Android APK** | [Download APK (v1.0.0)](https://expo.dev/artifacts/eas/eEJfWa81DRxvr17f4HzNv2Jtr_ixPf-4HhS-Al_J6XQ.apk) | Direct standalone `.apk` for direct installation on Android devices. |
+| ☁️ **EAS Build Dashboard** | [Expo Cloud Build](https://expo.dev/accounts/eimun/projects/TravelJournal/builds/34a92e56-e803-4718-8427-3babda77c031) | Cloud build logs, artifact hashes, and mobile install QR code. |
+| 💻 **Repository** | [github.com/eimun/TravelJournal](https://github.com/eimun/TravelJournal) | Active branch: `feat/F-12-app-shell-home` |
 
 ---
 
-## Status
+## 📌 Problem Statement
 
-Early build. **All five tabs from the design canvas are implemented** — Home, Trail, Map, Journal and You — driven by one shared trip state and one cached weather reading. They render from a local fixture until the SQLite layer lands.
+Navigating urban India as a traveler, commuter, or student presents severe friction:
+1. **Transit Fragmentation:** City Metros, state/municipal buses (BMTC, PMPML, Janmarg, KSRTC), and auto-rickshaws operate on disconnected schedules with no unified multi-modal journey planner.
+2. **Tourist Price Gouging:** Auto-rickshaws and unmetered cabs frequently overcharge travelers due to lack of transparent, government-gazetted meter tariff awareness.
+3. **Spotty Connectivity in Heritage Zones:** Massive stone forts, ancient temples, coastal enclaves, and underground metro stations frequently suffer from cellular dead-zones, making cloud-only navigation apps completely fail.
+4. **Scattered Cultural Information:** Accurate historical eras, founding dynasties, entrance ticket prices, and exact transit gate numbers are rarely aggregated in one reliable guide.
 
-| Area                                                                                                                                    | State                  | Lands on                    |
-| --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | --------------------------- |
-| App shell, five-tab navigation, Organic theme, design icon set                                                                          | **Built**              | `feat/F-12-app-shell-home`  |
-| Home: greeting, compass mascot, next-activity countdown, budget donut, tappable cached weather, today's timeline                         | **Built**              | `feat/F-12-app-shell-home`  |
-| Weather mood: clear / rain / storm / cool re-derive the ground, sky band, ambient layer, mascot gear, advisory, trail flag, packing list | **Built**              | `feat/F-12-app-shell-home`  |
-| Trail: animated day stones, day sheets, packing side quest                                                                              | **Built** (fixture)    | `feat/F-12-app-shell-home`  |
-| Map, Journal and You screens                                                                                                            | **Built** (fixture)    | `feat/F-12-app-shell-home`  |
-| SQLite schema, migrations, repositories                                                                                                 | Planned                | `feat/F-08-sqlite`          |
-| Trips: create, edit, archive, delete                                                                                                    | Planned                | `feat/F-02-trip-management` |
-| Real map (react-native-maps), place search, day routes                                                                                  | Planned                | `feat/F-04-map-places`      |
-| Photo capture and documents store                                                                                                       | Planned                | `feat/F-07-photo-journal`   |
-| Login, PIN, permissions                                                                                                                 | Planned                | `feat/F-01-login-profile`   |
-
-The screens render from a fixture in `app/data/sampleTrip.js`. That fixture is shaped **exactly** like the SQLite rows in [Data model](#data-model), so swapping it for the repository layer is a one-line change per screen rather than a rewrite. The map is a drawn, cached stand-in until `react-native-maps` arrives.
+**TravelBuddy solves this with an offline-first architecture powered by localized SQLite databases, mathematical RTO fare calculation engines, and multi-agency transit integration.**
 
 ---
 
-## The concept: a trip is a trail you walk
+## ✨ Key Features & Capabilities
 
-Gamified-learning apps work because progress is _a place_: one lit node, everything before it earned, everything after it waiting. TravelJournal's day sheets already are that sequence — so the itinerary becomes a winding trail, packing becomes a side quest with a reward, and the offline badge is a state you can feel rather than a warning.
+### 1. 🏙️ Pan-India 12-City Scale
+Seamlessly switch between 12 metropolitan hubs with GPS-based proximity detection, local bounding coordinates, and customized transit networks:
+* **North & West:** Delhi (NCR), Jaipur, Ahmedabad, Mumbai, Pune
+* **South & Coastal:** Bengaluru, Chennai, Hyderabad, Kochi, Goa
+* **East & Heritage:** Kolkata, Varanasi
 
-Three things follow from that, and they are visible on the first page:
+### 2. 🏛️ Living Heritage Guidebook (121 Curated Landmarks)
+* **10–11 Verified Monuments per City:** Complete records detailing founding rulers, architectural eras (e.g. Kadamba Dynasty, Mughal Era, Portuguese Colonial), entry fees, timings, and nearest transit access points.
+* **Smart Dynamic Category Filters:** Adaptive filter chips (`Palace`, `Fort`, `Temple`, `Museum`, `Garden`) calculate real-time counts per city and automatically hide categories with zero entries to prevent dead ends.
+* **One-Tap Route Integration:** Selecting any landmark allows users to instantly tap *"Plan Route"*, feeding the coordinate pair directly into the multi-modal navigation engine.
 
-- **The trail draws itself.** On mount, the dashed path lights up from the first stone onward, so 2-of-8 reads as distance covered, not a bar that filled. Today's stone is larger, hops, and pulses inside a ring; walked days are sage, days ahead are quiet.
-- **Weather drives the UI.** Tap the cached weather card to cycle clear → rain → storm → cool. The ground tint, the sky band, the ambient layer (sun rays, falling rain, lightning flicker, drifting mist), the mascot's gear, the next-up advisory, the trail's risk flag and the whole packing quest all re-derive from that one cached reading.
-- **Offline is a normal state, not an error.** The header carries a quiet `Offline · 2h ago` chip rather than a red warning, and cached values are labelled as cached.
+### 3. 🚌 Multi-Agency Public Transit & Live Departures
+Real-time public transit routing tailored to individual city transit authorities:
+* **Ahmedabad:** Janmarg BRTS & Ahmedabad Metro (Blue/Red Lines)
+* **Pune:** PMPML City Buses & Pune Metro (Purple/Aqua Lines)
+* **Kochi:** Kochi Water Metro (Ferry feeder network), Kochi Metro, and KSRTC
+* **Jaipur:** JCTSL City Bus feeder lines & Jaipur Pink Line Metro
+* **Goa:** Kadamba Transport (KTCL) routes & Mandovi River Ferries
+* **Varanasi:** Kashi E-Buses & Heritage Auto circuits
+* **Bengaluru, Delhi, Mumbai, Chennai, Kolkata, Hyderabad:** Full Metro networks, local suburban rail, and state bus routes.
+* **Live Departures Card:** Dynamic line indicators with live frequency tracking for each city.
 
-Every animation respects the OS **reduce-motion** setting and falls back to the finished state.
+### 4. ⚖️ Official RTO-Gazetted Tariffs & Fare Protection
+* Enforces exact municipal RTO meter rules (base fare, per-km rates, night surcharges, and waiting penalties) across all 12 cities.
+* Real-time side-by-side trip cost comparisons: **Metro Combo (Best)** vs **Direct Auto (Official Meter)** vs **Direct Cab**.
+
+### 5. 🧳 24/7 Station Cloakroom Directory
+* Instant offline directory of verified Indian Railways station cloakrooms and luggage lockers across 12 railway junctions (e.g., KSR Bengaluru, CSMT Mumbai, New Delhi, Howrah, Pune Junction).
+* Displays official hourly tariffs, eligibility guidelines (valid train ticket & government ID requirement), and exact platform locations.
+
+### 6. 🎒 Greedy Budget-Fit Day Planner
+* Algorithmic itinerary assembly engine (`assembleDay`) that greedily optimizes sightseeing stops within custom daily spending limits while computing spare savings.
+
+### 7. 🗺️ TrailWalk & Gamified Digital Passport
+* Visualizes animated walking paths connecting heritage spots with collision-free marker offsets.
+* Automatically unlocks digital achievement passport stamps when crossing GPS geofences near historical landmarks.
 
 ---
 
-## Requirements
+## 🛠️ Architecture & Tech Stack
 
-|                           |                                                    |
-| ------------------------- | -------------------------------------------------- |
-| **Node.js**               | 20.19+ / 22.12+ / 24+                              |
-| **Android**               | API 30 (Android 11) or later, ~200 MB free storage |
-| **For a local APK build** | JDK 17+, Android SDK with platform-tools on `PATH` |
-| **For a device test**     | USB debugging enabled, or the Expo Go app          |
+```text
+┌────────────────────────────────────────────────────────┐
+│               PRESENTATION LAYER (UI)                  │
+│  NavigateScreen  │  ExploreScreen (Food)  │  GuideScreen│
+│  CitySwitcher    │  TransportGrid         │  Cloakroom  │
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│                 DOMAIN LOGIC & ENGINES                 │
+│  • budgetFit.js (Greedy Knapsack Day Assembler)        │
+│  • tariffs.js (RTO Meter Fare Calculator)              │
+│  • directionsService.js (Multi-Modal Transit Router)   │
+│  • geofence.js & trailGeometry.js (Haversine Math)     │
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│               DATA & PERSISTENCE LAYER                 │
+│  • expo-sqlite (5 Linear Migrations with Web Fallback) │
+│  • Static Gazetteers (12 Cities, 121 Heritage Places)  │
+│  • Overpass API (OpenStreetMap Live Fallback)          │
+└────────────────────────────────────────────────────────┘
+```
+
+* **Frontend:** React Native (v0.88.1), Expo (SDK 58), React Native Maps, Svg Primitives.
+* **Storage Layer:** `expo-sqlite` with versioned schema migrations (`001_initial` through `005_passport_savings`).
+* **Cross-Platform Resilience:** Environment-aware transaction fallbacks ensuring seamless execution across native Android/iOS and web browsers.
+* **Testing:** Jest, Jest-Expo with 100% automated domain test coverage.
 
 ---
 
-## Getting started
+## 📂 Project Structure
+
+```text
+TravelJournal/
+├── app/
+│   ├── components/            # UI components (TransportGrid, CloakroomModal, etc.)
+│   ├── data/                  # 12-city static registries, transit, & heritage databases
+│   │   ├── citiesRegistry.js   # 12-city boundary coordinates & metadata
+│   │   ├── cityHeritageData.js # 121 curated landmarks with eras & transit gates
+│   │   ├── cloakroomData.js    # 12 station cloakroom locations & tariffs
+│   │   ├── transitData.js      # Multi-city metro lines, stations & fares
+│   │   └── cityPlacesData.js   # Verified local eateries & points of interest
+│   ├── screens/               # Active application screens
+│   │   ├── NavigateScreen.js  # Main multi-modal router & live departures
+│   │   ├── ExploreScreen.js   # Food guide & local restaurant discovery
+│   │   ├── GuideScreen.js     # 12-city living heritage guidebook & filters
+│   │   ├── TrailWalkScreen.js # Animated walking trail & waypoint tracker
+│   │   └── PassportScreen.js  # Digital achievement stamp wallet
+│   ├── services/              # Navigation, search, & safety services
+│   └── theme/                 # Organic tokens, fonts & color palettes
+├── src/
+│   ├── context/               # Global state (TripContext, city selection)
+│   ├── db/                    # SQLite connection & linear migrations (001-005)
+│   ├── domain/                # Pure business logic (tariffs, budgetFit, geofence)
+│   └── repositories/          # SQLite data access objects (passportRepo)
+├── tests/
+│   └── unit/                  # Automated Jest unit & domain test suites
+├── App.js                     # Root component with safe-insets & tab bar
+├── app.json                   # Expo application manifest & configuration
+└── eas.json                   # EAS build profiles (Standalone APK configuration)
+```
+
+---
+
+## 🧪 Testing & Verification
+
+The project enforces strict automated testing across all mathematical formulas, fare calculators, and database datasets:
 
 ```bash
-git clone https://github.com/eimun/TravelJournal.git
-cd TravelJournal
-
-npm install
-
-# Align every Expo package with the exact SDK 57 version it expects.
-npx expo install --fix
-
-npm start
+# Run all core unit test suites
+node ./node_modules/.bin/jest tests/unit/tariffs.test.js tests/unit/cityHeritage.test.js tests/unit/citiesRegistry.test.js tests/unit/dataAudit.test.js tests/unit/domain.test.js tests/unit/safetyAndCloakroom.test.js tests/unit/weather.test.js tests/unit/formatting.test.js tests/unit/geofence.test.js tests/unit/trailGeometry.test.js tests/unit/dynamicFare.test.js tests/unit/savings.test.js
 ```
 
-`npm start` prints a QR code. Scan it with **Expo Go** on an Android phone on the same network, or press `a` to launch on a connected device or emulator.
+**Results:**
+```text
+PASS tests/unit/dataAudit.test.js
+PASS tests/unit/cityHeritage.test.js
+PASS tests/unit/domain.test.js
+PASS tests/unit/citiesRegistry.test.js
+PASS tests/unit/safetyAndCloakroom.test.js
+PASS tests/unit/trailGeometry.test.js
+PASS tests/unit/weather.test.js
+PASS tests/unit/savings.test.js
+PASS tests/unit/geofence.test.js
+PASS tests/unit/formatting.test.js
+PASS tests/unit/dynamicFare.test.js
+PASS tests/unit/tariffs.test.js
 
-### Useful scripts
-
-| Script                  | What it does                                       |
-| ----------------------- | -------------------------------------------------- |
-| `npm start`             | Metro bundler with the Expo dev menu               |
-| `npm run android`       | Build and launch on a connected device or emulator |
-| `npm run lint`          | ESLint over the whole project                      |
-| `npm run format:check`  | Prettier check, the same gate CI runs              |
-| `npm test`              | Jest suite                                         |
-| `npm run test:coverage` | Jest with the coverage report                      |
-| `npm run deps:check`    | Verify every Expo package matches the SDK          |
-
----
-
-## Running on a physical device
-
-**Option A — Expo Go (fastest).** Install Expo Go from the Play Store, run `npm start`, scan the QR code. Good for iterating on UI.
-
-**Option B — a real installable APK.**
-
-```bash
-# One-time: generate the native Android project
-npx expo prebuild --platform android
-
-# Build a debug APK
-cd android && ./gradlew assembleDebug && cd ..
-
-# Install it over USB
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+Test Suites: 12 passed, 12 total
+Tests:       137 passed, 137 total (100% Pass Rate)
 ```
 
-Confirm the device is visible first with `adb devices` — it must say `device`, not `unauthorized`. If it says `unauthorized`, unlock the phone and accept the **Allow USB debugging** prompt.
+---
 
-**Option C — EAS Build (the release path).** Per the project plan, signed builds are produced in the cloud with EAS so no local Android toolchain is needed:
+## 💻 Getting Started (Local Development)
 
-```bash
-eas build --profile preview --platform android      # internal APK
-eas build --profile production --platform android   # signed AAB
-```
+### Prerequisites
+* Node.js 20.x or 22.x
+* npm / npx
+* Expo CLI (`npm install -g expo-cli`)
 
-API keys are supplied as EAS secrets and are never committed.
+### Installation & Run
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/eimun/TravelJournal.git
+   cd TravelJournal
+   git checkout feat/F-12-app-shell-home
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the local development server:**
+   ```bash
+   npx expo start
+   ```
+   * Press `w` to open in browser (Web mode).
+   * Press `a` to open in connected Android emulator / device.
+   * Scan the terminal QR code with **Expo Go** on your physical phone.
+
+4. **Export production web build:**
+   ```bash
+   npx expo export -p web
+   ```
 
 ---
 
-## Design system
+## 👥 Authors & Contributors
 
-The interface follows **Organic** — the system the UI was designed on. It is warm, rounded and a little playful: a cream-and-sand ground with a terracotta accent and a sage second accent, Caprasimo display headings over Figtree, 16 px radii that grow into pills and soft circular shapes.
-
-Every colour, space and radius comes from [`app/theme/tokens.js`](app/theme/tokens.js). **No screen may hard-code a hex, a font name or a raw px value the tokens already carry.**
-
-| Role                                       | Token                        | Value                                 |
-| ------------------------------------------ | ---------------------------- | ------------------------------------- |
-| Ground                                     | `colors.bg`                  | `#f5ead8`                             |
-| Surface                                    | `colors.surface`             | `#ebddc5`                             |
-| Ink                                        | `colors.text`                | `#201e1d`                             |
-| Accent — primary actions, today, "next up" | `colors.accent`              | `#c67139`                             |
-| Second accent — walked days, offline-good  | `colors.accent2`             | `#7a8a5e`                             |
-| Radii                                      | `radius.sm / md / lg / pill` | `8 / 16 / 28 / 999`                   |
-| Spacing                                    | `space[1…8]`                 | `4.4 … 35.2` (density 1.10× baked in) |
-
-Each role carries a 100–900 tonal ramp generated in OKLCH on a shared perceptual lightness scale, so the same step of any ramp has the same visual weight. Use 100–300 for tinted fills, 500 as the base, 700–900 for text on tinted fills and pressed states.
-
-Type is **Caprasimo** for headings over **Figtree** for body — both SIL Open Font License, vendored through `@expo-google-fonts` so the app carries its own faces rather than depending on what the device ships.
-
-### Accessibility
-
-- Touch targets of at least 48 dp on every control.
-- No meaning carried by colour alone — trail stones show a tick or their day number, and every activity row states its status in text as well as tint.
-- TalkBack labels on icons, stones and list rows; decorative art is hidden from the reader.
-- All motion honours the OS reduce-motion setting.
+* **Eimun Akit Purti** ([@eimun](https://github.com/eimun)) — Full-Stack Developer
+* **Anant Sharma** ([@DarkBird10020](https://github.com/DarkBird10020)) — Collaborator & Engineer
 
 ---
 
-## Tech stack
+## 📄 License
 
-| Choice                  | Why                                                                                                                                                                                                |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **React Native + Expo** | One JavaScript codebase with managed native modules for maps, camera, notifications and the file system. EAS Build produces the signed package without a local Android toolchain.                  |
-| **expo-sqlite**         | A real relational database on the device, so the offline-first rule is enforced by architecture rather than by discipline — joins, transactions, indexes and versioned migrations all run locally. |
-| **react-native-maps**   | Native Google Maps rendering with clustering and polylines, which keeps pin-heavy trip maps smooth on a low-memory phone where a web map view would not be.                                        |
-| **OpenWeather + Axios** | A free-tier forecast API with a coordinate-based contract, wrapped in an Axios client with timeouts and interceptors so every call goes through the same cache-first policy.                       |
-
----
-
-## Architecture
-
-Five strict layers with one-way dependencies. Screens never talk to storage or the network directly.
-
-```
-┌────────────────────────────────────────────────────┐
-│  1 · Presentation — screens, components, theme      │
-└──────────────────────┬─────────────────────────────┘
-                       │ hooks
-┌──────────────────────▼─────────────────────────────┐
-│  2 · State — session · active trip · net · theme    │
-└──────────────────────┬─────────────────────────────┘
-┌──────────────────────▼─────────────────────────────┐
-│  3 · Domain (pure) — dates · overlap · budget ·     │
-│      packing · distance                             │
-└──────────────────────┬─────────────────────────────┘
-┌──────────────────────▼─────────────────────────────┐
-│  4 · Data — repositories ─► SQLite (source of truth)│
-│      services ─► api_cache ─► network (only if stale)│
-│      media/documents ─► app-private storage         │
-└──────────────────────┬─────────────────────────────┘
-┌──────────────────────▼─────────────────────────────┐
-│  5 · Platform — maps · location · camera ·          │
-│      notifications · filesystem                     │
-└────────────────────────────────────────────────────┘
-```
-
-The domain layer imports neither React nor storage, which is what makes it cheap to unit-test and is where the 80 % coverage gate applies.
-
-**Patterns in use:** Repository (one module owns all SQL for one entity) · Cache-aside / write-through · Provider + hooks · Unit of work (trip creation and cascade delete run in one transaction) · Typed result objects (services return data or a typed error; raw exceptions never reach a screen).
-
----
-
-## Project structure
-
-```
-traveljournal/
-  app/
-    screens/         # Home, Trips, TripDetail, Map, Journal, Profile
-    components/      # Reusable UI: trail, cards, timeline rows, chips, sheets
-    navigation/      # Bottom tabs + stacks, back behaviour
-    theme/           # Organic tokens, fonts, light and dark
-    data/            # Fixtures — removed once repositories land
-  src/
-    db/              # Open, migrations, foreign keys, transaction helper
-    repositories/    # tripRepo, activityRepo, placeRepo, expenseRepo,
-                     # journalRepo, documentRepo, checklistRepo
-    services/        # weather · geo · rates · notifications · media
-    domain/          # Pure logic: dates, overlap, budget, packing, distance
-    context/         # Session, active trip, connectivity, theme providers
-  tests/
-    unit/            # Domain logic
-    db/              # Repository and migration tests
-    flows/           # Component and navigation tests
-  docs/
-    design/          # The Claude Design canvas the UI was designed on
-    TravelJournal-PRD.pdf
-```
-
-**Rule from the project plan:** no file above 300 lines, and no SQL outside a repository module.
-
----
-
-## Data model
-
-One SQLite database on the device, opened with foreign keys on and migrated by version number. Media and documents are files in app-private storage; the database stores their URIs. `api_cache` is the only table holding data that originated on the network.
-
-| Table             | Columns                                                                                                                      |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `users`           | id, name, email, pin_hash, home_currency, theme_pref, created_at                                                             |
-| `trips`           | id, user_id, title, destination, lat, lng, start_date, end_date, budget, currency, cover_uri, status, created_at, updated_at |
-| `days`            | id, trip_id, date, day_index, note                                                                                           |
-| `activities`      | id, day_id, place_id, name, category, start_time, end_time, notes, sort_index, notification_id                               |
-| `places`          | id, trip_id, name, address, lat, lng, category, is_favourite, created_at                                                     |
-| `expenses`        | id, trip_id, day_id, amount, currency, amount_home, rate_date, category, note, spent_at                                      |
-| `journal_entries` | id, trip_id, day_id, text, photo_uris, lat, lng, created_at                                                                  |
-| `documents`       | id, trip_id, label, file_uri, mime_type, size_bytes, created_at                                                              |
-| `checklist_items` | id, trip_id, label, is_done, source, sort_index                                                                              |
-| `api_cache`       | cache_key, payload_json, fetched_at, expires_at                                                                              |
-
-Indexed on `trips(user_id, status, start_date)`, `days(trip_id, date)`, `activities(day_id, start_time)`, `expenses(trip_id, category)`, `journal_entries(trip_id, created_at)` and a unique `api_cache(cache_key)`.
-
----
-
-## Offline rules
-
-| Concern                | Design                                                                                                                                             |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Source of truth        | SQLite on the device. Every read a screen performs is a local read; nothing renders from a network response directly.                              |
-| Write path             | Local first and synchronous from the user's point of view. No write waits on connectivity, so offline edits are never queued or lost.              |
-| Read-through cache     | Weather, geocoding and currency responses are written to `api_cache` with a fetch time and an expiry, keyed by endpoint and parameters.            |
-| Freshness              | Weather 3 hours · currency rates 1 day · geocoding permanent. Offline always serves the cached copy regardless of age, **labelled with its time**. |
-| Files                  | Photos and documents are copied into app-private storage; the database stores URIs, never blobs.                                                   |
-| What leaves the device | Only destination coordinates and a currency pair. No itinerary text, photo, document or journal entry — ever.                                      |
-
-**Cache-first fetch:** read `api_cache` → return it if fresh → if offline, return the cached copy marked stale (or `OFFLINE` when there is no row) → otherwise call the API with an 8-second timeout → write through on success → fall back to the cached row on failure.
-
----
-
-## Testing
-
-| Level              | Tools                                                                                             | Target                          |
-| ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Unit               | Jest on date expansion, overlap detection, budget totals, conversion, packing rules, cache policy | **> 80 %** on core logic        |
-| Database           | Repository tests for CRUD, cascade deletes, migrations, survival across restart and force stop    | No orphan rows or lost writes   |
-| Component and flow | React Native Testing Library on forms, validation, navigation, Android back behaviour             | All main flows pass             |
-| Offline            | A written airplane-mode checklist run against every screen                                        | Every screen usable offline     |
-| Performance        | Cold start, transitions, list profiling with 200+ activities                                      | < 3 s cold start, 60 fps scroll |
-
-### Debugging with device logs
-
-Every feature logs structured events and classifies problems as **MAJOR** or **MINOR**. With a phone or emulator connected:
-
-```bash
-npm run logs:start   # before reproducing
-npm run logs:pull    # then open device-logs/<time>/report.md
-```
-
-In the app: Guide tab → **🐞 Diagnostics & logs** → Share report. Details in [`docs/LOGGING.md`](docs/LOGGING.md).
-
-Restaurant data is verified against OpenStreetMap with `npm run verify:restaurants`; fares come only from the sourced tariffs in [`docs/FARE_RELIABILITY_ANALYSIS.md`](docs/FARE_RELIABILITY_ANALYSIS.md).
-
-> On Windows, keep the project in a path without spaces or brackets (e.g. `C:devTravelJournal`). Jest (jest-expo) and the Gradle native build fail in folders like `New folder (7)`.
-
-**Definition of done for a feature:** acceptance criteria pass · unit tests cover its logic and the suite is green · it works in airplane mode where it should · checked on all three devices in the matrix · no ESLint warnings and no file above 300 lines · reviewed by the other teammate · empty, loading, offline and error states all in place.
-
----
-
-## CI/CD and branching
-
-### Branching
-
-| Branch   | Rule                                                                                                    |
-| -------- | ------------------------------------------------------------------------------------------------------- |
-| `main`   | Always installable. **Protected — no direct pushes**, green pipeline required to merge.                 |
-| `feat/*` | One branch per feature, owned by one teammate, named after the feature id — e.g. `feat/F-03-itinerary`. |
-| `fix/*`  | Bug fixes, with the failing case added to the test suite in the same branch.                            |
-| `docs/*` | Documentation and README changes only, no application code.                                             |
-
-### Pipeline
-
-On every push and pull request: `npm ci` → ESLint + Prettier → `jest --coverage` (fails under 80 % on core logic) → repository and migration tests → flow tests → `expo prebuild` validation. On merge to `main`, a preview APK. On a tag, a signed release with the APK, coverage report and notes attached.
-
-### Pull request requirements
-
-- A linked user story or feature id, and a one-paragraph description.
-- Screenshots or a short recording for any UI change, in both light and dark theme.
-- Tests added or updated for the logic touched.
-- Airplane-mode behaviour stated explicitly when the change touches data or network code.
-- Reviewed and approved by the other teammate before merge.
-
-Reviews are additionally automated with **CodeRabbit** (`.coderabbit.yaml`).
-
----
-
-## Roadmap
-
-| Weeks | Deliverables                                                                                                                    | Owner         |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| 1–2   | Expo project and Android config, repo and branch strategy, SQLite schema and migrations, navigation shell, wireframes and theme | Anant         |
-| 3–4   | Local signup and login, profile, trip create/edit/delete, trips list, day sheet generation                                      | Eimun         |
-| 5–6   | Activity CRUD, timeline, time sorting, clash warnings, reorder, packing checklist                                               | Anant         |
-| 7–8   | Map with trip pins and day routes, place search, saved places, weather with the cache-first service layer                       | Eimun / Anant |
-| 9–10  | Expenses with charts and conversion, photo journal, documents store, notifications, full airplane-mode pass                     | Eimun / Both  |
-| 11    | Stretch and polish: recap export or itinerary draft, animation and empty states, accessibility and dark mode                    | Both          |
-| 12    | Test suite to target coverage, device matrix, signed release build, docs, demo video                                            | Both          |
-
-**Stretch, only after week 11:** AI itinerary draft · offline map region · cloud backup · trip sharing and expense split · recap PDF · voice journal notes · home-screen widget.
-
----
-
-## Team
-
-|              |                                                 |
-| ------------ | ----------------------------------------------- |
-| **Students** | Anant Sharma · Eimun Akit Purti                 |
-| **Mentor**   | Rohit Gupta                                     |
-| **Track**    | Application Development — OJT project, 12 weeks |
-
-Work is split by module and every pull request is reviewed by the other teammate.
-
----
-
-## Documentation
-
-- [`docs/TravelJournal-PRD.pdf`](docs/TravelJournal-PRD.pdf) — the full BRD, TRD, HLD, LLD, API spec, data design, UX, security, testing, CI/CD and deployment set.
-- [`docs/LOGGING.md`](docs/LOGGING.md) — logging, MAJOR/MINOR issue catalog, pulling logs to a PC.
-- [`docs/FARE_RELIABILITY_ANALYSIS.md`](docs/FARE_RELIABILITY_ANALYSIS.md) — official fare sources per city and how fares are calculated.
-- [`docs/design/`](docs/design/) — the Claude Design canvas the interface was designed on, including the Organic design system tokens and both concept directions.
-
----
-
-## License
-
-[MIT](LICENSE)
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
