@@ -23,7 +23,6 @@
     "android": {
       "package": "app.travelbuddy.companion",
       "versionCode": 1,
-      "minSdkVersion": 24,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
@@ -50,6 +49,9 @@
       "eas": {
         "projectId": "40e5a640-036b-42ff-91f5-00428c04125e"
       }
+    },
+    "experiments": {
+      "baseUrl": "/TravelJournal"
     },
     "owner": "eimun"
   }
