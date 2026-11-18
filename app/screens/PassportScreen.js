@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, radius, space, type } from '../theme/tokens';
 import { family } from '../theme/fonts';
@@ -16,7 +16,7 @@ import { FOOD_MENUS } from '../data/bengaluruTrails';
  * wallet folds persisted per-ride savings. Both read from SQLite — fully offline.
  */
 export default function PassportScreen({ contentPadding }) {
-  const { cityId } = useTrip();
+  const { cityId, setTab } = useTrip();
   const [stamps, setStamps] = useState([]);
   const [wallet, setWallet] = useState({ totalInr: 0, events: 0, days: [] });
 
@@ -49,6 +49,14 @@ export default function PassportScreen({ contentPadding }) {
       contentContainerStyle={[styles.content, contentPadding]}
       showsVerticalScrollIndicator={false}
     >
+      {/* Back button */}
+      <Pressable
+        onPress={() => setTab('navigate')}
+        style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.7 }]}
+      >
+        <Text style={styles.backButtonText}>← Back to Navigation</Text>
+      </Pressable>
+
       {/* Header */}
       <View style={styles.header}>
         <Kicker tone="accent">EXPLORER PASSPORT</Kicker>
@@ -150,6 +158,21 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingBottom: 40,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    marginBottom: space[2],
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  backButtonText: {
+    fontSize: 12.5,
+    fontFamily: family('bodyBold'),
+    color: '#0f172a',
   },
   header: {
     paddingTop: 6,

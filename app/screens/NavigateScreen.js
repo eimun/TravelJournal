@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
-import { colors, fontFamily, radius, shadow } from '../theme/tokens';
+import { colors, fontFamily, radius, shadow, space } from '../theme/tokens';
 import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import SearchBar from '../components/SearchBar';
@@ -61,6 +61,7 @@ export default function NavigateScreen({ contentPadding }) {
     currentCity,
     openCitySwitcher,
     openFareReliability,
+    setTab,
   } = useTrip();
 
   const [mapMode, setMapMode] = useState(true);
@@ -606,6 +607,28 @@ export default function NavigateScreen({ contentPadding }) {
     );
   };
 
+  const renderSavingsCard = () => {
+    return (
+      <Pressable
+        onPress={() => setTab('passport')}
+        style={({ pressed }) => [styles.tripStatsCard, pressed && { opacity: 0.88 }]}
+      >
+        <View style={styles.statsIconCircle}>
+          <Text style={{ fontSize: 20 }}>🌱</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.statsCardTitle}>Track CO2 Savings with Transit</Text>
+          <Text style={styles.statsCardSub}>
+            You saved ₹140 & 2.4 kg CO2 choosing metro over direct cabs!
+          </Text>
+        </View>
+        <View style={styles.goBadge}>
+          <Text style={styles.goBadgeText}>GO ➔</Text>
+        </View>
+      </Pressable>
+    );
+  };
+
     const renderQuickUtilities = () => {
     const cId = (currentCity?.id || 'bengaluru').toLowerCase();
     
@@ -836,6 +859,7 @@ export default function NavigateScreen({ contentPadding }) {
         <View style={styles.wideLeftPane}>
           {headerView}
           {renderEnvironmentalAlert()}
+          {renderSavingsCard()}
           <View style={styles.searchSection}>
             <SearchBar onSelectDestination={selectDestination} />
           </View>
@@ -1039,6 +1063,9 @@ export default function NavigateScreen({ contentPadding }) {
 
           {/* Ambient condition strip */}
           {renderEnvironmentalAlert()}
+
+          {/* Trip Stats & CO2 Savings (GO to Explorer Passport) */}
+          {renderSavingsCard()}
 
           {/* Step-by-Step Route Card & Advisories (bottom sheet) */}
           {activeRoute && (
@@ -1539,6 +1566,48 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
     color: colors.white,
+  },
+  tripStatsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...shadow.sm,
+  },
+  statsIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsCardTitle: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  statsCardSub: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#475569',
+    marginTop: 2,
+  },
+  goBadge: {
+    backgroundColor: colors.accentRamp[600],
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  goBadgeText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
   },
   weatherCard: {
     backgroundColor: '#ffffff',
