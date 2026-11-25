@@ -218,14 +218,6 @@ export default function RestaurantDetailSheet() {
                 {cuisine.emoji} {[cuisine.label, r.area].filter(Boolean).join(' · ')}
               </Text>
               <View style={styles.metaRow}>
-                <View style={[styles.verifyBadge, { backgroundColor: badge.bg }]}>
-                  <Text style={[styles.verifyBadgeText, { color: badge.fg }]}>{badge.label}</Text>
-                </View>
-                {tierColors && (
-                  <View style={[styles.priceBadge, { backgroundColor: tierColors.bg }]}>
-                    <Text style={[styles.priceBadgeText, { color: tierColors.text }]}>{PRICE_TIER_LABELS[r.priceTier]}</Text>
-                  </View>
-                )}
                 <View
                   style={[
                     styles.openBadge,

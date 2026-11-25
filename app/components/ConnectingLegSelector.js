@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
-import DynamicAutoFareCard from './DynamicAutoFareCard';
+import { useTrip } from '../../src/context/TripContext';
 import BmtcBusScheduleModal from './BmtcBusScheduleModal';
 import { findBusesForLocation, calculateUpcomingBusDepartures } from '../data/bmtcBusData';
 import { formatDistance, estimateWalkMinutes } from '../services/locationService';
@@ -24,7 +24,13 @@ export default function ConnectingLegSelector({
   selectedModeKey,
   onSelectMode,
 }) {
-  const [showComparison, setShowComparison] = useState(false);
+  const { currentCity, fireToast } = useTrip ? useTrip() : { currentCity: null, fireToast: () => {} };
+  const cId = (currentCity?.id || step?.cityId || 'bengaluru').toLowerCase();
+  const isBengaluru = cId === 'bengaluru';
+  const cityBusAgency = currentCity?.transitAgency
+    ? currentCity.transitAgency.split('&')[0].replace(/\(.*?\)/g, '').trim()
+    : (isBengaluru ? 'BMTC' : 'City Bus');
+
   const [showBusModal, setShowBusModal] = useState(false);
 
   if (!step?.modes) return null;
@@ -33,6 +39,10 @@ export default function ConnectingLegSelector({
   const currentKey = selectedModeKey || step.selectedMode || step.defaultMode || 'auto';
   const currentMode = modes[currentKey] || modes.auto;
   const isLong = step.isLongDistance;
+  const dynamicFare = step.dynamicFare || modes.auto?.dynamicFare;
+  const surge = dynamicFare?.surge;
+  const providers = dynamicFare?.providers || {};
+  const autoTariff = dynamicFare?.official?.auto?.tariff;
 
   const matchedBus =
     step.matchedBus ||
@@ -48,44 +58,96 @@ export default function ConnectingLegSelector({
   const legDistance = formatDistance(step.distanceMeters || 0);
   const legWalkMin = estimateWalkMinutes(step.distanceMeters || 0);
 
+  const getModeMeta = (key, m) => {
+    switch (key) {
+      case 'auto':
+        return {
+          displayFare: providers.rtoMeter?.fareText || fareLabel(m),
+          subtitle: providers.appAuto?.fareText
+            ? `Meter ${providers.rtoMeter?.fareText || '~₹37'} · Apps ${providers.appAuto.fareText}`
+            : 'Official meter fare',
+          badge: 'Popular',
+        };
+      case 'bike':
+        return {
+          displayFare: providers.bike?.fareText || (m.fare ? `~₹${m.fare}` : '~₹60 – ₹75'),
+          subtitle: 'Rapido, Uber Moto',
+          badge: 'Fastest',
+        };
+      case 'cab':
+        return {
+          displayFare: providers.cab?.fareText || (m.fare ? `~₹${m.fare}` : 'Official tariff'),
+          subtitle: 'Uber, Ola & local cabs',
+          badge: null,
+        };
+      case 'bus':
+        return {
+          displayFare: fareLabel(m),
+          subtitle: matchedBus
+            ? `Route ${matchedBus.routeNumber} feeder`
+            : (isBengaluru ? 'BMTC Feeder bus · Direct stop' : `${cityBusAgency} · Direct stop`),
+          badge: 'Cheapest',
+        };
+      case 'walk':
+      default:
+        return {
+          displayFare: 'Free',
+          subtitle: isLong ? `${legDistance} · long walk` : 'Direct pedestrian footpath',
+          badge: isLong ? 'Long Walk' : null,
+        };
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* Long Walk Warning Banner */}
-      {isLong && (
-        <View
-          style={[
-            styles.warningBanner,
-            currentKey === 'walk' ? styles.warningBannerSevere : styles.warningBannerNotice,
-          ]}
-        >
-          <Text style={styles.warningIcon}>{currentKey === 'walk' ? '⚠️' : '💡'}</Text>
+      {/* Long Walk Warning Banner (Only when walking a long distance) */}
+      {isLong && currentKey === 'walk' && (
+        <View style={[styles.warningBanner, styles.warningBannerSevere]}>
+          <Text style={styles.warningIcon}>⚠️</Text>
           <View style={styles.warningTextCol}>
-            <Text style={styles.warningTitle}>
-              {currentKey === 'walk'
-                ? `LONG WALK WARNING (${legDistance} · ~${legWalkMin} min)`
-                : 'SMART COMMUTE RECOMMENDATION'}
-            </Text>
+            <Text style={styles.warningTitle}>LONG WALK NOTICE ({legDistance} · ~{legWalkMin} min)</Text>
             <Text style={styles.warningDesc}>
-              {currentKey === 'walk'
-                ? `Walking ${legDistance} in heat and traffic is tiring. An auto or bike taxi is recommended.`
-                : `${legDistance} is a long walk. Auto or bike taxi fares are compared below.`}
+              Walking {legDistance} in heat and traffic is tiring. Auto or bike taxi recommended.
             </Text>
           </View>
         </View>
       )}
 
-      {/* Mode Selector Pill Buttons */}
-      <View style={styles.selectorSection}>
-        <Text style={styles.selectorHeading}>SELECT MODE FOR THIS LEG</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.pillsRow}
-        >
+      {/* Unified Commute Options Card - shown once cleanly */}
+      <View style={styles.mainCard}>
+        {/* Card Header */}
+        <View style={styles.cardHeaderRow}>
+          <View style={styles.cardHeaderLeft}>
+            <Text numberOfLines={1} style={styles.cardHeaderTitle}>SELECT TRAVEL MODE</Text>
+            <Text numberOfLines={1} style={styles.cardHeaderSub}>
+              {legDistance} by road · Tap option to choose
+            </Text>
+          </View>
+          <View style={styles.selectedPillBadge}>
+            <Text numberOfLines={1} style={styles.selectedPillText}>
+              {modes[currentKey]?.emoji || '🛺'} Selected
+            </Text>
+          </View>
+        </View>
+
+        {/* Live Surge Banner (if active) */}
+        {surge && (
+          <View style={[styles.surgeBanner, { borderColor: surge.color || '#2563eb', backgroundColor: `${surge.color || '#2563eb'}12` }]}>
+            <Text style={styles.surgeEmoji}>{surge.emoji || '⚡'}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.surgeLabel, { color: surge.color || '#2563eb' }]}>{surge.label}</Text>
+              <Text style={styles.surgeAdvice} numberOfLines={1}>{surge.advice}</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Unified Mode List */}
+        <View style={styles.modesList}>
           {modeKeys.map((key) => {
             const m = modes[key];
             if (!m) return null;
             const isSelected = currentKey === key;
+            const meta = getModeMeta(key, m);
 
             return (
               <Pressable
@@ -95,190 +157,159 @@ export default function ConnectingLegSelector({
                   onSelectMode(key);
                 }}
                 style={({ pressed }) => [
-                  styles.modePill,
-                  isSelected && styles.modePillSelected,
+                  styles.modeRow,
+                  isSelected && styles.modeRowSelected,
                   pressed && { opacity: 0.85 },
                 ]}
               >
-                <Text style={styles.modeEmoji}>{m.emoji || '🚗'}</Text>
-                <View style={styles.pillTextCol}>
-                  <Text style={[styles.pillLabel, isSelected && styles.pillLabelSelected]}>
-                    {m.label}
+                <View style={styles.modeRowLeft}>
+                  <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
+                    {isSelected && <View style={styles.radioInnerDot} />}
+                  </View>
+                  <Text style={styles.modeEmoji}>{m.emoji || '🚗'}</Text>
+                  <View style={styles.modeTextCol}>
+                    <View style={styles.modeTitleRow}>
+                      <Text style={[styles.modeName, isSelected && styles.modeNameSelected]}>
+                        {m.label}
+                      </Text>
+                      {meta.badge && (
+                        <View
+                          style={[
+                            styles.badgePill,
+                            meta.badge === 'Cheapest' && styles.badgeCheapest,
+                            meta.badge === 'Fastest' && styles.badgeFastest,
+                            meta.badge === 'Popular' && styles.badgePopular,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.badgeText,
+                              meta.badge === 'Cheapest' && styles.badgeTextCheapest,
+                              meta.badge === 'Fastest' && styles.badgeTextFastest,
+                              meta.badge === 'Popular' && styles.badgeTextPopular,
+                            ]}
+                          >
+                            {meta.badge}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.modeSubText} numberOfLines={1}>
+                      {meta.subtitle}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.modeRowRight}>
+                  <Text style={[styles.modeFare, isSelected && styles.modeFareSelected]}>
+                    {meta.displayFare}
                   </Text>
-                  <Text style={[styles.pillSub, isSelected && styles.pillSubSelected]}>
-                    {fareLabel(m)} · {m.durationMinutes}m
-                  </Text>
+                  <Text style={styles.modeDuration}>{m.durationMinutes} min</Text>
                 </View>
               </Pressable>
             );
           })}
-        </ScrollView>
-      </View>
+        </View>
 
-      {/* Price & Travel Time Comparison Breakdown */}
-      <View style={styles.comparisonCard}>
-        <Pressable
-          onPress={(e) => {
-            e.stopPropagation();
-            setShowComparison((prev) => !prev);
-          }}
-          style={styles.comparisonHeaderRow}
-        >
-          <View style={styles.comparisonHeaderLeft}>
-            <Text style={styles.comparisonSectionTitle}>FARE & TIME COMPARISON</Text>
-            <Text style={styles.comparisonSubTitle}>Compare options before choosing</Text>
-          </View>
-          <Text style={styles.toggleChevron}>{showComparison ? '▲ Hide' : '▼ View All'}</Text>
-        </Pressable>
+        {/* Bus Details & Live Timings (shown when Bus is selected) */}
+        {currentKey === 'bus' && (
+          <View style={styles.busInfoCard}>
+            <View style={styles.busHeaderRow}>
+              <View style={styles.busHeaderLeft}>
+                <View style={styles.busBadge}>
+                  <Text style={styles.busBadgeText}>{(cityBusAgency || "CITY TRANSIT").toUpperCase()}</Text>
+                </View>
+                <Text style={styles.busTitle}>
+                  {matchedBus ? `Route ${matchedBus.routeNumber} Feeder` : 'Metro Feeder & City Bus Routes'}
+                </Text>
+                <Text style={styles.busSubtitle}>
+                  {matchedBus ? matchedBus.name : `Local ${cityBusAgency} routes · Flat ₹10–₹15`}
+                </Text>
+              </View>
+              <Text style={styles.busEmoji}>🚌</Text>
+            </View>
 
-        {showComparison && (
-          <View style={styles.comparisonRowsContainer}>
-            {modeKeys.map((key) => {
-              const m = modes[key];
-              if (!m) return null;
-              const isSelected = currentKey === key;
-
-              return (
-                <Pressable
-                  key={key}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    onSelectMode(key);
-                  }}
-                  style={[
-                    styles.compareRow,
-                    isSelected && styles.compareRowSelected,
-                  ]}
-                >
-                  <View style={styles.compareRowLeft}>
-                    <Text style={styles.compareRowEmoji}>{m.emoji || '🚗'}</Text>
-                    <View>
-                      <View style={styles.compareTitleLine}>
-                        <Text style={[styles.compareModeName, isSelected && styles.compareModeNameSelected]}>
-                          {m.label}
-                        </Text>
-                        {key === 'bus' && <Text style={styles.bestTag}>Cheapest</Text>}
-                        {key === 'auto' && isLong && <Text style={styles.bestTag}>Popular</Text>}
-                      </View>
-                      <Text style={styles.compareNote}>
-                        {key === 'auto' && 'Official meter fare · apps set their own price'}
-                        {key === 'bike' && (m.fare === null ? 'No govt tariff · price shown in app' : 'Official bike-taxi fare')}
-                        {key === 'cab' && 'Official cab / taxi tariff'}
-                        {key === 'bus' && `BMTC Feeder bus · Direct stop`}
-                        {key === 'walk' && (isLong ? `${legDistance} · long walk` : 'Direct footpath')}
-                      </Text>
-                    </View>
+            {busSchedule && busSchedule.departures && busSchedule.departures.length > 0 && (
+              <View style={styles.todayBusScheduleBox}>
+                <View style={styles.todayBusHeader}>
+                  <View style={styles.liveGreenRow}>
+                    <View style={styles.liveGreenDot} />
+                    <Text style={styles.todayBusHeading}>LIVE BUS TIMINGS</Text>
                   </View>
+                  <View style={styles.busFreqBadge}>
+                    <Text style={styles.todayBusFreqText}>{busSchedule.frequencyText}</Text>
+                  </View>
+                </View>
 
-                  <View style={styles.compareRowRight}>
-                    <Text style={[styles.compareFare, isSelected && styles.compareFareSelected]}>
-                      {fareLabel(m)}
+                <View style={styles.nextBusHeroRow}>
+                  <View style={styles.nextBusHeroLeft}>
+                    <Text style={styles.nextBusHeroLabel}>NEXT BUS DEPARTURE</Text>
+                    <Text style={styles.nextBusHeroTime}>{busSchedule.departures[0]?.timeFormatted}</Text>
+                  </View>
+                  <View style={styles.nextBusCountdownPill}>
+                    <Text style={styles.nextBusCountdownText}>
+                      In {busSchedule.nextBusInMinutes} mins
                     </Text>
-                    <Text style={styles.compareTime}>{m.durationMinutes} min</Text>
                   </View>
-                </Pressable>
-              );
-            })}
+                </View>
+
+                <View style={styles.todayUpcomingSection}>
+                  <Text style={styles.todayDepPillsLabel}>Upcoming:</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.todayDepPillsScroll}>
+                    {busSchedule.departures.slice(1, 4).map((dep, di) => (
+                      <View key={di} style={styles.todayDepPill}>
+                        <Text style={styles.todayDepPillTime}>{dep.timeFormatted}</Text>
+                        <View style={styles.busPillSubBadge}>
+                          <Text style={styles.todayDepPillSub}>+{dep.inMinutes}m</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+            )}
+
+            <Pressable
+              onPress={() => {
+                if (isBengaluru) {
+                  setShowBusModal(true);
+                } else {
+                  fireToast && fireToast(`${cityBusAgency}: Connects to ${step.locationName || 'destination'}. Fare ₹10–₹15 with conductor.`);
+                }
+              }}
+              style={({ pressed }) => [
+                styles.busScheduleButton,
+                pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+              ]}
+            >
+              <Text style={styles.busScheduleButtonText}>
+                {isBengaluru ? '🚌 View Full BMTC Timetable' : `🚌 ${cityBusAgency} Transit Info`}
+              </Text>
+            </Pressable>
           </View>
         )}
+
+        {/* Selected Mode Insider Tip */}
+        {currentMode.tip && (
+          <View style={styles.selectedTipBox}>
+            <Text style={styles.selectedTipText}>💡 {currentMode.tip}</Text>
+          </View>
+        )}
+
+        {/* Single Subtle Source Footnote */}
+        <Text style={styles.sourceFootnote} numberOfLines={1}>
+          Source: {autoTariff?.authority || 'Transport Authority'} & verified market ride estimates.
+        </Text>
       </View>
 
-      {/* Live Dynamic Auto Fare Matrix & Surge Comparison */}
-      {currentKey === 'auto' && (step.dynamicFare || modes.auto?.dynamicFare) && (
-        <DynamicAutoFareCard
-          dynamicFare={step.dynamicFare || modes.auto?.dynamicFare}
-          distanceMeters={step.distanceMeters}
+      {/* BMTC Bus Modal (Bengaluru only) */}
+      {isBengaluru && (
+        <BmtcBusScheduleModal
+          visible={showBusModal}
+          onClose={() => setShowBusModal(false)}
+          initialQuery={step.fromStation || step.toStation || ''}
         />
       )}
-
-      {/* BMTC Feeder & Bus Schedules Card */}
-      {currentKey === 'bus' && (
-        <View style={styles.busInfoCard}>
-          <View style={styles.busHeaderRow}>
-            <View style={styles.busHeaderLeft}>
-              <View style={styles.busBadge}>
-                <Text style={styles.busBadgeText}>BMTC PUBLIC TRANSIT · TODAY'S TIMINGS</Text>
-              </View>
-              <Text style={styles.busTitle}>
-                {matchedBus ? `Route ${matchedBus.routeNumber} Feeder` : 'Metro Feeder & City Bus Routes'}
-              </Text>
-              <Text style={styles.busSubtitle}>
-                {matchedBus ? matchedBus.name : 'Direct bus stand outside station · Flat ₹10–₹15'}
-              </Text>
-            </View>
-            <Text style={styles.busEmoji}>🚌</Text>
-          </View>
-
-          {/* Today's upcoming departures for this exact leg */}
-          {busSchedule && busSchedule.departures && busSchedule.departures.length > 0 && (
-            <View style={styles.todayBusScheduleBox}>
-              <View style={styles.todayBusHeader}>
-                <View style={styles.liveGreenRow}>
-                  <View style={styles.liveGreenDot} />
-                  <Text style={styles.todayBusHeading}>LIVE BUS TIMINGS TODAY</Text>
-                </View>
-                <View style={styles.busFreqBadge}>
-                  <Text style={styles.todayBusFreqText}>{busSchedule.frequencyText}</Text>
-                </View>
-              </View>
-
-              {/* Next Bus Hero Callout */}
-              <View style={styles.nextBusHeroRow}>
-                <View style={styles.nextBusHeroLeft}>
-                  <Text style={styles.nextBusHeroLabel}>NEXT BUS DEPARTURE</Text>
-                  <Text style={styles.nextBusHeroTime}>{busSchedule.departures[0]?.timeFormatted}</Text>
-                </View>
-                <View style={styles.nextBusCountdownPill}>
-                  <Text style={styles.nextBusCountdownText}>
-                    In {busSchedule.nextBusInMinutes} mins
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.todayUpcomingSection}>
-                <Text style={styles.todayDepPillsLabel}>Following buses today:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.todayDepPillsScroll}>
-                  {busSchedule.departures.slice(1, 4).map((dep, di) => (
-                    <View key={di} style={styles.todayDepPill}>
-                      <Text style={styles.todayDepPillTime}>{dep.timeFormatted}</Text>
-                      <View style={styles.busPillSubBadge}>
-                        <Text style={styles.todayDepPillSub}>+{dep.inMinutes}m</Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-          )}
-
-          <Text style={styles.busDesc}>
-            BMTC feeder buses run every 6–12 mins on this corridor with 0% surge. Ideal to bypass overpriced autos!
-          </Text>
-          <Pressable
-            onPress={() => setShowBusModal(true)}
-            style={({ pressed }) => [
-              styles.busScheduleButton,
-              pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <Text style={styles.busScheduleButtonText}>🚌 View All BMTC Routes & Timetable</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* Selected Mode Insider Tip */}
-      {currentMode.tip && (
-        <View style={styles.selectedTipBox}>
-          <Text style={styles.selectedTipText}>💡 {currentMode.tip}</Text>
-        </View>
-      )}
-
-      {/* BMTC Bus Modal */}
-      <BmtcBusScheduleModal
-        visible={showBusModal}
-        onClose={() => setShowBusModal(false)}
-        initialQuery={step.fromStation || step.toStation || ''}
-      />
     </View>
   );
 }
@@ -286,7 +317,7 @@ export default function ConnectingLegSelector({
 const styles = StyleSheet.create({
   container: {
     marginTop: 10,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   warningBanner: {
     flexDirection: 'row',
@@ -294,12 +325,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderRadius: radius.md,
     padding: 12,
-    marginBottom: 12,
-  },
-  warningBannerNotice: {
-    backgroundColor: '#fef3c7',
-    borderWidth: 1,
-    borderColor: '#fde68a',
+    marginBottom: 10,
   },
   warningBannerSevere: {
     backgroundColor: '#fee2e2',
@@ -316,181 +342,209 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
     letterSpacing: 0.5,
-    color: '#92400e',
+    color: '#991b1b',
     marginBottom: 2,
   },
   warningDesc: {
     fontSize: 11.5,
     fontFamily: fontFamily.body,
-    color: '#78350f',
+    color: '#7f1d1d',
     lineHeight: 16,
   },
-  selectorSection: {
-    marginBottom: 12,
-  },
-  selectorHeading: {
-    fontSize: 10.5,
-    fontFamily: fontFamily.bodyBold,
-    letterSpacing: 0.9,
-    color: colors.neutral[600],
-    marginBottom: 8,
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 2,
-  },
-  modePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    backgroundColor: colors.neutral[100],
-    borderWidth: 1.2,
-    borderColor: colors.neutral[300],
-    borderRadius: radius.pill,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-  },
-  modePillSelected: {
-    backgroundColor: colors.accentRamp[700],
-    borderColor: colors.accentRamp[800],
+  mainCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral[200],
+    padding: 14,
     ...shadow.sm,
   },
-  modeEmoji: {
-    fontSize: 15,
-  },
-  pillTextCol: {
-    alignItems: 'flex-start',
-  },
-  pillLabel: {
-    fontSize: 12,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[800],
-  },
-  pillLabelSelected: {
-    color: colors.white,
-  },
-  pillSub: {
-    fontSize: 10,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[500],
-    marginTop: 1,
-  },
-  pillSubSelected: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontFamily: fontFamily.bodyBold,
-  },
-  comparisonCard: {
-    backgroundColor: colors.neutral[100],
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(46, 43, 37, 0.08)',
-    overflow: 'hidden',
-  },
-  comparisonHeaderRow: {
+  cardHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(46, 43, 37, 0.03)',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral[100],
+    gap: 8,
   },
-  comparisonHeaderLeft: {
+  cardHeaderLeft: {
     flex: 1,
+    minWidth: 150,
   },
-  comparisonSectionTitle: {
+  cardHeaderTitle: {
     fontSize: 11,
     fontFamily: fontFamily.bodyBold,
     letterSpacing: 0.8,
     color: colors.neutral[800],
   },
-  comparisonSubTitle: {
-    fontSize: 10,
+  cardHeaderSub: {
+    fontSize: 11,
     fontFamily: fontFamily.body,
-    color: colors.neutral[600],
+    color: colors.neutral[500],
     marginTop: 1,
   },
-  toggleChevron: {
-    fontSize: 11,
-    fontFamily: fontFamily.bodyBold,
-    color: colors.accentRamp[700],
-    marginLeft: 8,
-  },
-  comparisonRowsContainer: {
-    padding: 8,
-    gap: 6,
-  },
-  compareRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    borderRadius: radius.sm,
-    backgroundColor: colors.white,
+  selectedPillBadge: {
+    backgroundColor: '#f0fdf4',
     borderWidth: 1,
+    borderColor: '#bbf7d0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    maxWidth: 110,
+  },
+  selectedPillText: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#15803d',
+  },
+  surgeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  surgeEmoji: {
+    fontSize: 16,
+  },
+  surgeLabel: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+  },
+  surgeAdvice: {
+    fontSize: 10.5,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[600],
+  },
+  modesList: {
+    gap: 7,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderRadius: radius.md,
+    paddingVertical: 9,
+    paddingHorizontal: 11,
+    borderWidth: 1.2,
     borderColor: colors.neutral[200],
   },
-  compareRowSelected: {
-    borderColor: colors.accentRamp[500],
-    backgroundColor: colors.accentRamp[100],
+  modeRowSelected: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#22c55e',
+    ...shadow.sm,
   },
-  compareRowLeft: {
+  modeRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
     flex: 1,
+    paddingRight: 6,
   },
-  compareRowEmoji: {
-    fontSize: 16,
+  radioCircle: {
+    width: 17,
+    height: 17,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: colors.neutral[300],
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
   },
-  compareTitleLine: {
+  radioCircleSelected: {
+    borderColor: '#16a34a',
+  },
+  radioInnerDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#16a34a',
+  },
+  modeEmoji: {
+    fontSize: 18,
+  },
+  modeTextCol: {
+    flex: 1,
+  },
+  modeTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  compareModeName: {
-    fontSize: 12,
+  modeName: {
+    fontSize: 12.5,
     fontFamily: fontFamily.bodyBold,
-    color: colors.neutral[900],
+    color: colors.neutral[800],
   },
-  compareModeNameSelected: {
-    color: colors.accentRamp[900],
+  modeNameSelected: {
+    color: '#14532d',
   },
-  bestTag: {
-    backgroundColor: colors.accent2Ramp[200],
-    color: colors.accent2Ramp[800],
-    fontSize: 9,
-    fontFamily: fontFamily.bodyBold,
-    paddingHorizontal: 5,
+  badgePill: {
+    paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: radius.pill,
-    overflow: 'hidden',
+    backgroundColor: colors.neutral[200],
   },
-  compareNote: {
+  badgeCheapest: {
+    backgroundColor: '#dcfce7',
+  },
+  badgeFastest: {
+    backgroundColor: '#e0e7ff',
+  },
+  badgePopular: {
+    backgroundColor: '#fef3c7',
+  },
+  badgeText: {
+    fontSize: 9,
+    fontFamily: fontFamily.bodyBold,
+    color: colors.neutral[700],
+  },
+  badgeTextCheapest: {
+    color: '#15803d',
+  },
+  badgeTextFastest: {
+    color: '#3730a3',
+  },
+  badgeTextPopular: {
+    color: '#92400e',
+  },
+  modeSubText: {
     fontSize: 10.5,
     fontFamily: fontFamily.body,
-    color: colors.neutral[600],
+    color: colors.neutral[500],
     marginTop: 2,
   },
-  compareRowRight: {
+  modeRowRight: {
     alignItems: 'flex-end',
-    marginLeft: 8,
+    minWidth: 70,
   },
-  compareFare: {
+  modeFare: {
     fontSize: 13,
     fontFamily: fontFamily.heading,
-    color: colors.accentRamp[700],
+    color: colors.neutral[700],
   },
-  compareFareSelected: {
-    color: colors.accentRamp[800],
+  modeFareSelected: {
+    color: '#15803d',
     fontFamily: fontFamily.heading,
   },
-  compareTime: {
-    fontSize: 10.5,
+  modeDuration: {
+    fontSize: 10,
     fontFamily: fontFamily.body,
-    color: colors.neutral[600],
+    color: colors.neutral[500],
     marginTop: 1,
+  },
+  sourceFootnote: {
+    fontSize: 10,
+    fontFamily: fontFamily.body,
+    color: colors.neutral[400],
+    marginTop: 10,
+    textAlign: 'center',
   },
   selectedTipBox: {
     backgroundColor: colors.accentRamp[100],

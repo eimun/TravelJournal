@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
-import { colors, fontFamily, radius, shadow } from '../theme/tokens';
+import { colors, fontFamily, radius, shadow, space } from '../theme/tokens';
 import { PURPLE_LINE, GREEN_LINE } from '../data/transitData';
 import { useTrip } from '../../src/context/TripContext';
 import SearchBar from '../components/SearchBar';
@@ -61,6 +61,7 @@ export default function NavigateScreen({ contentPadding }) {
     currentCity,
     openCitySwitcher,
     openFareReliability,
+    setTab,
   } = useTrip();
 
   const [mapMode, setMapMode] = useState(true);
@@ -517,6 +518,17 @@ export default function NavigateScreen({ contentPadding }) {
                   <Text style={styles.legendText}>Metro 1</Text>
                 </View>
               </>
+            ) : currentCity?.id === 'kolkata' ? (
+              <>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#1d4ed8' }]} />
+                  <Text style={styles.legendText}>Blue</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#15803d' }]} />
+                  <Text style={styles.legendText}>Green (Underwater)</Text>
+                </View>
+              </>
             ) : (
               <>
                 <View style={styles.legendItem}>
@@ -595,144 +607,112 @@ export default function NavigateScreen({ contentPadding }) {
     );
   };
 
-  const renderQuickUtilities = () => {
-    if (currentCity?.id === 'delhi') {
-      return (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickUtilityScroll}
-        >
-          <Pressable
-            onPress={() => openFareReliability && openFareReliability()}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnDel,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#e0e7ff' }]}>
-              <Text style={styles.quickUtilityEmoji}>⚡</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, { color: '#3730a3' }]}>DMRC Metro</Text>
-              <Text style={[styles.quickUtilitySub, { color: '#6366f1' }]}>12 Lines & Fares</Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, { color: '#4f46e5' }]}>➔</Text>
-          </Pressable>
+  const renderSavingsCard = () => {
+    return (
+      <Pressable
+        onPress={() => setTab('passport')}
+        style={({ pressed }) => [styles.tripStatsCard, pressed && { opacity: 0.88 }]}
+      >
+        <View style={styles.statsIconCircle}>
+          <Text style={{ fontSize: 20 }}>🌱</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.statsCardTitle}>Track CO2 Savings with Transit</Text>
+          <Text style={styles.statsCardSub}>
+            You saved ₹140 & 2.4 kg CO2 choosing metro over direct cabs!
+          </Text>
+        </View>
+        <View style={styles.goBadge}>
+          <Text style={styles.goBadgeText}>GO ➔</Text>
+        </View>
+      </Pressable>
+    );
+  };
 
-          <Pressable
-            onPress={() => setShowCloakroom(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnCloakroom,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
-              <Text style={styles.quickUtilityEmoji}>🧳</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
-                NDLS Cloakroom
-              </Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
-                Platform 16 · ₹30
-              </Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
-          </Pressable>
+    const renderQuickUtilities = () => {
+    const cId = (currentCity?.id || 'bengaluru').toLowerCase();
+    
+    const cityConfig = {
+      bengaluru: {
+        metro: { title: 'Majestic Blueprint', sub: '3D Concourse & Gates', emoji: '🏢', bg: '#f1f5f9', color: '#0f172a' },
+        bus: { title: 'BMTC Bus Routes', sub: 'Feeders & Passes', emoji: '🚌' },
+        cloakroom: { title: 'Majestic Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      delhi: {
+        metro: { title: 'DMRC Metro', sub: '12 Lines & Fares', emoji: '⚡', bg: '#e0e7ff', color: '#3730a3' },
+        bus: { title: 'DTC City Bus', sub: 'Electric & Airport', emoji: '🚌' },
+        cloakroom: { title: 'New Delhi Cloakroom', sub: 'Pahar Ganj Exit · ₹30' },
+      },
+      mumbai: {
+        metro: { title: 'Mumbai Local', sub: 'Fast & Slow Lines', emoji: '🚆', bg: '#e0f2fe', color: '#075985' },
+        bus: { title: 'BEST Electric Bus', sub: 'Colaba ↔ Bandra', emoji: '🚌' },
+        cloakroom: { title: 'CSMT Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      kolkata: {
+        metro: { title: 'Underwater Metro', sub: 'Howrah ↔ Esplanade', emoji: '🚇', bg: '#dbeafe', color: '#1e40af' },
+        bus: { title: 'WBTC City Bus', sub: 'Howrah ↔ Salt Lake', emoji: '🚌' },
+        cloakroom: { title: 'Howrah Cloakroom', sub: 'Old Complex · ₹30' },
+      },
+      hyderabad: {
+        metro: { title: 'Hyderabad Metro', sub: 'Red & Blue Lines', emoji: '🚇', bg: '#fee2e2', color: '#991b1b' },
+        bus: { title: 'TSRTC Pushpak', sub: 'Airport AC Liners', emoji: '🚌' },
+        cloakroom: { title: 'Secunderabad Jn', sub: 'Platform 1 · ₹30' },
+      },
+      chennai: {
+        metro: { title: 'Chennai Metro', sub: 'Blue & Green CMRL', emoji: '🚇', bg: '#e0f2fe', color: '#0369a1' },
+        bus: { title: 'MTC Express Bus', sub: 'Deluxe & Ordinary', emoji: '🚌' },
+        cloakroom: { title: 'Chennai Central', sub: 'Platform 1 · ₹30' },
+      },
+      jaipur: {
+        metro: { title: 'Jaipur Metro', sub: 'Pink Line Old City', emoji: '🚇', bg: '#fce7f3', color: '#9d174d' },
+        bus: { title: 'JCTSL City Bus', sub: 'Low Floor & Amer', emoji: '🚌' },
+        cloakroom: { title: 'Jaipur Jn Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      pune: {
+        metro: { title: 'Maha Metro Pune', sub: 'Purple & Aqua Lines', emoji: '🚇', bg: '#f3e8ff', color: '#6b21a8' },
+        bus: { title: 'PMPML Rainbow', sub: 'BRTS & City Passes', emoji: '🚌' },
+        cloakroom: { title: 'Pune Jn Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      ahmedabad: {
+        metro: { title: 'GMRC Metro', sub: 'East-West Corridor', emoji: '🚇', bg: '#dbeafe', color: '#1e40af' },
+        bus: { title: 'Janmarg BRTS', sub: 'Dedicated Lanes', emoji: '🚌' },
+        cloakroom: { title: 'Kalupur Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      kochi: {
+        metro: { title: 'Kochi Water Metro', sub: 'Electric Catamarans', emoji: '⛴️', bg: '#ccfbf1', color: '#0f766e' },
+        bus: { title: 'KSRTC Circular', sub: 'City Electric Buses', emoji: '🚌' },
+        cloakroom: { title: 'Ernakulam South', sub: 'Platform 1 · ₹30' },
+      },
+      goa: {
+        metro: { title: 'Mandovi Ferry', sub: 'River Crossings', emoji: '⛴️', bg: '#e0f2fe', color: '#0369a1' },
+        bus: { title: 'Kadamba Coastal', sub: 'KTCL AC & Panaji', emoji: '🚌' },
+        cloakroom: { title: 'Madgaon Cloakroom', sub: 'Platform 1 · ₹30' },
+      },
+      varanasi: {
+        metro: { title: 'Ganga Ghat Boats', sub: 'Assi ↔ Namo Ghat', emoji: '⛵', bg: '#ffedd5', color: '#c2410c' },
+        bus: { title: 'Kashi E-Bus', sub: 'Cantt ↔ Godowlia', emoji: '🚌' },
+        cloakroom: { title: 'Varanasi Cantt', sub: 'Platform 1 · ₹30' },
+      },
+    };
 
-          <Pressable
-            onPress={() => setShowSafetyModal(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnSafety,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
-              <Text style={styles.quickUtilityEmoji}>🛡️</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
-              <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
-          </Pressable>
-        </ScrollView>
-      );
-    }
+    const cfg = cityConfig[cId] || cityConfig.bengaluru;
 
-    if (currentCity?.id === 'mumbai') {
-      return (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickUtilityScroll}
-        >
-          <Pressable
-            onPress={() => openFareReliability && openFareReliability()}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnBom,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#e0f2fe' }]}>
-              <Text style={styles.quickUtilityEmoji}>🚆</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, { color: '#075985' }]}>Mumbai Local</Text>
-              <Text style={[styles.quickUtilitySub, { color: '#0284c7' }]}>Fast & Slow Lines</Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, { color: '#0284c7' }]}>➔</Text>
-          </Pressable>
+    const handleMetroPress = () => {
+      setShowBlueprint(true);
+    };
 
-          <Pressable
-            onPress={() => setShowCloakroom(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnCloakroom,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#ffedd5' }]}>
-              <Text style={styles.quickUtilityEmoji}>🧳</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
-                CSMT Cloakroom
-              </Text>
-              <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
-                Platform 1 · ₹30
-              </Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
-          </Pressable>
+    const handleBusPress = () => {
+      if (cId === 'bengaluru') {
+        setShowBmtcModal(true);
+      } else {
+        fireToast(`${cfg.bus.title}: ${cfg.bus.sub} - Active routes in ${currentCity?.name || 'city'}`);
+      }
+    };
 
-          <Pressable
-            onPress={() => setShowSafetyModal(true)}
-            style={({ pressed }) => [
-              styles.quickUtilityBtn,
-              styles.quickUtilityBtnSafety,
-              pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
-            ]}
-          >
-            <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
-              <Text style={styles.quickUtilityEmoji}>🛡️</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
-              <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
-            </View>
-            <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
-          </Pressable>
-        </ScrollView>
-      );
-    }
+    const handleCloakroomPress = () => {
+      setShowCloakroom(true);
+    };
 
-    // Default: Bengaluru
     return (
       <ScrollView
         horizontal
@@ -740,24 +720,24 @@ export default function NavigateScreen({ contentPadding }) {
         contentContainerStyle={styles.quickUtilityScroll}
       >
         <Pressable
-          onPress={() => setShowBlueprint(true)}
+          onPress={handleMetroPress}
           style={({ pressed }) => [
             styles.quickUtilityBtn,
             pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
           ]}
         >
-          <View style={[styles.utilityIconCircle, { backgroundColor: '#f1f5f9' }]}>
-            <Text style={styles.quickUtilityEmoji}>🏢</Text>
+          <View style={[styles.utilityIconCircle, { backgroundColor: cfg.metro.bg }]}>
+            <Text style={styles.quickUtilityEmoji}>{cfg.metro.emoji}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.quickUtilityTitle}>Majestic Blueprint</Text>
-            <Text style={styles.quickUtilitySub}>3D Concourse & Gates</Text>
+            <Text style={[styles.quickUtilityTitle, { color: cfg.metro.color }]}>{cfg.metro.title}</Text>
+            <Text style={styles.quickUtilitySub}>{cfg.metro.sub}</Text>
           </View>
-          <Text style={styles.quickUtilityArrow}>➔</Text>
+          <Text style={[styles.quickUtilityArrow, { color: cfg.metro.color }]}>➔</Text>
         </Pressable>
 
         <Pressable
-          onPress={() => setShowBmtcModal(true)}
+          onPress={handleBusPress}
           style={({ pressed }) => [
             styles.quickUtilityBtn,
             styles.quickUtilityBtnBus,
@@ -765,21 +745,21 @@ export default function NavigateScreen({ contentPadding }) {
           ]}
         >
           <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
-            <Text style={styles.quickUtilityEmoji}>🚌</Text>
+            <Text style={styles.quickUtilityEmoji}>{cfg.bus.emoji}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleBus]}>
-              BMTC Bus Routes
+              {cfg.bus.title}
             </Text>
             <Text style={[styles.quickUtilitySub, styles.quickUtilitySubBus]}>
-              Feeders & Passes
+              {cfg.bus.sub}
             </Text>
           </View>
           <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowBus]}>➔</Text>
         </Pressable>
 
         <Pressable
-          onPress={() => setShowCloakroom(true)}
+          onPress={handleCloakroomPress}
           style={({ pressed }) => [
             styles.quickUtilityBtn,
             styles.quickUtilityBtnCloakroom,
@@ -791,13 +771,31 @@ export default function NavigateScreen({ contentPadding }) {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.quickUtilityTitle, styles.quickUtilityTitleCloakroom]}>
-              Station Cloakrooms
+              {cfg.cloakroom.title}
             </Text>
             <Text style={[styles.quickUtilitySub, styles.quickUtilitySubCloakroom]}>
-              KSR & YPR · ₹30
+              {cfg.cloakroom.sub}
             </Text>
           </View>
           <Text style={[styles.quickUtilityArrow, styles.quickUtilityArrowCloakroom]}>➔</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setShowSafetyModal(true)}
+          style={({ pressed }) => [
+            styles.quickUtilityBtn,
+            styles.quickUtilityBtnSafety,
+            pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] },
+          ]}
+        >
+          <View style={[styles.utilityIconCircle, { backgroundColor: '#dcfce7' }]}>
+            <Text style={styles.quickUtilityEmoji}>🛡️</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.quickUtilityTitle, { color: '#166534' }]}>Safety Ping</Text>
+            <Text style={[styles.quickUtilitySub, { color: '#15803d' }]}>WhatsApp Alert</Text>
+          </View>
+          <Text style={[styles.quickUtilityArrow, { color: colors.accentRamp[600] }]}>➔</Text>
         </Pressable>
       </ScrollView>
     );
@@ -861,6 +859,7 @@ export default function NavigateScreen({ contentPadding }) {
         <View style={styles.wideLeftPane}>
           {headerView}
           {renderEnvironmentalAlert()}
+          {renderSavingsCard()}
           <View style={styles.searchSection}>
             <SearchBar onSelectDestination={selectDestination} />
           </View>
@@ -1064,6 +1063,9 @@ export default function NavigateScreen({ contentPadding }) {
 
           {/* Ambient condition strip */}
           {renderEnvironmentalAlert()}
+
+          {/* Trip Stats & CO2 Savings (GO to Explorer Passport) */}
+          {renderSavingsCard()}
 
           {/* Step-by-Step Route Card & Advisories (bottom sheet) */}
           {activeRoute && (
@@ -1417,6 +1419,10 @@ const styles = StyleSheet.create({
     borderColor: '#bae6fd',
     backgroundColor: '#f0f9ff',
   },
+  quickUtilityBtnCcu: {
+    borderColor: '#bfdbfe',
+    backgroundColor: '#eff6ff',
+  },
   quickUtilityBtnSafety: {
     borderColor: '#bbf7d0',
     backgroundColor: '#f0fdf4',
@@ -1560,6 +1566,48 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontFamily: fontFamily.bodyBold,
     color: colors.white,
+  },
+  tripStatsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...shadow.sm,
+  },
+  statsIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#dcfce7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsCardTitle: {
+    fontSize: 13.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#0f172a',
+  },
+  statsCardSub: {
+    fontSize: 11,
+    fontFamily: fontFamily.body,
+    color: '#475569',
+    marginTop: 2,
+  },
+  goBadge: {
+    backgroundColor: colors.accentRamp[600],
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  goBadgeText: {
+    fontSize: 11.5,
+    fontFamily: fontFamily.bodyBold,
+    color: '#ffffff',
   },
   weatherCard: {
     backgroundColor: '#ffffff',

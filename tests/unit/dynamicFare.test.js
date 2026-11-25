@@ -63,12 +63,14 @@ describe('Fare matrix (official tariffs only)', () => {
       expect(calculateDynamicFareMatrix(9000, noon, { roadMeters: 10000 }).providers.cab.fare).toBe(244);
     });
 
-    it('never invents app prices or an unregulated bike-taxi fare', () => {
+    it('provides genuine estimated market price ranges for app autos and unregulated bike-taxis', () => {
       const m = calculateDynamicFareMatrix(3000, noon, { roadMeters: 3500 });
       expect(m.providers.appAuto.fare).toBeNull();
-      expect(m.providers.appAuto.fareText).toBe('Set by app');
+      expect(m.providers.appAuto.fareText).toMatch(/₹\d+ – ₹\d+/);
+      expect(m.providers.appAuto.fareRange.min).toBeGreaterThanOrEqual(35);
       expect(m.providers.bike.fare).toBeNull();
-      expect(m.providers.bike.tag).toBe('NO GOVT TARIFF');
+      expect(m.providers.bike.fareText).toMatch(/₹\d+ – ₹\d+/);
+      expect(m.providers.bike.tag).toBe('APP ESTIMATE');
     });
 
     it('uses the Maharashtra bike-taxi tariff in Mumbai (₹15 first 1.5 km, ₹10.27/km)', () => {

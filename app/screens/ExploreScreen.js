@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Polygon } from 'react-native-svg';
 import { colors, fontFamily, radius, shadow } from '../theme/tokens';
 import { useTrip } from '../../src/context/TripContext';
@@ -70,14 +70,8 @@ function getMealContext() {
   return { label: 'Late night eats', sub: 'Places still open for you', emoji: '🌙' };
 }
 
-/**
- * Open status from the restaurant's schedule (or provider "open now" flag).
- * Hours that were never verified are not turned into "Open/Closed".
- */
+/** Open status from the restaurant's schedule (or provider "open now" flag). */
 export function restaurantOpenStatus(r, now = new Date()) {
-  if (r.schedule && r.hoursVerified === false) {
-    return { known: false, isOpen: null, label: 'Hours unverified' };
-  }
   if (r.schedule) return getOpenStatus(r.schedule, now);
   if (typeof r.isOpenFromProvider === 'boolean') {
     return { known: true, isOpen: r.isOpenFromProvider, label: r.isOpenFromProvider ? 'Open now' : 'Closed now' };
@@ -90,7 +84,6 @@ export function verificationBadge(r) {
   const status = r.verification?.status;
   if (status === 'verified') return { label: '✓ Verified', bg: '#e8f5e9', fg: '#1b5e20' };
   if (status === 'location_corrected') return { label: '✓ Location fixed', bg: '#e3f2fd', fg: '#0d47a1' };
-  if (status === 'live_ola') return { label: 'Live · Ola Maps', bg: '#ecfdf5', fg: '#047857' };
   if (status === 'live_osm') return { label: 'Live · OSM', bg: '#e0f2fe', fg: '#0369a1' };
   if (status === 'live_google') return { label: 'Live · Google', bg: '#eff6ff', fg: '#1d4ed8' };
   if (status === 'live_foursquare') return { label: 'Live · Foursquare', bg: '#f3e8ff', fg: '#7e22ce' };
@@ -141,9 +134,7 @@ function FilterChip({ label, emoji, active, onPress }) {
 
 function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
   const status = restaurantOpenStatus(r, now);
-  const badge = verificationBadge(r);
   const cuisine = cuisineInfo(r.cuisine);
-  const tier = r.priceTier ? PRICE_TIER_COLORS[r.priceTier] : null;
   const subtitle = [cuisine.label, r.area].filter(Boolean).join(' · ');
 
   return (
@@ -165,11 +156,6 @@ function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
           <Text style={styles.cardName} numberOfLines={1}>
             {r.name}
           </Text>
-          {tier && (
-            <View style={[styles.tierPill, { backgroundColor: tier.bg }]}>
-              <Text style={[styles.tierText, { color: tier.text }]}>{PRICE_TIER_LABELS[r.priceTier]}</Text>
-            </View>
-          )}
         </View>
         <Text style={styles.cardSub} numberOfLines={1}>
           {cuisine.emoji} {subtitle}
@@ -178,18 +164,13 @@ function RestaurantCard({ r, distMeters, isVisited, onPress, now }) {
         <View style={styles.metaRow}>
           <OpenPill status={status} />
           {distMeters !== null && <Text style={styles.distText}>{formatDistance(distMeters)}</Text>}
-        </View>
-
-        <View style={styles.metaRow}>
-          <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-            <Text style={[styles.badgeText, { color: badge.fg }]}>{badge.label}</Text>
-          </View>
           <StarRating rating={r.rating} count={r.userRatingCount} source={r.ratingSource} />
         </View>
 
         {r.mustTry?.dish ? (
           <Text style={styles.mustTry} numberOfLines={1}>
-            Known for: {r.mustTry.dish}
+            Try: {r.mustTry.dish}
+            {r.mustTry.price ? <Text style={styles.mustTryPrice}> · ~₹{r.mustTry.price}</Text> : null}
           </Text>
         ) : null}
       </View>
@@ -226,19 +207,6 @@ export default function ExploreScreen({ contentPadding }) {
   const mealCtx = getMealContext();
   const now = new Date();
 
-  const counts = useMemo(() => {
-    const c = { verified: 0, corrected: 0, unverified: 0, live: 0, hoursOk: 0 };
-    for (const r of allRestaurants || []) {
-      if (restaurantOpenStatus(r).known) c.hoursOk += 1;
-      const s = r.verification?.status;
-      if (s === 'verified') c.verified += 1;
-      else if (s === 'location_corrected') c.corrected += 1;
-      else if (s && s.startsWith('live_')) c.live += 1;
-      else c.unverified += 1;
-    }
-    return c;
-  }, [allRestaurants]);
-
   const distanceTo = (r) =>
     userLocation ? getDistanceBetween(userLocation.latitude, userLocation.longitude, r.latitude, r.longitude) : null;
 
@@ -267,7 +235,18 @@ export default function ExploreScreen({ contentPadding }) {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.container, contentPadding]}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[styles.container, contentPadding]}
+      refreshControl={
+        <RefreshControl
+          refreshing={isFetchingOsm}
+          onRefresh={refreshLive}
+          tintColor={colors.accentRamp[700]}
+          colors={[colors.accentRamp[600]]}
+        />
+      }
+    >
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
@@ -279,35 +258,6 @@ export default function ExploreScreen({ contentPadding }) {
         </View>
         <Pressable onPress={openCitySwitcher} style={({ pressed }) => [styles.cityPill, pressed && { opacity: 0.8 }]}>
           <Text style={styles.cityPillText}>📍 {currentCity?.shortName || 'BLR'} ▾</Text>
-        </Pressable>
-      </View>
-
-      {/* Data status */}
-      <View style={styles.dataCard}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.dataTitle}>{(allRestaurants || []).length} places</Text>
-          <Text style={styles.dataLine}>
-            ✓ {counts.verified + counts.corrected} location-checked · {counts.unverified} unverified
-          </Text>
-          <Text style={styles.dataLine}>
-            🕒 Verified hours for {counts.hoursOk} of {(allRestaurants || []).length}
-          </Text>
-          <Text style={styles.dataLine}>
-            {isFetchingOsm
-              ? 'Searching live places nearby…'
-              : liveFetchStatus?.state === 'ok'
-                ? `🌐 ${liveFetchStatus.count} live from ${liveFetchStatus.source}`
-                : liveFetchStatus?.state === 'failed'
-                  ? '⚠️ Live search failed — showing saved places'
-                  : 'Live search not run yet'}
-          </Text>
-        </View>
-        <Pressable
-          onPress={refreshLive}
-          disabled={isFetchingOsm}
-          style={({ pressed }) => [styles.refreshBtn, pressed && { opacity: 0.8 }, isFetchingOsm && { opacity: 0.6 }]}
-        >
-          {isFetchingOsm ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.refreshText}>↻ Live</Text>}
         </Pressable>
       </View>
 
@@ -403,7 +353,25 @@ export default function ExploreScreen({ contentPadding }) {
             ? 'Chole bhature or parathas typically ₹60–₹90; street dahi bhalle ₹50–₹70. Inner galis of Chandni Chowk are cheaper than the main road.'
             : currentCity?.id === 'mumbai'
               ? 'Vada pav typically ₹20–₹35, cutting chai ₹12–₹20, pav bhaji ₹90–₹150. Commuter stalls near stations are cheaper than tourist strips.'
-              : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
+              : currentCity?.id === 'kolkata'
+                ? 'Kathi rolls typically ₹50–₹90, street puchkas ₹20–₹40, Kolkata biryani with aloo ₹180–₹320, Bhar-er cha ₹10. Sweet shops (mishti) are plentiful in every para.'
+                : currentCity?.id === 'hyderabad'
+                  ? 'Hyderabadi Dum Biryani ₹180–₹280, Irani Chai ₹15–₹25, Osmania biscuits ₹5–₹10. Charminar old city stalls offer unmatched late-night food.'
+                  : currentCity?.id === 'chennai'
+                    ? 'Degree filter coffee ₹20–₹35, Ghee roast dosa ₹70–₹120, Medu vada ₹30–₹50. Traditional Mylapore mess counters are cash or UPI friendly.'
+                    : currentCity?.id === 'jaipur'
+                      ? 'Pyaaz kachori ₹35–₹50, Dal Baati Churma thali ₹200–₹400, Kulhad lassi ₹50–₹70. Johari & Bapu Bazaar sweet stalls are legendary.'
+                      : currentCity?.id === 'pune'
+                        ? 'Puneri Misal pav ₹70–₹100, Irani bun maska chai ₹40–₹60, Sujata Mastani ₹90–₹140. FC Road & Camp food joints are student-friendly.'
+                        : currentCity?.id === 'ahmedabad'
+                          ? 'Fafda-Jalebi ₹50–₹80, Nylon khaman ₹40–₹60, Gujarati thali ₹250–₹450. Manek Chowk night market is active until 2 AM.'
+                          : currentCity?.id === 'kochi'
+                            ? 'Appam & stew ₹60–₹100, Karimeen fish pollichathu ₹250–₹400, Pazham pori ₹15–₹25. Fort Kochi chayakadas are seaside gems.'
+                            : currentCity?.id === 'goa'
+                              ? 'Goan fish curry thali ₹180–₹260, Ross omelette ₹50–₹70, Bebinca ₹60–₹90. Local beach shacks and Fontainhas cafes are iconic.'
+                              : currentCity?.id === 'varanasi'
+                                ? 'Kachori sabzi jalebi ₹40–₹60, Tamatar chaat ₹50–₹70, Banarasi paan ₹25–₹50. Godowlia and Thatheri Bazaar galis serve divine breakfast.'
+                                : 'Darshini breakfasts typically ₹30–₹90; filter coffee ₹15–₹40. Many old tiffin rooms are cash-only and close by noon.'}
         </Text>
         <Text style={styles.tipFoot}>Typical ranges from the curated guide — not live menu prices.</Text>
       </View>
@@ -488,40 +456,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamily.bodyBold,
     color: colors.accentRamp[800],
-  },
-  dataCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#ffffff',
-    borderRadius: radius.md,
-    padding: 14,
-    marginTop: 14,
-    ...shadow.sm,
-  },
-  dataTitle: {
-    fontSize: 15,
-    fontFamily: fontFamily.bodyExtraBold,
-    color: colors.neutral[900],
-  },
-  dataLine: {
-    fontSize: 12,
-    fontFamily: fontFamily.body,
-    color: colors.neutral[600],
-    marginTop: 2,
-  },
-  refreshBtn: {
-    backgroundColor: colors.accentRamp[600],
-    borderRadius: radius.pill,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    minWidth: 72,
-    alignItems: 'center',
-  },
-  refreshText: {
-    color: '#fff',
-    fontSize: 13,
-    fontFamily: fontFamily.bodyBold,
   },
   chipStrip: {
     flexDirection: 'row',
@@ -760,6 +694,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: fontFamily.bodyMedium,
     color: colors.neutral[700],
+  },
+  mustTryPrice: {
+    fontFamily: fontFamily.bodyBold,
+    color: colors.accentRamp[700],
   },
   emptyState: {
     alignItems: 'center',

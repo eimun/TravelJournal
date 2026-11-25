@@ -68,6 +68,44 @@ export function getTimeSurgeContext(date = new Date(), cityId = 'bengaluru') {
 }
 
 /**
+ * Estimated realistic price range for App Autos (Uber Auto, Ola Auto, Rapido Auto, Namma Yatri).
+ * Reflects real-world dynamic pricing: meter base + platform fee (₹15–₹30) + peak/night surge.
+ */
+export function estimateAppAutoPriceRange(meterFare, distanceKm, isNight = false, period = 'midday_normal') {
+  const d = Math.max(0.5, distanceKm || 1);
+  const base = meterFare && meterFare > 0 ? meterFare : Math.round(36 + d * 18);
+
+  // App autos have platform fees and booking charge; realistic minimum is ~₹75-80
+  const low = Math.max(75, Math.round((base * 1.25) / 5) * 5);
+
+  // Peak/night surge multiplier
+  const isPeak = period === 'morning_peak' || period === 'evening_peak';
+  const surgeMultiplier = isNight ? 1.55 : isPeak ? 1.45 : 1.35;
+  const high = Math.max(low + 20, Math.round((base * surgeMultiplier + 25) / 5) * 5);
+
+  return { min: low, max: high, fareText: `~₹${low} – ₹${high}` };
+}
+
+/**
+ * Estimated realistic price range for Bike Taxis (Rapido, Uber Moto, Ola Bike).
+ * Real-world city minimums with platform fees and insurance are ₹60+.
+ */
+export function estimateBikePriceRange(distanceKm, isNight = false, period = 'midday_normal') {
+  const d = Math.max(0.5, distanceKm || 1);
+  const isPeak = period === 'morning_peak' || period === 'evening_peak';
+
+  // Base Rapido minimum is ~₹60 for city rides
+  const lowRaw = 52 + Math.max(0, d - 1.5) * 11;
+  const low = Math.max(60, Math.round(lowRaw / 5) * 5);
+
+  const nightAdd = isNight ? 15 : isPeak ? 10 : 0;
+  const highRaw = 68 + Math.max(0, d - 1.5) * 14 + nightAdd;
+  const high = Math.max(low + 15, Math.round(highRaw / 5) * 5);
+
+  return { min: low, max: high, fareText: `~₹${low} – ₹${high}` };
+}
+
+/**
  * @param {number} straightMeters straight-line distance
  * @param {Date} date
  * @param {object} options { cityId, roadMeters }
@@ -80,6 +118,14 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
   const cab = computeOfficialFare(cityId, 'cab', trip);
   const bike = computeOfficialFare(cityId, 'bike', trip);
   const traffic = getTimeSurgeContext(date, cityId);
+  const distanceKm = auto.distanceKm ?? Math.round((trip.straightMeters / 1000) * 10) / 10;
+
+  const appAutoRange = estimateAppAutoPriceRange(auto.fare, distanceKm, !!auto.isNight, traffic.period);
+  const bikeRange = estimateBikePriceRange(distanceKm, !!auto.isNight, traffic.period);
+
+  const bikeFareText = bike.regulated && bike.fare !== null
+    ? `${bike.distanceSource === 'estimated' ? '~' : ''}₹${bike.fare}`
+    : bikeRange.fareText;
 
   const fareText = (r) =>
     r.fare === null || r.fare === undefined ? 'Set by app' : `${r.distanceSource === 'estimated' ? '~' : ''}₹${r.fare}`;
@@ -87,7 +133,7 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
   return {
     cityId,
     distanceMeters: trip.straightMeters,
-    distanceKm: auto.distanceKm ?? Math.round((trip.straightMeters / 1000) * 10) / 10,
+    distanceKm,
     distanceSource: auto.distanceSource || 'estimated',
     official: { auto, cab, bike },
     surge: { ...traffic, isNight: !!auto.isNight },
@@ -104,18 +150,19 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
       },
       appAuto: {
         id: 'app_auto',
-        name: 'App autos (Uber / Ola / Rapido / Namma Yatri)',
-        subtitle: auto.tariff?.appNote || 'Price set by the app',
+        name: 'App autos (Uber / Ola / Rapido)',
+        subtitle: 'Uber, Ola, Rapido & Namma Yatri',
         fare: null,
-        fareText: 'Set by app',
-        tag: 'NOT PUBLISHED',
-        tagColor: '#64748b',
-        badge: 'Check app',
+        fareRange: appAutoRange,
+        fareText: appAutoRange.fareText,
+        tag: 'APP ESTIMATE',
+        tagColor: '#2563eb',
+        badge: auto.isNight ? 'Night surge' : traffic.period.includes('peak') ? 'Peak surge' : 'Market range',
       },
       cab: {
         id: 'cab_official',
         name: cab.tariff?.label || 'Cab',
-        subtitle: cab.tariff?.appNote || '',
+        subtitle: 'Uber, Ola & local city cabs',
         fare: cab.fare,
         fareText: fareText(cab),
         tag: cab.regulated ? 'OFFICIAL TARIFF' : 'NOT REGULATED',
@@ -124,13 +171,14 @@ export function calculateDynamicFareMatrix(straightMeters, date = new Date(), op
       },
       bike: {
         id: 'bike',
-        name: bike.tariff?.label || 'Bike taxi',
-        subtitle: bike.regulated ? bike.tariff?.appNote : bike.tariff?.legalStatus || 'Price set by the app',
+        name: bike.tariff?.label || 'Bike taxi (Rapido / Uber Moto)',
+        subtitle: 'Rapido, Uber Moto & Ola Bike',
         fare: bike.fare,
-        fareText: fareText(bike),
-        tag: bike.regulated ? 'OFFICIAL TARIFF' : 'NO GOVT TARIFF',
-        tagColor: bike.regulated ? '#16a34a' : '#64748b',
-        badge: '',
+        fareRange: bike.regulated && bike.fare !== null ? null : bikeRange,
+        fareText: bikeFareText,
+        tag: bike.regulated ? 'OFFICIAL TARIFF' : 'APP ESTIMATE',
+        tagColor: bike.regulated ? '#16a34a' : '#2563eb',
+        badge: bike.regulated ? (bike.isNight ? 'Night rate' : 'Govt rate') : (auto.isNight ? 'Night rate' : 'Rapido / Moto'),
       },
     },
     negotiationPhrase: {

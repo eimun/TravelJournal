@@ -16,6 +16,17 @@ export const DMRC_AIRPORT = '#ea580c';
 export const MUMBAI_WESTERN = '#dc2626';
 export const MUMBAI_CENTRAL = '#991b1b';
 export const MUMBAI_METRO1 = '#0284c7';
+export const KOLKATA_BLUE = '#1d4ed8';
+export const KOLKATA_GREEN = '#15803d';
+export const KOLKATA_PURPLE = '#7e22ce';
+export const KOLKATA_ORANGE = '#ea580c';
+export const KOLKATA_TRAM = '#0891b2';
+export const KOLKATA_FERRY = '#0284c7';
+export const HYD_RED = '#dc2626';
+export const HYD_BLUE = '#2563eb';
+export const HYD_GREEN = '#16a34a';
+export const CHENNAI_BLUE = '#0284c7';
+export const CHENNAI_GREEN = '#10b981';
 
 // Namma Metro Purple Line (Challaghatta <-> Whitefield)
 export const PURPLE_STATIONS = [
@@ -232,6 +243,324 @@ export const MUMBAI_METRO1_STATIONS = [
   { id: 'mum_m12', name: 'Ghatkopar Metro (Central Interchange)', latitude: 19.0863, longitude: 72.9081, isInterchange: true },
 ];
 
+// Kolkata Metro Blue Line 1 (Dakshineswar <-> Dum Dum <-> Esplanade <-> Kavi Subhash)
+export const KOLKATA_BLUE_STATIONS = [
+  { id: 'kol_b1', name: 'Dakshineswar (Skywalk to Kali Temple & Ferry)', latitude: 22.6552, longitude: 88.3575 },
+  { id: 'kol_b2', name: 'Baranagar', latitude: 22.6416, longitude: 88.3694 },
+  { id: 'kol_b3', name: 'Noapara (Depot Hub)', latitude: 22.6338, longitude: 88.3842 },
+  { id: 'kol_b4', name: 'Dum Dum (Suburban Rail Interchange)', latitude: 22.6219, longitude: 88.3932, isInterchange: true },
+  { id: 'kol_b5', name: 'Belgachia', latitude: 22.6072, longitude: 88.3822 },
+  { id: 'kol_b6', name: 'Shyambazar (5-Point Crossing)', latitude: 22.6011, longitude: 88.3718 },
+  { id: 'kol_b7', name: 'Shobhabazar Sutanuti (Kumartuli Heritage)', latitude: 22.5961, longitude: 88.3662 },
+  { id: 'kol_b8', name: 'Girish Park', latitude: 22.5862, longitude: 88.3598 },
+  { id: 'kol_b9', name: 'Mahatma Gandhi Road (Burrabazar Market)', latitude: 22.5815, longitude: 88.3585 },
+  { id: 'kol_b10', name: 'Central (College St / Bowbazar)', latitude: 22.5735, longitude: 88.3572 },
+  { id: 'kol_b11', name: 'Chandni Chowk (Electronics Market)', latitude: 22.5684, longitude: 88.3548 },
+  { id: 'kol_b12', name: 'Esplanade (Mega Interchange with Green Line)', latitude: 22.5645, longitude: 88.3516, isInterchange: true },
+  { id: 'kol_b13', name: 'Park Street (Dining & Flurys / Allen Park)', latitude: 22.5535, longitude: 88.3524 },
+  { id: 'kol_b14', name: 'Maidan (Brigade Ground / Victoria View)', latitude: 22.5482, longitude: 88.3499 },
+  { id: 'kol_b15', name: 'Rabindra Sadan (Nandan & Academy of Fine Arts)', latitude: 22.5398, longitude: 88.3483 },
+  { id: 'kol_b16', name: 'Netaji Bhavan (Bose Memorial)', latitude: 22.5338, longitude: 88.3475 },
+  { id: 'kol_b17', name: 'Jatin Das Park (Hazra Crossing)', latitude: 22.5248, longitude: 88.3468 },
+  { id: 'kol_b18', name: 'Kalighat (Temple & Rashbehari Crossing)', latitude: 22.5186, longitude: 88.3458 },
+  { id: 'kol_b19', name: 'Rabindra Sarobar (Southern Lakes)', latitude: 22.5098, longitude: 88.3462 },
+  { id: 'kol_b20', name: 'Mahanayak Uttam Kumar (Tollygunge)', latitude: 22.4975, longitude: 88.3452, isInterchange: true },
+  { id: 'kol_b21', name: 'Netaji (Kudghat)', latitude: 22.4878, longitude: 88.3465 },
+  { id: 'kol_b22', name: 'Masterda Surya Sen (Bansdroni)', latitude: 22.4789, longitude: 88.3524 },
+  { id: 'kol_b23', name: 'Gitanjali (Naktala)', latitude: 22.4715, longitude: 88.3612 },
+  { id: 'kol_b24', name: 'Kavi Nazrul (Garia Bazar)', latitude: 22.4665, longitude: 88.3745 },
+  { id: 'kol_b25', name: 'Shahid Khudiram (Briji)', latitude: 22.4632, longitude: 88.3842 },
+  { id: 'kol_b26', name: 'Kavi Subhash (New Garia Terminal)', latitude: 22.4608, longitude: 88.3989, isInterchange: true },
+];
+
+// Kolkata Metro Green Line 2 (Howrah Underwater <-> Sealdah <-> Salt Lake Sector V)
+export const KOLKATA_GREEN_STATIONS = [
+  { id: 'kol_g1', name: 'Howrah Maidan (Terminal)', latitude: 22.5862, longitude: 88.3288 },
+  { id: 'kol_g2', name: 'Howrah Railway Station (Underwater Metro Interchange)', latitude: 22.5839, longitude: 88.3426, isInterchange: true },
+  { id: 'kol_g3', name: 'Mahakaran (BBD Bagh / Riverfront)', latitude: 22.5744, longitude: 88.3488 },
+  { id: 'kol_g4', name: 'Esplanade Green Line (Interchange with Blue Line)', latitude: 22.5645, longitude: 88.3516, isInterchange: true },
+  { id: 'kol_g5', name: 'Sealdah Railway Station (Eastern Rail Interchange)', latitude: 22.5670, longitude: 88.3712, isInterchange: true },
+  { id: 'kol_g6', name: 'Phoolbagan', latitude: 22.5712, longitude: 88.3892 },
+  { id: 'kol_g7', name: 'Salt Lake Stadium (Yuva Bharati)', latitude: 22.5701, longitude: 88.4055 },
+  { id: 'kol_g8', name: 'Bengal Chemical', latitude: 22.5772, longitude: 88.4124 },
+  { id: 'kol_g9', name: 'City Centre (Salt Lake)', latitude: 22.5878, longitude: 88.4129 },
+  { id: 'kol_g10', name: 'Central Park', latitude: 22.5902, longitude: 88.4208 },
+  { id: 'kol_g11', name: 'Karunamoyee (Bus Terminus)', latitude: 22.5872, longitude: 88.4285 },
+  { id: 'kol_g12', name: 'Salt Lake Sector V (IT Tech Corridor)', latitude: 22.5735, longitude: 88.4331, isInterchange: true },
+];
+
+// Hyderabad Metro Red Line 1 (Miyapur <-> LB Nagar via Ameerpet, MGBS) - 27 stations
+export const HYD_RED_STATIONS = [
+  { id: 'hyd_r1', name: 'Miyapur Terminal', latitude: 17.4966, longitude: 78.3614 },
+  { id: 'hyd_r2', name: 'JNTU College', latitude: 17.4984, longitude: 78.3888 },
+  { id: 'hyd_r3', name: 'KPHB Colony', latitude: 17.4925, longitude: 78.4012 },
+  { id: 'hyd_r4', name: 'Kukatpally', latitude: 17.4842, longitude: 78.4138 },
+  { id: 'hyd_r5', name: 'Balanagar', latitude: 17.4721, longitude: 78.4285 },
+  { id: 'hyd_r6', name: 'Moosapet', latitude: 17.4645, longitude: 78.4352 },
+  { id: 'hyd_r7', name: 'Bharat Nagar', latitude: 17.4582, longitude: 78.4398 },
+  { id: 'hyd_r8', name: 'Erragadda', latitude: 17.4524, longitude: 78.4426 },
+  { id: 'hyd_r9', name: 'ESI Hospital', latitude: 17.4478, longitude: 78.4445 },
+  { id: 'hyd_r10', name: 'SR Nagar', latitude: 17.4421, longitude: 78.4468 },
+  { id: 'hyd_r11', name: 'Ameerpet (Red & Blue Mega Interchange)', latitude: 17.4357, longitude: 78.4485, isInterchange: true },
+  { id: 'hyd_r12', name: 'Punjagutta', latitude: 17.4288, longitude: 78.4524 },
+  { id: 'hyd_r13', name: 'Irrum Manzil', latitude: 17.4215, longitude: 78.4568 },
+  { id: 'hyd_r14', name: 'Khairatabad (Hussain Sagar Lake)', latitude: 17.4124, longitude: 78.4612 },
+  { id: 'hyd_r15', name: 'Lakdi-ka-pul', latitude: 17.4042, longitude: 78.4665 },
+  { id: 'hyd_r16', name: 'Assembly', latitude: 17.3975, longitude: 78.4712 },
+  { id: 'hyd_r17', name: 'Nampally (Hyderabad Deccan Railway Terminal)', latitude: 17.3921, longitude: 78.4745, isInterchange: true },
+  { id: 'hyd_r18', name: 'Gandhi Bhavan', latitude: 17.3872, longitude: 78.4775 },
+  { id: 'hyd_r19', name: 'Osmania Medical College', latitude: 17.3828, longitude: 78.4802 },
+  { id: 'hyd_r20', name: 'MGBS (Mahatma Gandhi Bus Station Interchange)', latitude: 17.3789, longitude: 78.4826, isInterchange: true },
+  { id: 'hyd_r21', name: 'Malakpet (Railway Station link)', latitude: 17.3732, longitude: 78.4925 },
+  { id: 'hyd_r22', name: 'New Market', latitude: 17.3695, longitude: 78.5024 },
+  { id: 'hyd_r23', name: 'Musarambagh', latitude: 17.3672, longitude: 78.5112 },
+  { id: 'hyd_r24', name: 'Dilsukhnagar', latitude: 17.3688, longitude: 78.5245 },
+  { id: 'hyd_r25', name: 'Chaitanyapuri', latitude: 17.3654, longitude: 78.5362 },
+  { id: 'hyd_r26', name: 'Victoria Memorial (Hyderabad)', latitude: 17.3621, longitude: 78.5458 },
+  { id: 'hyd_r27', name: 'LB Nagar (South Terminal)', latitude: 17.3562, longitude: 78.5524, isInterchange: true },
+];
+
+// Hyderabad Metro Blue Line 2 (Nagole <-> Raidurg/Hitec City via Ameerpet, Secunderabad) - 23 stations
+export const HYD_BLUE_STATIONS = [
+  { id: 'hyd_b1', name: 'Nagole Terminal', latitude: 17.3792, longitude: 78.5612 },
+  { id: 'hyd_b2', name: 'Uppal (Cricket Stadium)', latitude: 17.4024, longitude: 78.5582 },
+  { id: 'hyd_b3', name: 'Stadium', latitude: 17.4112, longitude: 78.5498 },
+  { id: 'hyd_b4', name: 'NGRI', latitude: 17.4185, longitude: 78.5385 },
+  { id: 'hyd_b5', name: 'Habsiguda', latitude: 17.4245, longitude: 78.5312 },
+  { id: 'hyd_b6', name: 'Tarnaka', latitude: 17.4285, longitude: 78.5225 },
+  { id: 'hyd_b7', name: 'Mettuguda', latitude: 17.4342, longitude: 78.5145 },
+  { id: 'hyd_b8', name: 'Secunderabad East (Secunderabad Railway Terminal)', latitude: 17.4334, longitude: 78.5045, isInterchange: true },
+  { id: 'hyd_b9', name: 'Parade Ground (Interchange with Green Line)', latitude: 17.4428, longitude: 78.4985, isInterchange: true },
+  { id: 'hyd_b10', name: 'Paradise', latitude: 17.4435, longitude: 78.4872 },
+  { id: 'hyd_b11', name: 'Rasoolpura', latitude: 17.4421, longitude: 78.4765 },
+  { id: 'hyd_b12', name: 'Prakash Nagar', latitude: 17.4445, longitude: 78.4652 },
+  { id: 'hyd_b13', name: 'Begumpet (Railway Station link)', latitude: 17.4412, longitude: 78.4578, isInterchange: true },
+  { id: 'hyd_b14', name: 'Ameerpet (Red & Blue Mega Interchange)', latitude: 17.4357, longitude: 78.4485, isInterchange: true },
+  { id: 'hyd_b15', name: 'Madhura Nagar', latitude: 17.4325, longitude: 78.4398 },
+  { id: 'hyd_b16', name: 'Yusufguda', latitude: 17.4312, longitude: 78.4312 },
+  { id: 'hyd_b17', name: 'Road No 5 Jubilee Hills', latitude: 17.4295, longitude: 78.4215 },
+  { id: 'hyd_b18', name: 'Jubilee Hills Check Post', latitude: 17.4285, longitude: 78.4124 },
+  { id: 'hyd_b19', name: 'Peddamma Gudi', latitude: 17.4328, longitude: 78.4035 },
+  { id: 'hyd_b20', name: 'Madhapur', latitude: 17.4392, longitude: 78.3965 },
+  { id: 'hyd_b21', name: 'Durgam Cheruvu', latitude: 17.4445, longitude: 78.3895 },
+  { id: 'hyd_b22', name: 'Hitec City (Cyber Towers & Tech Hub)', latitude: 17.4504, longitude: 78.3808 },
+  { id: 'hyd_b23', name: 'Raidurg (Terminal / Mindspace IT Park)', latitude: 17.4412, longitude: 78.3775, isInterchange: true },
+];
+
+// Chennai Metro Blue Line 1 (Wimco Nagar <-> Chennai Airport via Central, LIC, Guindy) - 25 stations
+export const CHENNAI_BLUE_STATIONS = [
+  { id: 'chen_b1', name: 'Wimco Nagar Depot', latitude: 13.1692, longitude: 80.3012 },
+  { id: 'chen_b2', name: 'Wimco Nagar', latitude: 13.1612, longitude: 80.3005 },
+  { id: 'chen_b3', name: 'Tiruvottriyur', latitude: 13.1504, longitude: 80.2995 },
+  { id: 'chen_b4', name: 'Kaladipet', latitude: 13.1415, longitude: 80.2982 },
+  { id: 'chen_b5', name: 'Tollgate', latitude: 13.1312, longitude: 80.2974 },
+  { id: 'chen_b6', name: 'New Washermanpet', latitude: 13.1215, longitude: 80.2952 },
+  { id: 'chen_b7', name: 'Tondiarpet', latitude: 13.1124, longitude: 80.2912 },
+  { id: 'chen_b8', name: 'Sir Theagaraya College', latitude: 13.1042, longitude: 80.2885 },
+  { id: 'chen_b9', name: 'Washermanpet', latitude: 13.0975, longitude: 80.2854 },
+  { id: 'chen_b10', name: 'Mannadi', latitude: 13.0912, longitude: 80.2862 },
+  { id: 'chen_b11', name: 'High Court', latitude: 13.0845, longitude: 80.2875 },
+  { id: 'chen_b12', name: 'Puratchi Thalaivar Dr. MGR Central (Chennai Central)', latitude: 13.0827, longitude: 80.2755, isInterchange: true },
+  { id: 'chen_b13', name: 'Government Estate', latitude: 13.0695, longitude: 80.2735 },
+  { id: 'chen_b14', name: 'LIC (Anna Salai)', latitude: 13.0612, longitude: 80.2665 },
+  { id: 'chen_b15', name: 'Thousand Lights', latitude: 13.0545, longitude: 80.2575 },
+  { id: 'chen_b16', name: 'AG-DMS (Teynampet)', latitude: 13.0478, longitude: 80.2495 },
+  { id: 'chen_b17', name: 'Teynampet', latitude: 13.0402, longitude: 80.2425 },
+  { id: 'chen_b18', name: 'Nandanam', latitude: 13.0315, longitude: 80.2352 },
+  { id: 'chen_b19', name: 'Saidapet', latitude: 13.0242, longitude: 80.2265 },
+  { id: 'chen_b20', name: 'Little Mount', latitude: 13.0165, longitude: 80.2195 },
+  { id: 'chen_b21', name: 'Guindy (Railway Station & Race Course)', latitude: 13.0085, longitude: 80.2125, isInterchange: true },
+  { id: 'chen_b22', name: 'Arignar Anna Alandur (Mega Interchange with Green Line)', latitude: 13.0040, longitude: 80.2015, isInterchange: true },
+  { id: 'chen_b23', name: 'Nanganallur Road', latitude: 12.9925, longitude: 80.1925 },
+  { id: 'chen_b24', name: 'Meenambakkam', latitude: 12.9865, longitude: 80.1785 },
+  { id: 'chen_b25', name: 'Chennai International Airport (MAA Terminal)', latitude: 12.9812, longitude: 80.1652, isInterchange: true },
+];
+
+// Chennai Metro Green Line 2 (Chennai Central <-> St. Thomas Mount via Koyambedu, CMBT, Alandur) - 17 stations
+export const CHENNAI_GREEN_STATIONS = [
+  { id: 'chen_g1', name: 'Puratchi Thalaivar Dr. MGR Central (Green Line)', latitude: 13.0827, longitude: 80.2755, isInterchange: true },
+  { id: 'chen_g2', name: 'Chennai Egmore (Railway Station Terminal)', latitude: 13.0790, longitude: 80.2610, isInterchange: true },
+  { id: 'chen_g3', name: 'Nehru Park', latitude: 13.0782, longitude: 80.2495 },
+  { id: 'chen_g4', name: 'Kilpauk Medical College', latitude: 13.0789, longitude: 80.2382 },
+  { id: 'chen_g5', name: 'Pachaiyappa College', latitude: 13.0775, longitude: 80.2285 },
+  { id: 'chen_g6', name: 'Shenoy Nagar', latitude: 13.0771, longitude: 80.2185 },
+  { id: 'chen_g7', name: 'Anna Nagar East', latitude: 13.0845, longitude: 80.2165 },
+  { id: 'chen_g8', name: 'Anna Nagar Tower', latitude: 13.0862, longitude: 80.2075 },
+  { id: 'chen_g9', name: 'Thirumangalam', latitude: 13.0855, longitude: 80.1985 },
+  { id: 'chen_g10', name: 'Koyambedu', latitude: 13.0742, longitude: 80.1945 },
+  { id: 'chen_g11', name: 'CMBT (Chennai Mofussil Bus Terminus)', latitude: 13.0675, longitude: 80.2045, isInterchange: true },
+  { id: 'chen_g12', name: 'Arumbakkam', latitude: 13.0595, longitude: 80.2085 },
+  { id: 'chen_g13', name: 'Vadapalani (Forum Vijaya Mall & Film Studios)', latitude: 13.0505, longitude: 80.2125 },
+  { id: 'chen_g14', name: 'Ashok Nagar', latitude: 13.0365, longitude: 80.2115 },
+  { id: 'chen_g15', name: 'Ekkattuthangal', latitude: 13.0215, longitude: 80.2065 },
+  { id: 'chen_g16', name: 'Arignar Anna Alandur (Interchange with Blue Line)', latitude: 13.0040, longitude: 80.2015, isInterchange: true },
+  { id: 'chen_g17', name: 'St. Thomas Mount (Terminal / Suburban Rail Interchange)', latitude: 12.9962, longitude: 80.1985, isInterchange: true },
+];
+
+
+// ============================================================================
+// JAIPUR METRO (JMRC Pink Line)
+// ============================================================================
+export const JAIPUR_PINK = '#ec4899';
+export const JAIPUR_PINK_STATIONS = [
+  { id: 'jai_m1', name: 'Mansarovar', latitude: 26.8624, longitude: 75.7612 },
+  { id: 'jai_m2', name: 'New Aatish Market', latitude: 26.8785, longitude: 75.7661 },
+  { id: 'jai_m3', name: 'Vivek Vihar', latitude: 26.8872, longitude: 75.7705 },
+  { id: 'jai_m4', name: 'Shyam Nagar', latitude: 26.8961, longitude: 75.7738 },
+  { id: 'jai_m5', name: 'Ram Nagar', latitude: 26.9042, longitude: 75.7765 },
+  { id: 'jai_m6', name: 'Civil Lines', latitude: 26.9102, longitude: 75.7824 },
+  { id: 'jai_m7', name: 'Railway Station (Jaipur Junction)', latitude: 26.9198, longitude: 75.7885, isInterchange: true },
+  { id: 'jai_m8', name: 'Sindhi Camp (ISBT Inter-state Bus)', latitude: 26.9234, longitude: 75.8012, isInterchange: true },
+  { id: 'jai_m9', name: 'Chandpole', latitude: 26.9248, longitude: 75.8115 },
+  { id: 'jai_m10', name: 'Chhoti Chaupar', latitude: 26.9255, longitude: 75.8202 },
+  { id: 'jai_m11', name: 'Badi Chaupar (City Palace & Hawa Mahal)', latitude: 26.9239, longitude: 75.8267 },
+];
+
+// ============================================================================
+// PUNE METRO (Maha Metro Line 1 Purple & Line 2 Aqua)
+// ============================================================================
+export const PUNE_PURPLE = '#7c3aed';
+export const PUNE_AQUA = '#06b6d4';
+export const PUNE_PURPLE_STATIONS = [
+  { id: 'pun_p1', name: 'PCMC Pimpri', latitude: 18.6275, longitude: 73.8012 },
+  { id: 'pun_p2', name: 'Bhosari (Nashik Phata)', latitude: 18.6085, longitude: 73.8182 },
+  { id: 'pun_p3', name: 'Kasarwadi', latitude: 18.5982, longitude: 73.8245 },
+  { id: 'pun_p4', name: 'Dapodi', latitude: 18.5854, longitude: 73.8324 },
+  { id: 'pun_p5', name: 'Bopodi', latitude: 18.5721, longitude: 73.8385 },
+  { id: 'pun_p6', name: 'Khadki', latitude: 18.5612, longitude: 73.8442 },
+  { id: 'pun_p7', name: 'Range Hill', latitude: 18.5442, longitude: 73.8475 },
+  { id: 'pun_p8', name: 'Shivajinagar Station', latitude: 18.5314, longitude: 73.8524, isInterchange: true },
+  { id: 'pun_p9', name: 'Civil Court Interchange', latitude: 18.5285, longitude: 73.8562, isInterchange: true },
+  { id: 'pun_p10', name: 'Kasba Peth (Budhwar Peth)', latitude: 18.5185, longitude: 73.8568 },
+  { id: 'pun_p11', name: 'Mandai', latitude: 18.5135, longitude: 73.8569 },
+  { id: 'pun_p12', name: 'Swargate Terminal', latitude: 18.5015, longitude: 73.8582, isInterchange: true },
+];
+
+export const PUNE_AQUA_STATIONS = [
+  { id: 'pun_a1', name: 'Vanaz', latitude: 18.5072, longitude: 73.8052 },
+  { id: 'pun_a2', name: 'Anand Nagar', latitude: 18.5085, longitude: 73.8135 },
+  { id: 'pun_a3', name: 'Ideal Colony', latitude: 18.5098, longitude: 73.8224 },
+  { id: 'pun_a4', name: 'Nal Stop', latitude: 18.5112, longitude: 73.8315 },
+  { id: 'pun_a5', name: 'Garware College', latitude: 18.5142, longitude: 73.8389 },
+  { id: 'pun_a6', name: 'Deccan Gymkhana', latitude: 18.5182, longitude: 73.8445 },
+  { id: 'pun_a7', name: 'PMC (Pune Municipal Corp)', latitude: 18.5245, longitude: 73.8512 },
+  { id: 'pun_a8', name: 'Civil Court Interchange', latitude: 18.5285, longitude: 73.8562, isInterchange: true },
+  { id: 'pun_a9', name: 'Pune Railway Station', latitude: 18.5289, longitude: 73.8742, isInterchange: true },
+  { id: 'pun_a10', name: 'Ruby Hall Clinic', latitude: 18.5332, longitude: 73.8812 },
+  { id: 'pun_a11', name: 'Bund Garden', latitude: 18.5385, longitude: 73.8895 },
+  { id: 'pun_a12', name: 'Kalyani Nagar', latitude: 18.5482, longitude: 73.9042 },
+  { id: 'pun_a13', name: 'Ramwadi', latitude: 18.5524, longitude: 73.9185 },
+];
+
+// ============================================================================
+// AHMEDABAD METRO (GMRC East-West & North-South Corridors)
+// ============================================================================
+export const AMD_BLUE = '#2563eb';
+export const AMD_RED = '#dc2626';
+export const AMD_BLUE_STATIONS = [
+  { id: 'amd_b1', name: 'Thaltej Gam', latitude: 23.0532, longitude: 72.5085 },
+  { id: 'amd_b2', name: 'Thaltej', latitude: 23.0505, longitude: 72.5175 },
+  { id: 'amd_b3', name: 'Doordarshan Kendra', latitude: 23.0485, longitude: 72.5282 },
+  { id: 'amd_b4', name: 'Gurukul Road', latitude: 23.0452, longitude: 72.5375 },
+  { id: 'amd_b5', name: 'Gujarat University', latitude: 23.0385, longitude: 72.5482 },
+  { id: 'amd_b6', name: 'Commerce Six Road', latitude: 23.0365, longitude: 72.5562 },
+  { id: 'amd_b7', name: 'SP Stadium', latitude: 23.0392, longitude: 72.5654 },
+  { id: 'amd_b8', name: 'Old High Court Interchange', latitude: 23.0345, longitude: 72.5712, isInterchange: true },
+  { id: 'amd_b9', name: 'Shahpur', latitude: 23.0312, longitude: 72.5785 },
+  { id: 'amd_b10', name: 'Gheekanta (Teen Darwaza / Old City)', latitude: 23.0275, longitude: 72.5842 },
+  { id: 'amd_b11', name: 'Kalupur (Ahmedabad Railway Station)', latitude: 23.0235, longitude: 72.6012, isInterchange: true },
+  { id: 'amd_b12', name: 'Kankaria East', latitude: 23.0095, longitude: 72.6085 },
+  { id: 'amd_b13', name: 'Apparel Park', latitude: 23.0072, longitude: 72.6195 },
+  { id: 'amd_b14', name: 'Amraiwadi', latitude: 23.0055, longitude: 72.6285 },
+  { id: 'amd_b15', name: 'Rabari Colony', latitude: 23.0035, longitude: 72.6375 },
+  { id: 'amd_b16', name: 'Vastral Gam', latitude: 23.0012, longitude: 72.6562 },
+];
+
+export const AMD_RED_STATIONS = [
+  { id: 'amd_r1', name: 'Motera Stadium (Narendra Modi Stadium)', latitude: 23.0915, longitude: 72.5975 },
+  { id: 'amd_r2', name: 'Sabarmati Railway Station', latitude: 23.0785, longitude: 72.5925, isInterchange: true },
+  { id: 'amd_r3', name: 'Ranip (BRTS Interchange)', latitude: 23.0682, longitude: 72.5865, isInterchange: true },
+  { id: 'amd_r4', name: 'Vadaj', latitude: 23.0565, longitude: 72.5782 },
+  { id: 'amd_r5', name: 'Usmanpura', latitude: 23.0475, longitude: 72.5742 },
+  { id: 'amd_r6', name: 'Old High Court Interchange', latitude: 23.0345, longitude: 72.5712, isInterchange: true },
+  { id: 'amd_r7', name: 'Gandhigram', latitude: 23.0282, longitude: 72.5702 },
+  { id: 'amd_r8', name: 'Paldi', latitude: 23.0165, longitude: 72.5685 },
+  { id: 'amd_r9', name: 'Shreyas', latitude: 23.0082, longitude: 72.5624 },
+  { id: 'amd_r10', name: 'Jivraj Park', latitude: 22.9985, longitude: 72.5482 },
+  { id: 'amd_r11', name: 'APMC Vasna', latitude: 22.9912, longitude: 72.5385 },
+];
+
+// ============================================================================
+// KOCHI METRO (KMRL) & KOCHI WATER METRO
+// ============================================================================
+export const KOCHI_METRO_COLOR = '#0284c7';
+export const KOCHI_WATER_COLOR = '#0d9488';
+export const KOCHI_METRO_STATIONS = [
+  { id: 'koc_m1', name: 'Aluva', latitude: 10.1098, longitude: 76.3532, isInterchange: true },
+  { id: 'koc_m2', name: 'Muttom', latitude: 10.0765, longitude: 76.3312 },
+  { id: 'koc_m3', name: 'Kalamassery', latitude: 10.0524, longitude: 76.3195 },
+  { id: 'koc_m4', name: 'CUSAT', latitude: 10.0415, longitude: 76.3142 },
+  { id: 'koc_m5', name: 'Edapally (Lulu Mall)', latitude: 10.0254, longitude: 76.3082 },
+  { id: 'koc_m6', name: 'Palarivattom', latitude: 10.0095, longitude: 76.3052 },
+  { id: 'koc_m7', name: 'JLN Stadium', latitude: 9.9985, longitude: 76.3005 },
+  { id: 'koc_m8', name: 'Kaloor', latitude: 9.9912, longitude: 76.2942 },
+  { id: 'koc_m9', name: 'Lissie', latitude: 9.9865, longitude: 76.2895 },
+  { id: 'koc_m10', name: 'MG Road Kochi', latitude: 9.9798, longitude: 76.2842 },
+  { id: 'koc_m11', name: 'Maharajas College', latitude: 9.9725, longitude: 76.2845 },
+  { id: 'koc_m12', name: 'Ernakulam South (Railway Station)', latitude: 9.9675, longitude: 76.2892, isInterchange: true },
+  { id: 'koc_m13', name: 'Kadavanthra', latitude: 9.9654, longitude: 76.2995 },
+  { id: 'koc_m14', name: 'Vyttila Mobility Hub', latitude: 9.9672, longitude: 76.3215, isInterchange: true },
+  { id: 'koc_m15', name: 'Thykoodam', latitude: 9.9612, longitude: 76.3265 },
+  { id: 'koc_m16', name: 'SN Junction (Tripunithura)', latitude: 9.9512, longitude: 76.3452 },
+];
+
+export const KOCHI_WATER_METRO_STATIONS = [
+  { id: 'koc_wm1', name: 'High Court Water Metro Terminal', latitude: 9.9835, longitude: 76.2742, isInterchange: true },
+  { id: 'koc_wm2', name: 'Bolgatty Island Terminal', latitude: 9.9805, longitude: 76.2685 },
+  { id: 'koc_wm3', name: 'Vypin Ferry Terminal', latitude: 9.9745, longitude: 76.2482 },
+  { id: 'koc_wm4', name: 'Fort Kochi Water Metro Terminal', latitude: 9.9682, longitude: 76.2435 },
+  { id: 'koc_wm5', name: 'South Chittoor Terminal', latitude: 10.0385, longitude: 76.2752 },
+  { id: 'koc_wm6', name: 'Cheranalloor Terminal', latitude: 10.0482, longitude: 76.2854 },
+];
+
+// ============================================================================
+// GOA TRANSIT & FERRY HUBS
+// ============================================================================
+export const GOA_COASTAL_COLOR = '#16a34a';
+export const GOA_FERRY_COLOR = '#0284c7';
+export const GOA_TRANSIT_STATIONS = [
+  { id: 'goa_t1', name: 'Panaji KTC Central Bus Terminal', latitude: 15.4989, longitude: 73.8342, isInterchange: true },
+  { id: 'goa_t2', name: 'Panaji Ferry Jetty (Mandovi Riverfront)', latitude: 15.5012, longitude: 73.8285, isInterchange: true },
+  { id: 'goa_t3', name: 'Betim Ferry Terminal', latitude: 15.5065, longitude: 73.8262 },
+  { id: 'goa_t4', name: 'Mapusa KTC Bus Stand', latitude: 15.5925, longitude: 73.8142 },
+  { id: 'goa_t5', name: 'Calangute Beach Circle Hub', latitude: 15.5412, longitude: 73.7554 },
+  { id: 'goa_t6', name: 'Candolim Main Road Hub', latitude: 15.5185, longitude: 73.7682 },
+  { id: 'goa_t7', name: 'Old Goa Heritage Terminal (Basilica)', latitude: 15.5005, longitude: 73.9115 },
+  { id: 'goa_t8', name: 'Madgaon (Margao) KTC Bus Stand', latitude: 15.2842, longitude: 73.9625, isInterchange: true },
+  { id: 'goa_t9', name: 'Madgaon Junction Railway Station', latitude: 15.2715, longitude: 73.9724, isInterchange: true },
+  { id: 'goa_t10', name: 'Vasco da Gama KTC Bus Stand', latitude: 15.3985, longitude: 73.8142 },
+  { id: 'goa_t11', name: 'Dabolim Airport Terminal', latitude: 15.3805, longitude: 73.8315 },
+  { id: 'goa_t12', name: 'Mopa (Manohar) Airport GOX', latitude: 15.7512, longitude: 73.8685 },
+];
+
+// ============================================================================
+// VARANASI URBAN TRANSIT & GHAT WATERWAYS
+// ============================================================================
+export const VARANASI_BUS_COLOR = '#ea580c';
+export const VARANASI_BOAT_COLOR = '#0284c7';
+export const VARANASI_TRANSIT_STATIONS = [
+  { id: 'vns_t1', name: 'Varanasi Cantt (Varanasi Jn) Railway Station', latitude: 25.3282, longitude: 82.9865, isInterchange: true },
+  { id: 'vns_t2', name: 'Godowlia Chowk Transit Hub', latitude: 25.3105, longitude: 83.0072, isInterchange: true },
+  { id: 'vns_t3', name: 'Kashi Vishwanath Ganga Corridor Gate', latitude: 25.3112, longitude: 83.0115 },
+  { id: 'vns_t4', name: 'Dashashwamedh Ghat Terminal', latitude: 25.3075, longitude: 83.0102 },
+  { id: 'vns_t5', name: 'Assi Ghat Terminal (Subah-e-Banaras)', latitude: 25.2902, longitude: 83.0065 },
+  { id: 'vns_t6', name: 'BHU Lanka Gate (Sir Sunderlal Hospital / VT)', latitude: 25.2795, longitude: 82.9995 },
+  { id: 'vns_t7', name: 'Banaras (Manduadih) Railway Station', latitude: 25.2985, longitude: 82.9662, isInterchange: true },
+  { id: 'vns_t8', name: 'Sarnath Heritage Terminal (Dhamek Stupa)', latitude: 25.3812, longitude: 83.0235 },
+  { id: 'vns_t9', name: 'Namo Ghat Ro-Pax Ferry Terminal', latitude: 25.3342, longitude: 83.0375 },
+  { id: 'vns_t10', name: 'Lal Bahadur Shastri Airport Babatpur', latitude: 25.4525, longitude: 82.8595 },
+];
+
 // Curated Popular Destinations across Bengaluru for instant offline search & quick picks
 export const POPULAR_DESTINATIONS = [
   {
@@ -403,6 +732,24 @@ export function getLineColor(line) {
     case 'mumbai_western': return MUMBAI_WESTERN;
     case 'mumbai_central': return MUMBAI_CENTRAL;
     case 'mumbai_metro1': return MUMBAI_METRO1;
+    case 'kolkata_blue': return KOLKATA_BLUE;
+    case 'kolkata_green': return KOLKATA_GREEN;
+    case 'hyd_red': return HYD_RED;
+    case 'hyd_blue': return HYD_BLUE;
+    case 'hyd_green': return HYD_GREEN;
+    case 'chennai_blue': return CHENNAI_BLUE;
+    case 'chennai_green': return CHENNAI_GREEN;
+    case 'jaipur_pink': return JAIPUR_PINK;
+    case 'pune_purple': return PUNE_PURPLE;
+    case 'pune_aqua': return PUNE_AQUA;
+    case 'amd_blue': return AMD_BLUE;
+    case 'amd_red': return AMD_RED;
+    case 'kochi_metro': return KOCHI_METRO_COLOR;
+    case 'kochi_water': return KOCHI_WATER_COLOR;
+    case 'goa_coastal': return GOA_COASTAL_COLOR;
+    case 'goa_ferry': return GOA_FERRY_COLOR;
+    case 'vns_bus': return VARANASI_BUS_COLOR;
+    case 'vns_boat': return VARANASI_BOAT_COLOR;
     default: return PURPLE_LINE;
   }
 }
@@ -420,6 +767,23 @@ export function getLineDisplayName(line) {
     case 'mumbai_western': return 'Western Line (Local)';
     case 'mumbai_central': return 'Central Line (Local)';
     case 'mumbai_metro1': return 'Metro Line 1 (Versova-Ghatkopar)';
+    case 'kolkata_blue': return 'Blue Line 1 (Dakshineswar - Kavi Subhash)';
+    case 'kolkata_green': return 'Green Line 2 (Underwater Howrah - Sector V)';
+    case 'hyd_red': return 'Red Line 1 (Miyapur – LB Nagar)';
+    case 'hyd_blue': return 'Blue Line 2 (Nagole – Raidurg/Hitec City)';
+    case 'chennai_blue': return 'Blue Line 1 (Wimco Nagar – Chennai Airport)';
+    case 'chennai_green': return 'Green Line 2 (Chennai Central – St. Thomas Mount)';
+    case 'jaipur_pink': return 'Pink Line (JMRC)';
+    case 'pune_purple': return 'Purple Line (Maha Metro)';
+    case 'pune_aqua': return 'Aqua Line (Maha Metro)';
+    case 'amd_blue': return 'Blue Line (GMRC)';
+    case 'amd_red': return 'Red Line (GMRC)';
+    case 'kochi_metro': return 'Kochi Metro (KMRL)';
+    case 'kochi_water': return 'Kochi Water Metro';
+    case 'goa_coastal': return 'Kadamba Coastal Transit';
+    case 'goa_ferry': return 'Mandovi River Ferry';
+    case 'vns_bus': return 'Kashi Smart City E-Bus';
+    case 'vns_boat': return 'Ganga Ghat Waterway';
     default: return 'Transit Line';
   }
 }
@@ -437,6 +801,21 @@ export function getStationListForLine(line) {
     case 'mumbai_western': return MUMBAI_WESTERN_STATIONS;
     case 'mumbai_central': return MUMBAI_CENTRAL_STATIONS;
     case 'mumbai_metro1': return MUMBAI_METRO1_STATIONS;
+    case 'kolkata_blue': return KOLKATA_BLUE_STATIONS;
+    case 'kolkata_green': return KOLKATA_GREEN_STATIONS;
+    case 'hyd_red': return HYD_RED_STATIONS;
+    case 'hyd_blue': return HYD_BLUE_STATIONS;
+    case 'chennai_blue': return CHENNAI_BLUE_STATIONS;
+    case 'chennai_green': return CHENNAI_GREEN_STATIONS;
+    case 'jaipur_pink': return JAIPUR_PINK_STATIONS;
+    case 'pune_purple': return PUNE_PURPLE_STATIONS;
+    case 'pune_aqua': return PUNE_AQUA_STATIONS;
+    case 'amd_blue': return AMD_BLUE_STATIONS;
+    case 'amd_red': return AMD_RED_STATIONS;
+    case 'kochi_metro': return KOCHI_METRO_STATIONS;
+    case 'kochi_water': return KOCHI_WATER_METRO_STATIONS;
+    case 'goa_coastal': return GOA_TRANSIT_STATIONS;
+    case 'vns_bus': return VARANASI_TRANSIT_STATIONS;
     default: return PURPLE_STATIONS;
   }
 }
@@ -445,9 +824,31 @@ export function getStationListForLine(line) {
  * Detects city from coordinate latitude and longitude
  */
 export function detectCityFromCoord(lat, lon) {
-  if (lat > 26) return 'delhi';
-  if (lat > 18 && lon < 74) return 'mumbai';
-  return 'bengaluru';
+  if (lat == null || lon == null) return 'bengaluru';
+  const centers = [
+    { id: 'bengaluru', lat: 12.9716, lon: 77.5946 },
+    { id: 'delhi', lat: 28.6139, lon: 77.2090 },
+    { id: 'mumbai', lat: 18.9220, lon: 72.8347 },
+    { id: 'kolkata', lat: 22.5726, lon: 88.3639 },
+    { id: 'hyderabad', lat: 17.3850, lon: 78.4867 },
+    { id: 'chennai', lat: 13.0827, lon: 80.2707 },
+    { id: 'jaipur', lat: 26.9124, lon: 75.7873 },
+    { id: 'pune', lat: 18.5204, lon: 73.8567 },
+    { id: 'ahmedabad', lat: 23.0225, lon: 72.5714 },
+    { id: 'kochi', lat: 9.9312, lon: 76.2673 },
+    { id: 'goa', lat: 15.2993, lon: 74.1240 },
+    { id: 'varanasi', lat: 25.3176, lon: 82.9739 },
+  ];
+  let closest = 'bengaluru';
+  let minD2 = Infinity;
+  for (const c of centers) {
+    const d2 = (lat - c.lat) ** 2 + (lon - c.lon) ** 2;
+    if (d2 < minD2) {
+      minD2 = d2;
+      closest = c.id;
+    }
+  }
+  return closest;
 }
 
 /**
@@ -460,6 +861,9 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
 
   const isDelhi = cityId === 'delhi' || line.startsWith('dmrc');
   const isMumbai = cityId === 'mumbai' || line.startsWith('mumbai');
+  const isKolkata = cityId === 'kolkata' || line.startsWith('kolkata');
+  const isHyderabad = cityId === 'hyderabad' || line.startsWith('hyd');
+  const isChennai = cityId === 'chennai' || line.startsWith('chennai');
 
   let isOperating = false;
   let opensAt = '05:00 AM';
@@ -477,6 +881,21 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
     opensAt = '04:00 AM';
     closesAt = '01:30 AM';
     isOperating = hour >= 4 || hour === 0 || (hour === 1 && minute <= 30);
+  } else if (isKolkata) {
+    // Kolkata Metro: 06:50 AM to 22:45 PM
+    opensAt = '06:50 AM';
+    closesAt = '22:45 PM';
+    isOperating = (hour > 6 || (hour === 6 && minute >= 50)) && (hour < 22 || (hour === 22 && minute <= 45));
+  } else if (isHyderabad) {
+    // Hyderabad Metro: 06:00 AM to 23:00 PM
+    opensAt = '06:00 AM';
+    closesAt = '23:00 PM';
+    isOperating = (hour > 6 || (hour === 6 && minute >= 0)) && (hour < 23 || (hour === 23 && minute === 0));
+  } else if (isChennai) {
+    // Chennai Metro: 05:00 AM to 23:00 PM
+    opensAt = '05:00 AM';
+    closesAt = '23:00 PM';
+    isOperating = (hour > 5 || (hour === 5 && minute >= 0)) && (hour < 23 || (hour === 23 && minute === 0));
   } else {
     // Bengaluru Namma Metro: 05:00 to 23:15
     opensAt = '05:00 AM';
@@ -522,6 +941,39 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
     } else {
       frequency = 6;
       frequencyLabel = 'Regular frequency: every 6 mins';
+    }
+  } else if (isKolkata) {
+    if ((hour >= 9 && hour < 12) || (hour >= 17 && hour < 20)) {
+      frequency = 5;
+      frequencyLabel = 'Peak rush: every 5 mins (Metro Express)';
+    } else if (hour < 8 || hour >= 21) {
+      frequency = 10;
+      frequencyLabel = 'Late evening: every 10 mins';
+    } else {
+      frequency = 7;
+      frequencyLabel = 'Regular frequency: every 7 mins';
+    }
+  } else if (isHyderabad) {
+    if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 20)) {
+      frequency = 4;
+      frequencyLabel = 'Peak rush: every 4 mins';
+    } else if (hour < 7 || hour >= 22) {
+      frequency = 10;
+      frequencyLabel = 'Late evening: every 10 mins';
+    } else {
+      frequency = 7;
+      frequencyLabel = 'Regular frequency: every 7 mins';
+    }
+  } else if (isChennai) {
+    if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 20)) {
+      frequency = 5;
+      frequencyLabel = 'Peak rush: every 5 mins';
+    } else if (hour < 7 || hour >= 22) {
+      frequency = 10;
+      frequencyLabel = 'Late evening: every 10 mins';
+    } else {
+      frequency = 7;
+      frequencyLabel = 'Regular frequency: every 7 mins';
     }
   } else {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
@@ -569,6 +1021,66 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
  * Calculates fare in Indian Rupees between two station indices
  */
 export function calculateMetroFare(stopCount, cityId = 'bengaluru') {
+  if (cityId === 'jaipur') {
+    if (stopCount <= 2) return 6;
+    if (stopCount <= 5) return 12;
+    if (stopCount <= 8) return 18;
+    return 22;
+  }
+  if (cityId === 'pune') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 20;
+    if (stopCount <= 14) return 25;
+    return 30;
+  }
+  if (cityId === 'ahmedabad') {
+    if (stopCount <= 3) return 5;
+    if (stopCount <= 7) return 10;
+    if (stopCount <= 12) return 15;
+    return 20;
+  }
+  if (cityId === 'kochi') {
+    if (stopCount <= 2) return 10;
+    if (stopCount <= 5) return 20;
+    if (stopCount <= 9) return 30;
+    if (stopCount <= 14) return 40;
+    return 50;
+  }
+  if (cityId === 'goa') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 25;
+    return 35;
+  }
+  if (cityId === 'varanasi') {
+    if (stopCount <= 3) return 10;
+    if (stopCount <= 6) return 15;
+    if (stopCount <= 10) return 20;
+    return 25;
+  }
+  if (cityId === 'hyderabad') {
+    if (stopCount <= 2) return 10;
+    if (stopCount <= 4) return 15;
+    if (stopCount <= 7) return 25;
+    if (stopCount <= 12) return 35;
+    if (stopCount <= 18) return 45;
+    return 55;
+  }
+  if (cityId === 'chennai') {
+    if (stopCount <= 2) return 10;
+    if (stopCount <= 5) return 20;
+    if (stopCount <= 9) return 30;
+    if (stopCount <= 15) return 40;
+    return 50;
+  }
+  if (cityId === 'kolkata') {
+    if (stopCount <= 2) return 5;
+    if (stopCount <= 5) return 10;
+    if (stopCount <= 10) return 15;
+    if (stopCount <= 20) return 20;
+    return 25;
+  }
   if (cityId === 'mumbai') {
     if (stopCount <= 3) return 5;
     if (stopCount <= 8) return 10;
@@ -619,7 +1131,121 @@ export function findNearestMetroStation(lat, lon, cityId = null) {
   let best = null;
   let minDistance = Infinity;
 
-  if (city === 'delhi') {
+    if (city === 'jaipur') {
+    for (const st of JAIPUR_PINK_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'jaipur_pink', city: 'jaipur', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'pune') {
+    for (const st of PUNE_PURPLE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'pune_purple', city: 'pune', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of PUNE_AQUA_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'pune_aqua', city: 'pune', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'ahmedabad') {
+    for (const st of AMD_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'amd_blue', city: 'ahmedabad', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of AMD_RED_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'amd_red', city: 'ahmedabad', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'kochi') {
+    for (const st of KOCHI_METRO_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kochi_metro', city: 'kochi', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of KOCHI_WATER_METRO_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kochi_water', city: 'kochi', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'goa') {
+    for (const st of GOA_TRANSIT_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'goa_coastal', city: 'goa', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'varanasi') {
+    for (const st of VARANASI_TRANSIT_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'vns_bus', city: 'varanasi', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'hyderabad') {
+    for (const st of HYD_RED_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'hyd_red', city: 'hyderabad', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of HYD_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'hyd_blue', city: 'hyderabad', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'chennai') {
+    for (const st of CHENNAI_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'chennai_blue', city: 'chennai', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of CHENNAI_GREEN_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'chennai_green', city: 'chennai', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'kolkata') {
+    for (const st of KOLKATA_BLUE_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kolkata_blue', city: 'kolkata', distanceMeters: Math.round(d) };
+      }
+    }
+    for (const st of KOLKATA_GREEN_STATIONS) {
+      const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
+      if (d < minDistance) {
+        minDistance = d;
+        best = { ...st, line: 'kolkata_green', city: 'kolkata', distanceMeters: Math.round(d) };
+      }
+    }
+  } else if (city === 'delhi') {
     for (const st of DMRC_YELLOW_STATIONS) {
       const d = getDistanceBetween(lat, lon, st.latitude, st.longitude);
       if (d < minDistance) {
@@ -787,9 +1413,112 @@ export function getDadarInterchangeGuide(fromLine, toLine) {
 }
 
 /**
+ * Returns exact transfer instructions at Esplanade Interchange (Kolkata)
+ */
+export function getEsplanadeInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'kolkata_blue' && toLine === 'kolkata_green') {
+    return {
+      title: 'Interchange at Esplanade (Blue Line ⇄ Green Line)',
+      steps: [
+        'Step off Blue Line (North-South) train at Esplanade Island Platform',
+        'Follow GREEN Line underwater metro overhead arrows down to the subterranean interchange concourse',
+        'Descend via escalators to Green Line platforms (towards Howrah / Salt Lake Sector V)',
+        'Platform 1 heads West under Hooghly river to Mahakaran & Howrah Railway Station',
+        'Platform 2 heads East towards Sealdah Railway Station & Salt Lake Sector V',
+        'Allow 3 minutes walking time inside the paid concourse',
+      ],
+      tip: 'Do NOT exit through token gates! Transfers between Blue & Green lines are within the paid concourse.',
+    };
+  }
+  return {
+    title: 'Interchange at Esplanade (Green Line ⇄ Blue Line)',
+    steps: [
+      'Step off Green Line train at Esplanade East-West platform level',
+      'Follow BLUE LINE directional signage towards North-South concourse escalators',
+      'Take escalators up to Blue Line platforms',
+      'Platform 1 heads North to Dum Dum & Dakshineswar; Platform 2 heads South to Kalighat & Kavi Subhash',
+      'Allow 3 minutes transfer time',
+    ],
+    tip: 'Keep your smart card or paper QR ticket for exit scanning at your final destination.',
+  };
+}
+
+/**
+ * Returns exact transfer instructions at Ameerpet Interchange (Hyderabad)
+ */
+export function getAmeerpetInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'hyd_red' && toLine === 'hyd_blue') {
+    return {
+      title: 'Interchange at Ameerpet (Red Line ⇄ Blue Line)',
+      steps: [
+        'Step off Red Line (Miyapur – LB Nagar) at Level 1 concourse platform',
+        'Follow BLUE LINE overhead wayfinding signs towards escalators up to Level 2',
+        'Take connecting escalators to Blue Line platforms',
+        'Platform 3 heads West to Hitec City Cyber Towers & Raidurg Terminal',
+        'Platform 4 heads East to Secunderabad Railway Station & Nagole Terminal',
+        'Allow 2 minutes transfer time inside the station',
+      ],
+      tip: 'Do NOT tap out at gates! Transfers between Red and Blue lines are on the same multi-level elevated concourse.',
+    };
+  }
+  return {
+    title: 'Interchange at Ameerpet (Blue Line ⇄ Red Line)',
+    steps: [
+      'Step off Blue Line (Nagole – Raidurg) at Level 2 platform',
+      'Follow RED LINE directional signs towards central escalators descending to Level 1',
+      'Platform 1 heads North to Kukatpally & Miyapur Terminal',
+      'Platform 2 heads South to Khairatabad, MGBS & LB Nagar',
+      'Allow 2 minutes walking time',
+    ],
+    tip: 'Keep your QR or token active for final exit scanning at destination.',
+  };
+}
+
+/**
+ * Returns exact transfer instructions at Chennai Central / Alandur Interchange (Chennai)
+ */
+export function getChennaiCentralInterchangeGuide(fromLine, toLine) {
+  if (fromLine === toLine) return null;
+  if (fromLine === 'chennai_blue' && toLine === 'chennai_green') {
+    return {
+      title: 'Interchange at Chennai Central / Alandur (Blue Line ⇄ Green Line)',
+      steps: [
+        'Step off Blue Line train at interchange platform',
+        'Follow GREEN LINE signs towards Koyambedu / Egmore concourse walkways',
+        'Take connecting escalators to Green Line platforms',
+        'Trains head towards Chennai Egmore, Koyambedu CMBT & St. Thomas Mount',
+        'Allow 3 minutes walking time',
+      ],
+      tip: 'Stay inside paid concourse; transfers are free across lines.',
+    };
+  }
+  return {
+    title: 'Interchange at Chennai Central / Alandur (Green Line ⇄ Blue Line)',
+    steps: [
+      'Step off Green Line train at interchange platform',
+      'Follow BLUE LINE airport corridor signs to the Blue Line platform',
+      'Platform heads South to Guindy & Chennai International Airport (MAA), or North to Washermanpet & Wimco Nagar',
+      'Allow 3 minutes transfer time',
+    ],
+    tip: 'Direct Blue Line trains connect to Airport terminals in under 35 minutes.',
+  };
+}
+
+/**
  * General multi-city interchange guide router
  */
 export function getInterchangeGuide(cityId, fromLine, toLine) {
+  if (cityId === 'hyderabad' || fromLine?.startsWith('hyd') || toLine?.startsWith('hyd')) {
+    return getAmeerpetInterchangeGuide(fromLine, toLine);
+  }
+  if (cityId === 'chennai' || fromLine?.startsWith('chennai') || toLine?.startsWith('chennai')) {
+    return getChennaiCentralInterchangeGuide(fromLine, toLine);
+  }
+  if (cityId === 'kolkata' || fromLine?.startsWith('kolkata') || toLine?.startsWith('kolkata')) {
+    return getEsplanadeInterchangeGuide(fromLine, toLine);
+  }
   if (cityId === 'delhi' || fromLine?.startsWith('dmrc') || toLine?.startsWith('dmrc')) {
     return getRajivChowkInterchangeGuide(fromLine, toLine);
   }
@@ -999,6 +1728,117 @@ export const STATION_GATES = {
     ],
     defaultExit: 'Gate 1',
   },
+  // Kolkata Key Stations
+  kol_g2: {
+    stationName: 'Howrah Railway Station (Metro)',
+    gates: [
+      { id: 'Gate 1', name: 'Old Complex Platforms 1–15', exitFor: 'Direct subway into Howrah Old Station concourse & cloakroom' },
+      { id: 'Gate 2', name: 'New Complex Platforms 17–23', exitFor: 'South Eastern Railway trains & Yatri Sathi / Prepaid Taxi' },
+      { id: 'Gate 3', name: 'Howrah Ferry Ghat Exit', exitFor: 'Direct riverwalk to Hooghly Ferry Ghat (to Fairlie Place / Babughat)' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_b12: {
+    stationName: 'Esplanade (Metro Interchange)',
+    gates: [
+      { id: 'Gate 1', name: 'JL Nehru Road / New Market', exitFor: 'New Market, Hogg Market, Grand Hotel & Curzon Park' },
+      { id: 'Gate 2', name: 'Dharmatala / Tram Terminus', exitFor: 'Esplanade Tram Terminus, CTC Bus Stand & Rani Rashmoni Ave' },
+      { id: 'Gate 3', name: 'Green Line Subterranean Link', exitFor: 'Underground interchange to Green Line (Howrah / Sector V)' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_g5: {
+    stationName: 'Sealdah Railway Station (Metro)',
+    gates: [
+      { id: 'Gate 1', name: 'Sealdah Main & North Concourse', exitFor: 'Direct footbridge into Sealdah Main Train Platforms 1–14' },
+      { id: 'Gate 2', name: 'Sealdah South & Koley Market', exitFor: 'South section local trains, Beliaghata Road & auto stand' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_b13: {
+    stationName: 'Park Street',
+    gates: [
+      { id: 'Gate 1', name: 'Park Street & Allen Park', exitFor: 'Peter Cat, Mocambo, Flurys, Stephen Court & nightlife' },
+      { id: 'Gate 2', name: 'Asiatic Society / Park Hotel', exitFor: 'Asiatic Society museum, Park Hotel, Camac Street link' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  kol_g12: {
+    stationName: 'Salt Lake Sector V',
+    gates: [
+      { id: 'Gate 1', name: 'College More & Wipro Junction', exitFor: 'Tech parks, IT companies, College More food street' },
+      { id: 'Gate 2', name: 'Sector V Ring Road', exitFor: 'Technopolis, Ring Road feeder buses & shared autos' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  // Hyderabad Key Stations
+  hyd_r11: {
+    stationName: 'Ameerpet (Red & Blue Mega Interchange)',
+    gates: [
+      { id: 'Gate A', name: 'NH 65 Punjagutta Side', exitFor: 'Ameerpet Commercial Hub & coaching centres' },
+      { id: 'Gate B', name: 'Begumpet Link Road', exitFor: 'Blue line escalator access & Sarathi Studios' },
+      { id: 'Gate C', name: 'Maitrivanam / SR Nagar Link', exitFor: 'Maitrivanam IT Complex & auto stand' },
+    ],
+    defaultExit: 'Gate A',
+  },
+  hyd_b8: {
+    stationName: 'Secunderabad East',
+    gates: [
+      { id: 'Gate 1', name: 'Secunderabad Railway Terminal Link', exitFor: 'Direct skywalk to Secunderabad Junction Railway Station' },
+      { id: 'Gate 2', name: 'St. Ann’s & Clock Tower', exitFor: 'Secunderabad Clock Tower, market & bus terminus' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  hyd_b22: {
+    stationName: 'Hitec City (Cyber Towers)',
+    gates: [
+      { id: 'Gate 1', name: 'Cyber Towers Junction', exitFor: 'Cyber Towers, Shilparamam Crafts Village & Mindspace link' },
+      { id: 'Gate 2', name: 'Madhapur Road', exitFor: 'Ascendas IT Park, hotels & corporate bus bay' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  hyd_r20: {
+    stationName: 'MGBS (Mahatma Gandhi Bus Station)',
+    gates: [
+      { id: 'Gate 1', name: 'Interstate Bus Terminal Concourse', exitFor: 'Direct walkway into MGBS central bus platforms' },
+      { id: 'Gate 2', name: 'Chaderghat & Musi Riverfront', exitFor: 'Old City link, Salar Jung Museum & auto stand' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  // Chennai Key Stations
+  chen_b12: {
+    stationName: 'Puratchi Thalaivar Dr. MGR Central',
+    gates: [
+      { id: 'Gate 1', name: 'Central Railway Station Concourse', exitFor: 'Direct underground walkway to Chennai Central Platforms 1–15' },
+      { id: 'Gate 2', name: 'Park Town & Evening Bazaar', exitFor: 'Chennai Park Suburban Station & Moore Market Complex' },
+      { id: 'Gate 3', name: 'Poonamallee High Road Side', exitFor: 'General Hospital, Ripon Building & City Bus Stand' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  chen_b25: {
+    stationName: 'Chennai International Airport (MAA)',
+    gates: [
+      { id: 'Gate 1', name: 'Terminal 1 & 2 Arrivals Link', exitFor: 'Air-conditioned skywalk into Airport Domestic & International Terminals' },
+      { id: 'Gate 2', name: 'Airport Metro Walkway & Cabs', exitFor: 'App cab pickup zones, airport parking & GST Road' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  chen_b22: {
+    stationName: 'Arignar Anna Alandur (Interchange)',
+    gates: [
+      { id: 'Gate 1', name: 'GST Road Concourse', exitFor: 'Grand Southern Trunk Road, Kathipara Flyover junction' },
+      { id: 'Gate 2', name: 'Asarhana Side', exitFor: 'Alandur market, St. Thomas Mount links' },
+    ],
+    defaultExit: 'Gate 1',
+  },
+  chen_g2: {
+    stationName: 'Chennai Egmore (Metro)',
+    gates: [
+      { id: 'Gate 1', name: 'Egmore Railway Station Entrance', exitFor: 'Direct skywalk to Chennai Egmore Train Platforms 1–11' },
+      { id: 'Gate 2', name: 'Gandhi Irwin Road', exitFor: 'Government Museum, Egmore bus stand & auto stand' },
+    ],
+    defaultExit: 'Gate 1',
+  },
 };
 
 /**
@@ -1071,6 +1911,54 @@ export function getMetroPlatformAndGateInfo({ stationId, line, fromIdx = 0, toId
     } else {
       platformNum = 2;
       towardsHeadsign = 'Towards Versova (Westbound Metro)';
+    }
+  } else if (line === 'kolkata_blue') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Kavi Subhash / Garia (Southbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Dakshineswar / Dum Dum (Northbound)';
+    }
+  } else if (line === 'kolkata_green') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Salt Lake Sector V (Eastbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Howrah Maidan / Underwater (Westbound)';
+    }
+  } else if (line === 'hyd_red') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards LB Nagar (Southbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Miyapur Terminal (Northbound)';
+    }
+  } else if (line === 'hyd_blue') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Hitec City / Raidurg (Westbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Secunderabad / Nagole (Eastbound)';
+    }
+  } else if (line === 'chennai_blue') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards Chennai Airport / Guindy (Southbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Wimco Nagar / Central (Northbound)';
+    }
+  } else if (line === 'chennai_green') {
+    if (toIdx > fromIdx) {
+      platformNum = 2;
+      towardsHeadsign = 'Towards St. Thomas Mount / Alandur (Westbound)';
+    } else {
+      platformNum = 1;
+      towardsHeadsign = 'Towards Chennai Central / Egmore (Eastbound)';
     }
   }
 

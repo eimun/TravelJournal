@@ -12,8 +12,14 @@ import {
 import {
   DELHI_RESTAURANTS,
   MUMBAI_RESTAURANTS,
+  KOLKATA_RESTAURANTS,
+  HYDERABAD_RESTAURANTS,
+  CHENNAI_RESTAURANTS,
   DELHI_SEARCH_HUBS,
   MUMBAI_SEARCH_HUBS,
+  KOLKATA_SEARCH_HUBS,
+  HYDERABAD_SEARCH_HUBS,
+  CHENNAI_SEARCH_HUBS,
 } from '../../app/data/cityPlacesData';
 import {
   calculateDynamicFareMatrix,
@@ -43,6 +49,27 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     expect(bom.autoFareFormula.baseDistanceKm).toBe(1.5);
     expect(bom.autoFareFormula.perKm).toBe(18.22);
     expect(bom.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
+
+    // Kolkata: WB Transport Dept (base ₹30 / 2 km, ₹15/km)
+    const ccu = getCityConfig('kolkata');
+    expect(ccu.autoFareFormula.baseFare).toBe(30);
+    expect(ccu.autoFareFormula.baseDistanceKm).toBe(2);
+    expect(ccu.autoFareFormula.perKm).toBe(15);
+    expect(ccu.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
+
+    // Hyderabad: Telangana Transport Dept (base ₹30 / 1.5 km, ₹15/km)
+    const hyd = getCityConfig('hyderabad');
+    expect(hyd.autoFareFormula.baseFare).toBe(30);
+    expect(hyd.autoFareFormula.baseDistanceKm).toBe(1.5);
+    expect(hyd.autoFareFormula.perKm).toBe(15);
+    expect(hyd.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
+
+    // Chennai: Tamil Nadu Govt Gazette (base ₹25 / 1.8 km, ₹12/km)
+    const maa = getCityConfig('chennai');
+    expect(maa.autoFareFormula.baseFare).toBe(25);
+    expect(maa.autoFareFormula.baseDistanceKm).toBe(1.8);
+    expect(maa.autoFareFormula.perKm).toBe(12);
+    expect(maa.autoFareFormula.lingoPhrase.toLowerCase()).toContain('meter');
   });
 
   test('Audit 2: Bengaluru geo-coordinates accuracy', () => {
@@ -85,6 +112,39 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     });
   });
 
+  test('Audit 4b: Kolkata geo-coordinates accuracy', () => {
+    // Kolkata coordinates fall accurately in 22.4°N - 22.75°N, 88.25°E - 88.5°E
+    const allCcuItems = [...KOLKATA_RESTAURANTS, ...KOLKATA_SEARCH_HUBS];
+    allCcuItems.forEach((item) => {
+      expect(item.latitude).toBeGreaterThanOrEqual(22.4);
+      expect(item.latitude).toBeLessThanOrEqual(22.75);
+      expect(item.longitude).toBeGreaterThanOrEqual(88.25);
+      expect(item.longitude).toBeLessThanOrEqual(88.5);
+    });
+  });
+
+  test('Audit 4c: Hyderabad geo-coordinates accuracy', () => {
+    // Hyderabad coordinates fall accurately in 17.3°N - 17.55°N, 78.35°E - 78.58°E
+    const allHydItems = [...HYDERABAD_RESTAURANTS, ...HYDERABAD_SEARCH_HUBS];
+    allHydItems.forEach((item) => {
+      expect(item.latitude).toBeGreaterThanOrEqual(17.3);
+      expect(item.latitude).toBeLessThanOrEqual(17.55);
+      expect(item.longitude).toBeGreaterThanOrEqual(78.35);
+      expect(item.longitude).toBeLessThanOrEqual(78.58);
+    });
+  });
+
+  test('Audit 4d: Chennai geo-coordinates accuracy', () => {
+    // Chennai coordinates fall accurately in 12.95°N - 13.18°N, 80.12°E - 80.32°E
+    const allMaaItems = [...CHENNAI_RESTAURANTS, ...CHENNAI_SEARCH_HUBS];
+    allMaaItems.forEach((item) => {
+      expect(item.latitude).toBeGreaterThanOrEqual(12.95);
+      expect(item.latitude).toBeLessThanOrEqual(13.18);
+      expect(item.longitude).toBeGreaterThanOrEqual(80.12);
+      expect(item.longitude).toBeLessThanOrEqual(80.32);
+    });
+  });
+
   test('Audit 5: Namma Metro station sequences and interchange integrity', () => {
     // Majestic interchange exists on both Purple & Green lines
     const purpleMajestic = PURPLE_STATIONS.find((s) => s.isInterchange && s.name.includes('Majestic'));
@@ -120,6 +180,15 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
 
     const bomCloakrooms = getCloakroomsForCity('mumbai');
     expect(bomCloakrooms.some((c) => c.name.includes('CSMT'))).toBe(true);
+
+    const ccuCloakrooms = getCloakroomsForCity('kolkata');
+    expect(ccuCloakrooms.some((c) => c.name.includes('Howrah'))).toBe(true);
+
+    const hydCloakrooms = getCloakroomsForCity('hyderabad');
+    expect(hydCloakrooms.some((c) => c.name.includes('Secunderabad'))).toBe(true);
+
+    const maaCloakrooms = getCloakroomsForCity('chennai');
+    expect(maaCloakrooms.some((c) => c.name.includes('Central'))).toBe(true);
   });
 
   test('Audit 7: BMTC Bus routes match real Bengaluru corridors', () => {
@@ -134,8 +203,15 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
   });
 
   test('Audit 8: All restaurants have realistic pricing tiers, images and operational hours', () => {
-    const allRestaurants = [...RESTAURANTS, ...DELHI_RESTAURANTS, ...MUMBAI_RESTAURANTS];
-    expect(allRestaurants.length).toBeGreaterThanOrEqual(70);
+    const allRestaurants = [
+      ...RESTAURANTS,
+      ...DELHI_RESTAURANTS,
+      ...MUMBAI_RESTAURANTS,
+      ...KOLKATA_RESTAURANTS,
+      ...HYDERABAD_RESTAURANTS,
+      ...CHENNAI_RESTAURANTS,
+    ];
+    expect(allRestaurants.length).toBeGreaterThanOrEqual(100);
 
     allRestaurants.forEach((r) => {
       // Rating 3.5 to 5.0
@@ -191,6 +267,21 @@ describe('Data Accuracy & Authenticity Comprehensive Audit', () => {
     const mum = calculateDynamicFareMatrix(4000, noon, { cityId: 'mumbai', roadMeters: 5000 });
     expect(mum.providers.rtoMeter.fare).toBe(Math.round(27 + 3.5 * 18.22));
     expect(mum.providers.cab.fare).toBe(Math.round(33 + 3.5 * 21.9));
+
+    // Kolkata auto ₹30 first 2 km + ₹15/km; taxi ₹30 first 2 km + ₹15/km (WB Gazette)
+    const ccu = calculateDynamicFareMatrix(4000, noon, { cityId: 'kolkata', roadMeters: 5000 });
+    expect(ccu.providers.rtoMeter.fare).toBe(Math.round(30 + 3 * 15));
+    expect(ccu.providers.cab.fare).toBe(Math.round(30 + 3 * 15));
+
+    // Hyderabad auto ₹30 first 1.5 km + ₹15/km; cab ₹50 first 2 km + ₹18/km
+    const hyd = calculateDynamicFareMatrix(4000, noon, { cityId: 'hyderabad', roadMeters: 5000 });
+    expect(hyd.providers.rtoMeter.fare).toBe(Math.round(30 + 3.5 * 15));
+    expect(hyd.providers.cab.fare).toBe(Math.round(50 + 3 * 18));
+
+    // Chennai auto ₹25 first 1.8 km + ₹12/km; cab ₹60 first 3 km + ₹16/km
+    const maa = calculateDynamicFareMatrix(4000, noon, { cityId: 'chennai', roadMeters: 5000 });
+    expect(maa.providers.rtoMeter.fare).toBe(Math.round(25 + 3.2 * 12));
+    expect(maa.providers.cab.fare).toBe(Math.round(60 + 2 * 16));
 
     // Unpublished prices are never invented
     expect(blr3.providers.appAuto.fare).toBeNull();

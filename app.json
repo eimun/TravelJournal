@@ -23,7 +23,10 @@
     "android": {
       "package": "app.travelbuddy.companion",
       "versionCode": 1,
-      "minSdkVersion": 30,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#f5ead8",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -38,7 +41,18 @@
       "expo-font",
       "expo-splash-screen",
       "expo-sqlite",
-      "expo-sharing"
-    ]
+      "expo-sharing",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "googleMapsConfigured": false,
+      "eas": {
+        "projectId": "40e5a640-036b-42ff-91f5-00428c04125e"
+      }
+    },
+    "experiments": {
+      "baseUrl": "/TravelJournal"
+    },
+    "owner": "eimun"
   }
 }
