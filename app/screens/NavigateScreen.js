@@ -879,7 +879,11 @@ export default function NavigateScreen({ contentPadding }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.wideRightContent}
         >
-          <RouteDetailSheet route={activeRoute} onFocusMap={() => {}} />
+          <RouteDetailSheet
+            route={activeRoute}
+            onFocusMap={() => {}}
+            onOpenSafetyPing={() => setShowSafetyModal(true)}
+          />
         </ScrollView>
 
         {/* Station Blueprint Modal (Wide Screen - Bengaluru only) */}
@@ -896,7 +900,11 @@ export default function NavigateScreen({ contentPadding }) {
         <CloakroomModal visible={showCloakroom} onClose={() => setShowCloakroom(false)} />
 
         {/* Safety Ping Modal (Wide Screen) */}
-        <SafetyPingModal visible={showSafetyModal} onClose={() => setShowSafetyModal(false)} />
+        <SafetyPingModal
+          visible={showSafetyModal}
+          onClose={() => setShowSafetyModal(false)}
+          route={activeRoute}
+        />
       </View>
     );
   }
@@ -1069,7 +1077,11 @@ export default function NavigateScreen({ contentPadding }) {
 
           {/* Step-by-Step Route Card & Advisories (bottom sheet) */}
           {activeRoute && (
-            <RouteDetailSheet route={activeRoute} onFocusMap={scrollToMap} />
+            <RouteDetailSheet
+              route={activeRoute}
+              onFocusMap={scrollToMap}
+              onOpenSafetyPing={() => setShowSafetyModal(true)}
+            />
           )}
         </ScrollView>
       </Animated.View>
@@ -1088,7 +1100,11 @@ export default function NavigateScreen({ contentPadding }) {
       <CloakroomModal visible={showCloakroom} onClose={() => setShowCloakroom(false)} />
 
       {/* Safety Ping Modal (Mobile Screen) */}
-      <SafetyPingModal visible={showSafetyModal} onClose={() => setShowSafetyModal(false)} />
+      <SafetyPingModal
+        visible={showSafetyModal}
+        onClose={() => setShowSafetyModal(false)}
+        route={activeRoute}
+      />
     </View>
   );
 }

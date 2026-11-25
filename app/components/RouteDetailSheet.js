@@ -8,7 +8,7 @@ import ConnectingLegSelector from './ConnectingLegSelector';
 import StationBlueprintModal from './StationBlueprintModal';
 import SafetyPingModal from './SafetyPingModal';
 
-export default function RouteDetailSheet({ route, onFocusMap }) {
+export default function RouteDetailSheet({ route, onFocusMap, onOpenSafetyPing }) {
   const {
     fireToast,
     activeStepIndex,
@@ -161,7 +161,13 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         </Pressable>
 
         <Pressable
-          onPress={() => setShowSafetyModal(true)}
+          onPress={() => {
+            if (onOpenSafetyPing) {
+              onOpenSafetyPing();
+            } else {
+              setShowSafetyModal(true);
+            }
+          }}
           style={({ pressed }) => [styles.safetyPillBtn, pressed && { opacity: 0.85 }]}
         >
           <Text style={styles.safetyPillEmoji}>🛡️</Text>
@@ -582,16 +588,18 @@ export default function RouteDetailSheet({ route, onFocusMap }) {
         />
       )}
 
-      {/* 1-Tap Family Safety Ping Modal */}
-      <SafetyPingModal
-        visible={showSafetyModal}
-        onClose={() => setShowSafetyModal(false)}
-        route={route}
-        currentStation={safetyStation}
-        gate={safetyGate}
-        lineName={safetyLine}
-        towards={safetyTowards}
-      />
+      {/* 1-Tap Family Safety Ping Modal (Fallback if not handled by parent screen) */}
+      {!onOpenSafetyPing && (
+        <SafetyPingModal
+          visible={showSafetyModal}
+          onClose={() => setShowSafetyModal(false)}
+          route={route}
+          currentStation={safetyStation}
+          gate={safetyGate}
+          lineName={safetyLine}
+          towards={safetyTowards}
+        />
+      )}
     </View>
   );
 }

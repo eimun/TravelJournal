@@ -18,24 +18,39 @@ export default function SafetyPingModal({
   visible,
   onClose,
   route,
-  currentStation = 'Bengaluru Transit Hub',
-  gate = 'Gate 1',
-  lineName = 'Purple Line Metro',
-  towards = 'Towards Vidhana Soudha',
+  currentStation,
+  gate,
+  lineName,
+  towards,
 }) {
   const { fireToast } = useTrip();
   const [recipient, setRecipient] = useState('Mummy / Papa');
 
   if (!visible) return null;
 
+  const metroStep = route?.steps?.find((s) => s.type === 'metro') || route?.steps?.[0];
+  const effectiveStation =
+    currentStation ||
+    metroStep?.platformInfo?.originStationName ||
+    route?.originName ||
+    'Bengaluru Transit Hub';
+  const effectiveGate =
+    gate || metroStep?.platformInfo?.entryGate || 'Gate 1';
+  const effectiveLine =
+    lineName ||
+    (metroStep?.line === 'green' ? 'Green Line Metro' : 'Purple Line Metro');
+  const effectiveTowards =
+    towards ||
+    metroStep?.platformInfo?.towards ||
+    (route?.destinationName ? `Towards ${route.destinationName}` : 'Towards Vidhana Soudha');
   const destination = route?.destinationName || 'Destination';
   const etaMinutes = route?.totalDurationMinutes || 25;
 
   const safetyMessage = generateSafetyMessage({
-    currentStation,
-    gate,
-    lineName,
-    towards,
+    currentStation: effectiveStation,
+    gate: effectiveGate,
+    lineName: effectiveLine,
+    towards: effectiveTowards,
     destination,
     etaMinutes,
     recipient,
