@@ -26,7 +26,6 @@ import MobileDeviceFrame from './app/components/MobileDeviceFrame';
 import { TripProvider, useTrip } from './src/context/TripContext';
 import { openDatabase } from './src/db';
 import { seedBengaluruPack } from './src/db/seed';
-import DiagnosticsModal from './app/components/DiagnosticsModal';
 import ErrorBoundary from './src/logging/ErrorBoundary';
 import { FEATURES, log, reportIssue, serializeError, setupLogging } from './src/logging';
 
@@ -121,9 +120,6 @@ function Shell() {
         visible={isCitySwitcherOpen}
         onClose={closeCitySwitcher}
       />
-
-      {/* Diagnostics & logs (Guide tab → 🐞 Logs, or long-press the Guide tab) */}
-      <DiagnosticsModal />
 
       {/* Popup Notification Toast */}
       <BengaluruToast toast={toast} topInset={insets.top} />

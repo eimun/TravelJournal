@@ -54,12 +54,14 @@ export async function withTransaction(callback) {
   const db = await openDatabase();
   if (Platform.OS === 'web' || typeof db.withExclusiveTransactionAsync !== 'function') {
     if (typeof db.withTransactionAsync === 'function') {
-      return await db.withTransactionAsync(callback);
+      return await db.withTransactionAsync(async () => {
+        return await callback(db);
+      });
     }
     return await callback(db);
   }
   return await db.withExclusiveTransactionAsync(async (tx) => {
-    return await callback(tx);
+    return await callback(tx || db);
   });
 }
 

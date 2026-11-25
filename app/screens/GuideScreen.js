@@ -16,8 +16,6 @@ import { getRestaurantsForCity } from '../data/cityPlacesData';
 import CircularProgress from '../components/CircularProgress';
 import CloakroomModal from '../components/CloakroomModal';
 import SafetyPingModal from '../components/SafetyPingModal';
-import { openDiagnostics } from '../../src/logging/diagnosticsBus';
-import { useIssueCounts } from '../../src/logging/useIssueCounts';
 
 const DEFAULT_PHRASES = [
   { phrase: 'Meter haaki', english: 'Please put the meter on', context: 'When boarding an auto' },
@@ -99,7 +97,6 @@ export default function GuideScreen({ contentPadding }) {
     selectDestination,
     setTab,
   } = useTrip();
-  const issueCounts = useIssueCounts();
 
   // Chapters: 'heritage' (Ch 1) | 'transit' (Ch 2) | 'food' (Ch 3) | 'districts' (Ch 4) | 'offline' (Ch 5)
   const [activeChapter, setActiveChapter] = useState('heritage');
@@ -239,24 +236,6 @@ export default function GuideScreen({ contentPadding }) {
           </View>
         </View>
       </View>
-
-      {/* Diagnostics / Logs bar */}
-      <Pressable
-        onPress={() => openDiagnostics('guide_button')}
-        style={({ pressed }) => [styles.logsPill, pressed && { opacity: 0.8 }]}
-      >
-        <Text style={styles.logsPillText}>🐞 Diagnostics & live logs</Text>
-        {issueCounts.major > 0 && (
-          <View style={styles.logsBadgeMajor}>
-            <Text style={styles.logsBadgeText}>{issueCounts.major} major</Text>
-          </View>
-        )}
-        {issueCounts.minor > 0 && (
-          <View style={styles.logsBadgeMinor}>
-            <Text style={styles.logsBadgeText}>{issueCounts.minor} minor</Text>
-          </View>
-        )}
-      </Pressable>
 
       {/* ─── CHAPTER SELECTOR TABS ───────────────────────────────────────── */}
       <View style={styles.chapterNavContainer}>
