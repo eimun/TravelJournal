@@ -918,7 +918,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
   }
 
   let frequency = 8;
-  let frequencyLabel = 'Regular frequency: every 8 mins';
+  let frequencyLabel = 'Every 8 mins';
 
   if (isDelhi) {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
@@ -929,7 +929,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
       frequencyLabel = 'Late evening: every 8 mins';
     } else {
       frequency = 5;
-      frequencyLabel = 'Regular frequency: every 5 mins';
+      frequencyLabel = 'Every 5 mins';
     }
   } else if (isMumbai) {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {
@@ -940,7 +940,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
       frequencyLabel = 'Night local: every 12 mins';
     } else {
       frequency = 6;
-      frequencyLabel = 'Regular frequency: every 6 mins';
+      frequencyLabel = 'Every 6 mins';
     }
   } else if (isKolkata) {
     if ((hour >= 9 && hour < 12) || (hour >= 17 && hour < 20)) {
@@ -951,7 +951,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
       frequencyLabel = 'Late evening: every 10 mins';
     } else {
       frequency = 7;
-      frequencyLabel = 'Regular frequency: every 7 mins';
+      frequencyLabel = 'Every 7 mins';
     }
   } else if (isHyderabad) {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 20)) {
@@ -962,7 +962,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
       frequencyLabel = 'Late evening: every 10 mins';
     } else {
       frequency = 7;
-      frequencyLabel = 'Regular frequency: every 7 mins';
+      frequencyLabel = 'Every 7 mins';
     }
   } else if (isChennai) {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 20)) {
@@ -973,7 +973,7 @@ export function getNextMetroDeparture(stationId, line = 'purple', targetDate = n
       frequencyLabel = 'Late evening: every 10 mins';
     } else {
       frequency = 7;
-      frequencyLabel = 'Regular frequency: every 7 mins';
+      frequencyLabel = 'Every 7 mins';
     }
   } else {
     if ((hour >= 8 && hour < 11) || (hour >= 17 && hour < 21)) {

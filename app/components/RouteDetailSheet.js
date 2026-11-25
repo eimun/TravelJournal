@@ -375,12 +375,18 @@ export default function RouteDetailSheet({ route, onFocusMap, onOpenSafetyPing }
                         <View style={styles.metroLiveTimingsHeader}>
                           <View style={styles.pulseLiveRow}>
                             <View style={styles.pulseGreenDot} />
-                            <Text style={styles.metroLiveTitle}>LIVE METRO TIMINGS TODAY</Text>
+                            <Text style={styles.metroLiveTitle} numberOfLines={1}>
+                              LIVE METRO TIMINGS
+                            </Text>
                           </View>
                           <View style={styles.metroFreqBadge}>
                             <Text style={styles.metroLiveFreq}>
-                              {step.nextDeparture.frequencyLabel ||
-                                `Every ${step.nextDeparture.frequencyMinutes || 5} min`}
+                              {(
+                                step.nextDeparture.frequencyLabel ||
+                                `Every ${step.nextDeparture.frequencyMinutes || 5} min`
+                              )
+                                .replace(/^Regular frequency:\s*/i, '')
+                                .replace(/^every\s+/i, 'Every ')}
                             </Text>
                           </View>
                         </View>
@@ -1410,14 +1416,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 10,
   },
   pulseLiveRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flexShrink: 1,
+    flexShrink: 0,
   },
   pulseGreenDot: {
     width: 8,
